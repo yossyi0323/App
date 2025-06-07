@@ -49,7 +49,7 @@ async function backupItems() {
   }
   const csvString = csvRows.join('\n');
   try {
-    writeFileSync('./data/bk_items.csv', csvString, 'utf-8');
+    writeFileSync('scripts/data/bk_items.csv', csvString, 'utf-8');
     console.log('バックアップ（bk_items.csv）作成完了');
   } catch (e) {
     console.error('バックアップ失敗:', e);
@@ -62,7 +62,7 @@ async function importItems() {
     // 事前バックアップ
     await backupItems();
     // CSVファイルの読み込み
-    const csvContent = readFileSync('./data/items.csv', 'utf-8');
+    const csvContent = readFileSync('scripts/data/items.csv', 'utf-8');
     const records: ItemRecord[] = parse(csvContent, {
       columns: true,
       skip_empty_lines: true
