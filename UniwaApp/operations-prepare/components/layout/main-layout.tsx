@@ -29,6 +29,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     { name: LABELS.MENU_HOME, icon: <Home className="h-5 w-5" />, path: '/' },
     { name: LABELS.INVENTORY_CHECK, icon: <Box className="h-5 w-5" />, path: '/inventory' },
     { name: LABELS.REPLENISHMENT, icon: <Truck className="h-5 w-5" />, path: '/replenishment' },
+    { name: LABELS.CREATION, icon: <PlusCircle className="h-5 w-5" />, path: '/creation' },
     { name: LABELS.ORDER_REQUEST, icon: <ShoppingCart className="h-5 w-5" />, path: '/order' },
     { name: LABELS.STATUS_LIST, icon: <Clipboard className="h-5 w-5" />, path: '/status' },
   ];

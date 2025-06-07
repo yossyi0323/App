@@ -17,11 +17,11 @@ import isEmpty from 'lodash/isEmpty';
 import { PREPARATION_PATTERN } from '@/lib/schemas/enums/preparation-pattern';
 import { Button } from '@/components/ui/button';
 
-interface ReplenishItemCardProps {
+interface CreationItemCardProps {
   item: Item;
   date: string;
   currentStock: number;
-  restockAmount: number;
+  replenishmentCount: number;
   replenishmentStatus: EnumCode<typeof REPLENISHMENT_STATUS>;
   preparationStatus: EnumCode<typeof PREPARATION_STATUS>;
   orderStatus: EnumCode<typeof ORDER_REQUEST_STATUS>;
@@ -29,19 +29,19 @@ interface ReplenishItemCardProps {
   isChecked: boolean;
   patternType?: EnumCode<typeof PREPARATION_PATTERN>;
   onStockChange: (value: number) => void;
-  onRestockChange: (value: number) => void;
+  onReplenishmentCountChange: (value: number) => void;
   onMemoChange: (value: string) => void;
   onCheckChange: (value: boolean) => void;
   onNeedsRestockChange: (value: boolean) => void;
-  onOrderRequest: () => void;
+  onOrderRequest: (checked: boolean) => void;
   onPreparationStatusChange: (value: EnumCode<typeof PREPARATION_STATUS>) => void;
 }
 
-export function ReplenishItemCard(
+export function CreationItemCard(
   { 
     item,
     currentStock, 
-    restockAmount, 
+    replenishmentCount, 
     preparationStatus, 
     orderStatus, 
     memo, 
@@ -50,8 +50,10 @@ export function ReplenishItemCard(
     onMemoChange, 
     onOrderRequest, 
     onPreparationStatusChange,
-    onNeedsRestockChange
-  }: ReplenishItemCardProps) {
+    onNeedsRestockChange,
+    onStockChange,
+    onReplenishmentCountChange
+  }: CreationItemCardProps) {
   // メモ欄を開くべきかの判定ロジックを関数化
   const getShouldOpenMemo = () =>
     isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED') ||
@@ -71,6 +73,7 @@ export function ReplenishItemCard(
     : '';
 
   const isNeedsRestock = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
+  const isOrderRequested = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUESTED');
 
   return (
     <Card className="mb-3 overflow-hidden relative bg-background">
@@ -85,9 +88,9 @@ export function ReplenishItemCard(
                   {LABELS.CURRENT_STOCK}{SYMBOLS.COLON}{currentStock}
                 </Badge>
               ) : null}
-              {restockAmount ? (
+              {replenishmentCount ? (
                 <Badge variant="default" className="text-xs font-normal px-2 py-0.5 align-middle">
-                  {LABELS.REPLENISHMENT_COUNT}{SYMBOLS.COLON}{restockAmount}
+                  {LABELS.REPLENISHMENT_COUNT}{SYMBOLS.COLON}{replenishmentCount}
                 </Badge>
               ) : null}
             </span>
@@ -137,7 +140,7 @@ export function ReplenishItemCard(
             {/* 発注依頼チェックボックス（縦並び・中央揃え） */}
             <div className="flex flex-col items-center flex-shrink-0 gap-1">
               <label className="text-xs">{LABELS.ORDER}</label>
-              <Checkbox checked={isOrderRequired} onCheckedChange={onOrderRequest} className="h-5 w-5" />
+              <Checkbox checked={isOrderRequested} onCheckedChange={onOrderRequest} className="h-5 w-5" />
             </div>
             <div className="flex flex-col flex-1">
               <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">{LABELS.MEMO}</label>

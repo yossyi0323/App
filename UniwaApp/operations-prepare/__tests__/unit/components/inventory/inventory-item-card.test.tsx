@@ -29,7 +29,7 @@ describe('InventoryItemCard', () => {
     render(<InventoryItemCard {...defaultProps} />);
     expect(screen.getByText('テスト商品')).toBeInTheDocument();
     expect(screen.getByLabelText(LABELS.CURRENT_STOCK)).toBeInTheDocument();
-    expect(screen.getByLabelText(LABELS.RESTOCK_AMOUNT)).toBeInTheDocument();
+    expect(screen.getByLabelText(LABELS.REPLENISHMENT_COUNT)).toBeInTheDocument();
   });
 
   it('在庫数入力が正しく動作する', () => {
@@ -51,7 +51,7 @@ describe('InventoryItemCard', () => {
 
   it('補充数入力が正しく動作する', () => {
     render(<InventoryItemCard {...defaultProps} />);
-    const input = screen.getByLabelText(LABELS.RESTOCK_AMOUNT);
+    const input = screen.getByLabelText(LABELS.REPLENISHMENT_COUNT);
 
     // 正の値を入力
     fireEvent.change(input, { target: { value: '5' } });
@@ -96,7 +96,7 @@ describe('InventoryItemCard', () => {
     render(<InventoryItemCard {...defaultProps} replenishmentStatus="restocked" />);
     
     const stockInput = screen.getByLabelText(LABELS.CURRENT_STOCK);
-    const restockInput = screen.getByLabelText(LABELS.RESTOCK_AMOUNT);
+    const restockInput = screen.getByLabelText(LABELS.REPLENISHMENT_COUNT);
     const switchElement = screen.getByRole('switch');
     
     expect(stockInput).toBeDisabled();

@@ -68,6 +68,20 @@ async function importItems() {
       skip_empty_lines: true
     });
 
+    // 品物名の重複チェック
+    const nameCounts = records.reduce((acc, r) => {
+      acc[r.品物名] = (acc[r.品物名] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const duplicates = Object.entries(nameCounts).filter(([_, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.error('CSV内で品物名が重複しています:');
+      duplicates.forEach(([name, count]) => {
+        console.error(`  ${name} : ${count}件`);
+      });
+      process.exit(1);
+    }
+
     // 場所名からIDのマッピングを取得
     const { data: places, error: placesError } = await supabase
       .from('place')
