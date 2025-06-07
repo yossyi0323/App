@@ -94,16 +94,17 @@ export function ReplenishItemCard(
           </div>
           {/* 右端：トグルボタン＋メモトグル */}
           <div className="flex-shrink-0 ml-2 flex items-center gap-2">
-            {/* トグルボタン（要補充 or 要作成セレクト） */}
-            {patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE') ? (
-              <Button
-                variant={isNeedsRestock ? "default" : "outline"}
-                className="w-[90px] h-7 px-3 text-sm rounded-md"
-                onClick={() => onNeedsRestockChange(!isNeedsRestock)}
-              >
-                {getDisplayName(REPLENISHMENT_STATUS, isNeedsRestock ? 'REQUIRED' : 'COMPLETED')}
-              </Button>
-            ) : patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION') ? (
+            {/* 補充済チェックボックス */}
+            {patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE') && (
+              <div className="flex items-center gap-1">
+                <Checkbox
+                  checked={!isNeedsRestock}
+                  onCheckedChange={checked => onNeedsRestockChange(!checked)}
+                  className="h-5 w-5"
+                />
+              </div>
+            )}
+            {patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION') && (
               <Select value={preparationStatus} onValueChange={onPreparationStatusChange}>
                 <SelectTrigger className={`
                   w-[90px] h-7 px-3 text-sm rounded-md border border-input bg-background 
@@ -117,7 +118,7 @@ export function ReplenishItemCard(
                   <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'COMPLETED')}>{getDisplayName(PREPARATION_STATUS, 'COMPLETED')}</SelectItem>
                 </SelectContent>
               </Select>
-            ) : null}
+            )}
             {/* メモトグル */}
             <button
               type="button"

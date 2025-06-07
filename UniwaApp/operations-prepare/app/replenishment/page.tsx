@@ -6,7 +6,7 @@ import { PlaceSelector } from '@/components/inventory/place-selector';
 import { getPlaces, getItemsBySource, getInventoryStatusByDate, saveInventoryStatusesBulk } from '@/lib/db-service';
 import type { Place, InventoryStatus, InventoryStatusViewModel } from '@/lib/types';
 import { PLACE_TYPE } from '@/lib/schemas/enums/place-type';
-import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName } from '@/lib/utils/enum-utils';
+import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName } from '@/lib/utils/enum-utils';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
 import { REPLENISHMENT_STATUS } from '@/lib/schemas/enums/replenishment-status';
 import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
@@ -21,6 +21,7 @@ import { InventoryItemCard } from '@/components/inventory/inventory-item-card';
 import { ReplenishItemCard } from '@/components/replenishment/replenish-item-card';
 import { toEnumCode } from '@/lib/utils/enum-utils';
 import { PREPARATION_PATTERN } from '@/lib/schemas/enums/preparation-pattern';
+import { Badge } from '@/components/ui/badge';
 
 export default function ReplenishmentPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -124,6 +125,45 @@ export default function ReplenishmentPage() {
         </div>
       ) : (
         <div>
+          {/* ヘッダー行 */}
+          {(() => {
+            // 件数集計
+            const filtered = items.filter(vm => {
+              const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
+              const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
+              const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+              const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
+              const isTargetStatus =
+                isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
+                isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
+              return isMove && isTargetStatus;
+            });
+            const countRequired = filtered.filter(vm => {
+              const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+              const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
+              return isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
+            }).length;
+            const countCompleted = filtered.filter(vm => {
+              const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+              const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
+              return isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
+            }).length;
+            const labelCompleted = getDisplayName(REPLENISHMENT_STATUS, 'COMPLETED');
+            const allCompleted = (countCompleted === filtered.length && filtered.length > 0) || filtered.length === 0;
+            return (
+              <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2 justify-between">
+                <div className="flex gap-2 ml-2">
+                  <Badge
+                    variant={allCompleted ? "secondary" : "default"}
+                    className="text-xs font-normal px-2 py-0.5 align-middle"
+                  >
+                    {labelCompleted}：{countCompleted}/{filtered.length}
+                  </Badge>
+                </div>
+                <span className="text-xs mr-10">{LABELS.REPLENISHMENT}</span>
+              </div>
+            );
+          })()}
           {items
             .filter(vm => {
               // 補充パターン区分が「移動」
