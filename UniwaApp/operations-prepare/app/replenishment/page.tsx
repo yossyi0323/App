@@ -124,47 +124,60 @@ export default function ReplenishmentPage() {
         </div>
       ) : (
         <div>
-          {items.map(vm => {
-            const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
-            return (
-              <ReplenishItemCard
-                key={vm.item.item_id}
-                item={vm.item}
-                date={selectedDate.toISOString().split('T')[0]}
-                currentStock={status.current_stock}
-                restockAmount={status.replenishment_count}
-                replenishmentStatus={getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status))}
-                preparationStatus={getCodeAsEnumCode(PREPARATION_STATUS, getLogicalName(PREPARATION_STATUS, status.preparation_status))}
-                orderStatus={getCodeAsEnumCode(ORDER_REQUEST_STATUS, getLogicalName(ORDER_REQUEST_STATUS, status.order_status))}
-                memo={status.memo}
-                isChecked={isEnumCode(INVENTORY_STATUS, status.check_status, 'CONFIRMED')}
-                patternType={vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined}
-                onStockChange={v => handleItemStatusChange(vm.item.item_id, 'current_stock', v)}
-                onRestockChange={v => handleItemStatusChange(vm.item.item_id, 'replenishment_count', v)}
-                onMemoChange={v => handleItemStatusChange(vm.item.item_id, 'memo', v)}
-                onCheckChange={v => handleItemStatusChange(
-                  vm.item.item_id, 
-                  'check_status', 
-                  v 
-                    ? getCodeAsEnumCode(INVENTORY_STATUS, 'CONFIRMED') 
-                    : getCodeAsEnumCode(INVENTORY_STATUS, 'UNCONFIRMED'))}
-                onOrderRequest={() => handleItemStatusChange(
-                  vm.item.item_id, 
-                  'order_status', 
-                  isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED') 
-                    ? getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'REQUIRED') 
-                    : getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED'))}
-                onPreparationStatusChange={v => handleItemStatusChange(vm.item.item_id, 'preparation_status', v)}
-                onNeedsRestockChange={v => handleItemStatusChange(
-                  vm.item.item_id,
-                  'replenishment_status',
-                  v
-                    ? getCodeAsEnumCode(REPLENISHMENT_STATUS, 'REQUIRED')
-                    : getCodeAsEnumCode(REPLENISHMENT_STATUS, 'COMPLETED')
-                )}
-              />
-            );
-          })}
+          {items
+            .filter(vm => {
+              // 補充パターン区分が「移動」
+              const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
+              const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
+              // 補充ステータスが「要補充」または「補充済」
+              const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+              const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
+              const isTargetStatus =
+                isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
+                isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
+              return isMove && isTargetStatus;
+            })
+            .map(vm => {
+              const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+              return (
+                <ReplenishItemCard
+                  key={vm.item.item_id}
+                  item={vm.item}
+                  date={selectedDate.toISOString().split('T')[0]}
+                  currentStock={status.current_stock}
+                  restockAmount={status.replenishment_count}
+                  replenishmentStatus={getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status))}
+                  preparationStatus={getCodeAsEnumCode(PREPARATION_STATUS, getLogicalName(PREPARATION_STATUS, status.preparation_status))}
+                  orderStatus={getCodeAsEnumCode(ORDER_REQUEST_STATUS, getLogicalName(ORDER_REQUEST_STATUS, status.order_status))}
+                  memo={status.memo}
+                  isChecked={isEnumCode(INVENTORY_STATUS, status.check_status, 'CONFIRMED')}
+                  patternType={vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined}
+                  onStockChange={v => handleItemStatusChange(vm.item.item_id, 'current_stock', v)}
+                  onRestockChange={v => handleItemStatusChange(vm.item.item_id, 'replenishment_count', v)}
+                  onMemoChange={v => handleItemStatusChange(vm.item.item_id, 'memo', v)}
+                  onCheckChange={v => handleItemStatusChange(
+                    vm.item.item_id, 
+                    'check_status', 
+                    v 
+                      ? getCodeAsEnumCode(INVENTORY_STATUS, 'CONFIRMED') 
+                      : getCodeAsEnumCode(INVENTORY_STATUS, 'UNCONFIRMED'))}
+                  onOrderRequest={() => handleItemStatusChange(
+                    vm.item.item_id, 
+                    'order_status', 
+                    isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED') 
+                      ? getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'REQUIRED') 
+                      : getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED'))}
+                  onPreparationStatusChange={v => handleItemStatusChange(vm.item.item_id, 'preparation_status', v)}
+                  onNeedsRestockChange={v => handleItemStatusChange(
+                    vm.item.item_id,
+                    'replenishment_status',
+                    v
+                      ? getCodeAsEnumCode(REPLENISHMENT_STATUS, 'REQUIRED')
+                      : getCodeAsEnumCode(REPLENISHMENT_STATUS, 'COMPLETED')
+                  )}
+                />
+              );
+            })}
         </div>
       )}
     </div>
