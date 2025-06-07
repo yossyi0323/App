@@ -1,0 +1,15 @@
+# デフォルトの改行コードをLFに設定
+* text=auto eol=lf
+
+# Windows用の設定
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+*.{ps1,[pP][sS]1} text eol=crlf
+
+# バイナリファイルは改行コードの変換をしない
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.pdf binary 
