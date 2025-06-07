@@ -6,6 +6,7 @@ import { StatusOverview } from '@/components/status/status-overview';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getItems, getInventoryStatusByDate } from '@/lib/db-service';
 import type { Item, InventoryStatus } from '@/lib/types';
+import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 
 export default function StatusPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -36,7 +37,7 @@ export default function StatusPage() {
   useEffect(() => {
     async function loadInventoryStatuses() {
       try {
-        const dateString = selectedDate.toISOString().split('T')[0];
+        const dateString = getDateFromDateTime(selectedDate);
         const { data, error } = await getInventoryStatusByDate(dateString);
         if (error) throw error;
         
@@ -73,7 +74,7 @@ export default function StatusPage() {
         </div>
       ) : (
         <StatusOverview
-          date={selectedDate.toISOString().split('T')[0]}
+          date={getDateFromDateTime(selectedDate)}
           items={items}
           inventoryStatuses={inventoryStatuses}
         />

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { getItems } from '@/lib/db-service';
 import { saveBatchInventoryStatuses } from '@/lib/local-storage';
 import type { Item, InventoryStatus } from '@/lib/types';
+import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 
 export default function OrderPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -40,7 +41,7 @@ export default function OrderPage() {
   const handleMarkAllOrdered = () => {
     if (!items.length) return;
     
-    const dateString = selectedDate.toISOString().split('T')[0];
+    const dateString = getDateFromDateTime(selectedDate);
     const updatedStatuses: InventoryStatus[] = items.map(item => ({
       date: dateString,
       itemId: item.id,
@@ -93,7 +94,7 @@ export default function OrderPage() {
             <OrderItemCard
               key={item.id}
               item={item}
-              date={selectedDate.toISOString().split('T')[0]}
+              date={getDateFromDateTime(selectedDate)}
             />
           ))}
         </div>

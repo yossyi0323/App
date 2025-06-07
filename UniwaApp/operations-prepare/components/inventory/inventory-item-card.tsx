@@ -36,7 +36,7 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
 
   // 区分値→UI用boolean変換
   const isRestocked = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
-  const isNeedsRestock = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
+  const isNeedsRestock = !isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'NOT_REQUIRED');
 
   const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === '' ? 0 : Number(e.target.value);
@@ -67,6 +67,7 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
             checked={isChecked}
             onCheckedChange={onCheckChange}
             className="h-5 w-5" 
+            disabled={isRestocked}
           />
           {/* 品物名 */}
           <span className="flex-1 text-sm font-medium break-words min-w-[120px]">{item.item_name}</span>
@@ -103,7 +104,6 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
                 min={0}
                 className="h-9 w-full text-right text-base"
                 placeholder={NUMBER_PLACEHOLDER.STOCK}
-                disabled={isRestocked}
               />
             </div>
             <div className="flex flex-col flex-1">
@@ -116,7 +116,6 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
                 min={0}
                 className="h-9 w-full text-right text-base"
                 placeholder={NUMBER_PLACEHOLDER.RESTOCK}
-                disabled={isRestocked}
               />
             </div>
           </div>

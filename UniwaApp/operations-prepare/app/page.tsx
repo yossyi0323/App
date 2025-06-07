@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { ReservationForm } from '@/components/reservation/reservation-form';
 import { DateSelector } from '@/components/date-selector';
+import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 
 export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -34,7 +35,7 @@ export default function Home() {
       <DateSelector date={selectedDate} onDateChange={handleDateChange} />
       
       <div className="grid gap-4">
-        <ReservationForm date={selectedDate.toISOString().split('T')[0]} />
+        <ReservationForm date={getDateFromDateTime(selectedDate)} />
         
         <Card>
           <CardHeader className="pb-2">
