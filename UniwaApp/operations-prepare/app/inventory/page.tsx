@@ -15,14 +15,14 @@ import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
 import { REPLENISHMENT_STATUS } from '@/lib/schemas/enums/replenishment-status';
 import { MdCheck, MdCheckCircle } from 'react-icons/md';
 import type { EnumCode } from '@/lib/utils/enum-utils';
-import { AutoSaveManager } from '@/lib/utils/auto-save-utils';
-import { getDirtyInventoryStatuses, createInventoryStatusFromViewModel } from '@/lib/utils/inventory-status-utils';
+import { useInventoryAutoSave, getDirtyInventoryStatuses, createInventoryStatusFromViewModel, updateViewModels } from '@/lib/utils/inventory-status-utils';
 import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
-import { AUTOSAVE } from '@/lib/constants/constants';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { toEnumCode } from '@/lib/utils/enum-utils';
 import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
+import { STORAGE_KEY_PREFIX } from '@/lib/constants/constants';
+import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -96,9 +96,13 @@ export default function InventoryPage() {
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const itemsRef = useRef<InventoryStatusViewModel[]>([]);
-  useEffect(() => { itemsRef.current = items; }, [items]);
-  const autoSaveRef = useRef<AutoSaveManager | null>(null);
+  const autoSaveRef = useInventoryAutoSave({
+    items,
+    selectedPlaceId,
+    selectedDate,
+    setError,
+    storageKeyPrefix: STORAGE_KEY_PREFIX.INVENTORY,
+  });
   
   // 初期表示時に場所一覧を読み込む
   useEffect(() => {
@@ -139,7 +143,7 @@ export default function InventoryPage() {
         if (itemsError) throw itemsError;
         
         // 在庫ステータスを取得
-        const date = selectedDate.toISOString().split('T')[0];
+        const date = getDateFromDateTime(selectedDate);
         const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
         if (statusError) throw statusError;
         
@@ -160,41 +164,6 @@ export default function InventoryPage() {
     loadItems();
   }, [selectedPlaceId, selectedDate]);
   
-  // AutoSaveManagerの初期化
-  useEffect(() => {
-    if (!selectedPlaceId || !selectedDate) return;
-
-    const storageKey = `inventory_${selectedDate.toISOString().split('T')[0]}_${selectedPlaceId}`;
-    autoSaveRef.current = new AutoSaveManager({
-      getData: () => itemsRef.current
-        .map(vm => vm.status)
-        .filter((status): status is InventoryStatus => !!status),
-      saveData: async (dirtyStatuses) => {
-        await saveInventoryStatusesBulk(dirtyStatuses);
-      },
-      getDirtyItems: getDirtyInventoryStatuses,
-      storageKey,
-      initialData: [],
-      debounceMs: AUTOSAVE.DEBOUNCE_MS
-    });
-
-    // オフライン復帰時の再送信
-    const handleOnline = () => {
-      autoSaveRef.current?.retryFailedSaves();
-    };
-    window.addEventListener('online', handleOnline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      autoSaveRef.current = null; // クリーンアップ時にnullに設定
-    };
-  }, [selectedPlaceId, selectedDate]);
-  
-  // itemsの変更を監視して自動保存をトリガー
-  useEffect(() => {
-    if (!autoSaveRef.current) return;
-    autoSaveRef.current.markDirty();
-  }, [items]);
-
   // バリデーション例（業務日付・補充先必須）
   useEffect(() => {
     if (!selectedDate) setError($msg(ERROR.E10010, LABELS.BUSINESS_DATE));
@@ -301,7 +270,7 @@ export default function InventoryPage() {
                 <InventoryItemCard
                   key={viewModel.item.item_id}
                   item={viewModel.item}
-                  date={selectedDate.toISOString().split('T')[0]}
+                  date={getDateFromDateTime(selectedDate)}
                   currentStock={status.current_stock}
                   restockAmount={status.replenishment_count}
                   replenishmentStatus={toEnumCode(REPLENISHMENT_STATUS, status.replenishment_status)}

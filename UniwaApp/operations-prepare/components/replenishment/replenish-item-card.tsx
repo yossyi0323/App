@@ -86,7 +86,7 @@ export function ReplenishItemCard(
                 </Badge>
               ) : null}
               {restockAmount ? (
-                <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5 align-middle">
+                <Badge variant="default" className="text-xs font-normal px-2 py-0.5 align-middle">
                   {LABELS.RESTOCK_AMOUNT}{SYMBOLS.COLON}{restockAmount}
                 </Badge>
               ) : null}
