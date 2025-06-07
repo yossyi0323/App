@@ -26,14 +26,14 @@ describe('InventoryItemCard', () => {
   it('初期表示で値が正しい', () => {
     render(<InventoryItemCard {...baseProps} />);
     expect(screen.getByLabelText(LABELS.CURRENT_STOCK)).toHaveValue(0);
-    expect(screen.getByLabelText(LABELS.RESTOCK_AMOUNT)).toHaveValue(0);
+    expect(screen.getByLabelText(LABELS.REPLENISHMENT_COUNT)).toHaveValue(0);
     expect(screen.getByText(LABELS.NO_RESTOCK)).toBeInTheDocument();
   });
 
   it('補充済みなら全て非活性', () => {
     render(<InventoryItemCard {...baseProps} replenishmentStatus="restocked" />);
     expect(screen.getByLabelText(LABELS.CURRENT_STOCK)).toBeDisabled();
-    expect(screen.getByLabelText(LABELS.RESTOCK_AMOUNT)).toBeDisabled();
+    expect(screen.getByLabelText(LABELS.REPLENISHMENT_COUNT)).toBeDisabled();
     expect(screen.getByText(LABELS.NEEDS_RESTOCK)).toBeInTheDocument();
   });
 

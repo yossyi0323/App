@@ -107,7 +107,7 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
               />
             </div>
             <div className="flex flex-col flex-1">
-              <label htmlFor={`restock-${item.item_id}`} className={`text-xs ${textGray}`}>{LABELS.RESTOCK_AMOUNT}</label>
+              <label htmlFor={`restock-${item.item_id}`} className={`text-xs ${textGray}`}>{LABELS.REPLENISHMENT_COUNT}</label>
               <Input
                 id={`restock-${item.item_id}`}
                 type="number"

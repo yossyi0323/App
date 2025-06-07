@@ -1,33 +1,29 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { PlaceSelector } from '@/components/inventory/place-selector';
 import { getPlaces, getItemsBySource, getInventoryStatusByDate, saveInventoryStatusesBulk } from '@/lib/db-service';
-import type { Place, InventoryStatus, InventoryStatusViewModel } from '@/lib/types';
+import type { Place, InventoryStatus, InventoryStatusViewModel, Item } from '@/lib/types';
 import { PLACE_TYPE } from '@/lib/schemas/enums/place-type';
-import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName } from '@/lib/utils/enum-utils';
+import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName, toEnumCode } from '@/lib/utils/enum-utils';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
 import { REPLENISHMENT_STATUS } from '@/lib/schemas/enums/replenishment-status';
 import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
 import { ORDER_REQUEST_STATUS } from '@/lib/schemas/enums/order-request-status';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
-import { Button } from '@/components/ui/button';
-import { createInventoryStatusFromViewModel } from '@/lib/utils/inventory-status-utils';
 import { LABELS } from '@/lib/constants/labels';
 import { MESSAGES, $msg, ERROR } from '@/lib/constants/messages';
-import { InventoryItemCard } from '@/components/inventory/inventory-item-card';
-import { ReplenishItemCard } from '@/components/replenishment/replenish-item-card';
-import { toEnumCode } from '@/lib/utils/enum-utils';
+import { createInventoryStatusFromViewModel, useInventoryAutoSave } from '@/lib/utils/inventory-status-utils';
 import { PREPARATION_PATTERN } from '@/lib/schemas/enums/preparation-pattern';
 import { Badge } from '@/components/ui/badge';
-import { useInventoryAutoSave } from '@/lib/utils/inventory-status-utils';
 import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
-import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
+import { STORAGE_KEY_PREFIX, SYMBOLS, ALL_SOURCE_PLACES } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import { CreationItemCard } from '@/components/creation/creation-item-card';
 
-export default function ReplenishmentPage() {
+export default function CreationPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
@@ -39,7 +35,7 @@ export default function ReplenishmentPage() {
     selectedPlaceId,
     selectedDate,
     setError,
-    storageKeyPrefix: STORAGE_KEY_PREFIX.REPLENISHMENT,
+    storageKeyPrefix: STORAGE_KEY_PREFIX.CREATION,
   });
 
   const placeType = getCode(PLACE_TYPE, 'SOURCE');
@@ -52,10 +48,8 @@ export default function ReplenishmentPage() {
         if (error) throw error;
         if (data) {
           setPlaces(data);
-          const firstSource = data.find(place => place.place_type === placeType);
-          if (firstSource) {
-            setSelectedPlaceId(firstSource.place_id);
-          }
+          // 初期値は「全補充元」を選択
+          setSelectedPlaceId(ALL_SOURCE_PLACES.KEY);
         }
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.LOCATION) + (err?.message ? `: ${err.message}` : ''));
@@ -72,15 +66,31 @@ export default function ReplenishmentPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        const { data: items, error: itemsError } = await getItemsBySource(selectedPlaceId as string);
-        if (itemsError) throw itemsError;
+        let itemsData: Item[] = [];
+        if (selectedPlaceId === ALL_SOURCE_PLACES.KEY) {
+          // 全補充元の品目を取得
+          const sourcePlaces = places.filter(place => place.place_type === placeType);
+          for (const place of sourcePlaces) {
+            const { data, error: itemsError } = await getItemsBySource(place.place_id);
+            if (itemsError) throw itemsError;
+            if (data) {
+              itemsData = [...itemsData, ...data];
+            }
+          }
+        } else {
+          const { data, error: itemsError } = await getItemsBySource(selectedPlaceId as string);
+          if (itemsError) throw itemsError;
+          if (data) {
+            itemsData = data;
+          }
+        }
         const date = getDateFromDateTime(selectedDate);
         const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
         if (statusError) throw statusError;
-        const viewModels = items?.map(item => ({
+        const viewModels = itemsData.map(item => ({
           item,
           status: statuses?.find(status => status.item_id === item.item_id) || null
-        })) || [];
+        }));
         setItems(viewModels);
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.ITEM) + (err?.message ? `: ${err.message}` : ''));
@@ -89,7 +99,7 @@ export default function ReplenishmentPage() {
       }
     }
     loadItems();
-  }, [selectedPlaceId, selectedDate]);
+  }, [selectedPlaceId, selectedDate, places]);
 
   // ステータス更新
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
@@ -101,7 +111,7 @@ export default function ReplenishmentPage() {
       };
     }));
   };
-  
+
   const handlePlaceChange = (placeId: string) => {
     setSelectedPlaceId(placeId);
   };
@@ -109,11 +119,14 @@ export default function ReplenishmentPage() {
   return (
     <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
       <div>
-        <h1 className="text-xl font-bold mb-4">{LABELS.REPLENISHMENT}</h1>
+        <h1 className="text-xl font-bold mb-4">{LABELS.CREATION}</h1>
         <DateSelector date={selectedDate} onDateChange={setSelectedDate} />
         <div className="mb-3">
           <PlaceSelector
-            places={places}
+            places={[
+              { place_id: ALL_SOURCE_PLACES.KEY, place_name: ALL_SOURCE_PLACES.LABEL, place_type: placeType, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              ...places.filter(place => place.place_type === placeType)
+            ]}
             selectedPlaceId={selectedPlaceId}
             onPlaceChange={handlePlaceChange}
             type={placeType}
@@ -140,18 +153,17 @@ export default function ReplenishmentPage() {
               // 件数集計
               const filtered = items.filter(vm => {
                 const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
-                const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
-                const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
-                const isTargetStatus =
-                  isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
-                  isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
-                return isMove && isTargetStatus;
+                const creationCode = getCode(PREPARATION_PATTERN, 'CREATION');
+                const isCreation = patternType && creationCode && isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION');
+                return isCreation;
               });
               const countRequired = filtered.filter(vm => {
                 const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
-                const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
-                return isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
+                return isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUIRED');
+              }).length;
+              const countRequested = filtered.filter(vm => {
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                return isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUESTED');
               }).length;
               const total = filtered.length;
               const allCleared = countRequired === 0 || total === 0;
@@ -162,64 +174,63 @@ export default function ReplenishmentPage() {
                       variant={allCleared ? "secondary" : "default"}
                       className="text-xs font-normal px-2 py-0.5 align-middle"
                     >
-                      {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}{SYMBOLS.SLASH}{total}
+                      {getDisplayName(PREPARATION_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}{SYMBOLS.SLASH}{total}
                     </Badge>
+                    {countRequested > 0 ? <Badge
+                      variant="default"
+                      className="text-xs font-normal px-2 py-0.5 align-middle"
+                    >
+                      {getDisplayName(PREPARATION_STATUS, 'REQUESTED')}{SYMBOLS.COLON}{countRequested}
+                    </Badge> : null}
                   </div>
-                  <span className="text-xs mr-10">{LABELS.REPLENISHMENT}</span>
                 </div>
               );
             })()}
             {items
               .filter(vm => {
-                // 補充パターン区分が「移動」
                 const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
-                const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
-                // 補充ステータスが「要補充」または「補充済」
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
-                const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
-                const isTargetStatus =
-                  isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
-                  isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'COMPLETED');
-                return isMove && isTargetStatus;
+                const creationCode = getCode(PREPARATION_PATTERN, 'CREATION');
+                const isCreation = patternType && creationCode && isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION');
+                return isCreation;
               })
               .map(vm => {
                 const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
                 return (
-                  <ReplenishItemCard
+                  <CreationItemCard
                     key={vm.item.item_id}
                     item={vm.item}
                     date={getDateFromDateTime(selectedDate)}
                     currentStock={status.current_stock}
-                    restockAmount={status.replenishment_count}
-                    replenishmentStatus={getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status))}
-                    preparationStatus={getCodeAsEnumCode(PREPARATION_STATUS, getLogicalName(PREPARATION_STATUS, status.preparation_status))}
-                    orderStatus={getCodeAsEnumCode(ORDER_REQUEST_STATUS, getLogicalName(ORDER_REQUEST_STATUS, status.order_status))}
+                    replenishmentCount={status.replenishment_count}
+                    replenishmentStatus={status.replenishment_status as EnumCode<typeof REPLENISHMENT_STATUS>}
+                    preparationStatus={status.preparation_status as EnumCode<typeof PREPARATION_STATUS>}
+                    orderStatus={status.order_status as EnumCode<typeof ORDER_REQUEST_STATUS>}
                     memo={status.memo}
-                    isChecked={isEnumCode(INVENTORY_STATUS, status.check_status, 'CONFIRMED')}
-                    patternType={vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined}
-                    onStockChange={v => handleItemStatusChange(vm.item.item_id, 'current_stock', v)}
-                    onRestockChange={v => handleItemStatusChange(vm.item.item_id, 'replenishment_count', v)}
-                    onMemoChange={v => handleItemStatusChange(vm.item.item_id, 'memo', v)}
-                    onCheckChange={v => handleItemStatusChange(
-                      vm.item.item_id, 
-                      'check_status', 
-                      v 
-                        ? getCodeAsEnumCode(INVENTORY_STATUS, 'CONFIRMED') 
-                        : getCodeAsEnumCode(INVENTORY_STATUS, 'UNCONFIRMED'))}
-                    onOrderRequest={() => handleItemStatusChange(
-                      vm.item.item_id, 
-                      'order_status', 
-                      isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED') 
-                        ? getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'REQUIRED') 
-                        : getCodeAsEnumCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED'))}
-                    onPreparationStatusChange={v => handleItemStatusChange(vm.item.item_id, 'preparation_status', v)}
-                    onNeedsRestockChange={v => handleItemStatusChange(
+                    isChecked={!isEnumCode(REPLENISHMENT_STATUS, status.replenishment_status, 'REQUIRED')}
+                    patternType={vm.item.pattern_type as EnumCode<typeof PREPARATION_PATTERN>}
+                    onStockChange={(value: number) => handleItemStatusChange(vm.item.item_id, 'current_stock', value)}
+                    onReplenishmentCountChange={(value: number) => handleItemStatusChange(vm.item.item_id, 'replenishment_count', value)}
+                    onMemoChange={(value: string) => handleItemStatusChange(vm.item.item_id, 'memo', value)}
+                    onCheckChange={(value: boolean) => handleItemStatusChange(
                       vm.item.item_id,
                       'replenishment_status',
-                      v
-                        ? getCodeAsEnumCode(REPLENISHMENT_STATUS, 'REQUIRED')
-                        : getCodeAsEnumCode(REPLENISHMENT_STATUS, 'COMPLETED')
+                      value ? getCode(REPLENISHMENT_STATUS, 'NOT_REQUIRED') : getCode(REPLENISHMENT_STATUS, 'REQUIRED')
                     )}
+                    onNeedsRestockChange={(value: boolean) => handleItemStatusChange(
+                      vm.item.item_id,
+                      'replenishment_status',
+                      value ? getCode(REPLENISHMENT_STATUS, 'REQUIRED') : getCode(REPLENISHMENT_STATUS, 'NOT_REQUIRED')
+                    )}
+                    onOrderRequest={(checked: boolean) =>
+                      handleItemStatusChange(
+                        vm.item.item_id,
+                        'order_status',
+                        checked
+                          ? getCode(ORDER_REQUEST_STATUS, 'REQUESTED')
+                          : getCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED')
+                      )
+                    }
+                    onPreparationStatusChange={(value: EnumCode<typeof PREPARATION_STATUS>) => handleItemStatusChange(vm.item.item_id, 'preparation_status', value)}
                   />
                 );
               })}

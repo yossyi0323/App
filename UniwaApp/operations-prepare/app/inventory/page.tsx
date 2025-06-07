@@ -21,8 +21,10 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { toEnumCode } from '@/lib/utils/enum-utils';
 import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
-import { STORAGE_KEY_PREFIX } from '@/lib/constants/constants';
+import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import { getDisplayName } from '@/lib/utils/enum-utils';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -247,6 +249,28 @@ export default function InventoryPage() {
         ) : (
           <div>
             {/* ヘッダー行 */}
+            {(() => {
+              // 件数集計
+              const total = items.length;
+              const countRequired = items.filter(vm => {
+                const status = createInventoryStatusFromViewModel(vm, selectedDate);
+                return isEnumCode(REPLENISHMENT_STATUS, status.replenishment_status, 'REQUIRED');
+              }).length;
+              const allCleared = countRequired === 0 || total === 0;
+              return (
+                <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2 justify-between">
+                  <div className="flex gap-2 ml-2">
+                    <Badge
+                      variant={allCleared ? "secondary" : "default"}
+                      className="text-xs font-normal px-2 py-0.5 align-middle"
+                    >
+                      {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}
+                    </Badge>
+                  </div>
+                  <span className="text-xs mr-10">{LABELS.INVENTORY_CHECK}</span>
+                </div>
+              );
+            })()}
             <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2">
               <button
                 type="button"

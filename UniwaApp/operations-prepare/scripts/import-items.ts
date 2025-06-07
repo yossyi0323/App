@@ -29,9 +29,10 @@ async function backupItems() {
   const placeMap = new Map(places.map(p => [p.place_id, p.place_name]));
   const itemNameMap = new Map(items.map(i => [i.item_id, i.item_name]));
 
-  const csvRows = [
-    '品物名,補充パターン区分,補充元場所名,補充先場所名,作成・発注依頼先'
-  ];
+  // 重複を防ぐためにSetを使用
+  const uniqueRows = new Set<string>();
+  uniqueRows.add('品物名,補充パターン区分,補充元場所名,補充先場所名,作成・発注依頼先');
+
   for (const prep of preps) {
     const itemName = itemNameMap.get(prep.item_id) || '';
     // 物理名→論理名変換
@@ -39,18 +40,25 @@ async function backupItems() {
     const sourcePlace = placeMap.get(prep.source_place_id) || '';
     const destPlace = placeMap.get(prep.destination_place_id) || '';
     const contact = prep.preparation_contact || '';
-    csvRows.push([
+    const row = [
       itemName,
       patternLogical,
       sourcePlace,
       destPlace,
       contact
-    ].map(v => v.replace(/,/g, '，')).join(','));
+    ].map(v => v.replace(/,/g, '，')).join(',');
+    uniqueRows.add(row);
   }
-  const csvString = csvRows.join('\n');
+
+  const csvString = Array.from(uniqueRows).join('\n');
+
+  // タイムスタンプ付きのファイル名を生成
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupFileName = `scripts/data/backup/bk_items_${timestamp}.csv`;
+
   try {
-    writeFileSync('scripts/data/bk_items.csv', csvString, 'utf-8');
-    console.log('バックアップ（bk_items.csv）作成完了');
+    writeFileSync(backupFileName, csvString, 'utf-8');
+    console.log(`バックアップ（${backupFileName}）作成完了`);
   } catch (e) {
     console.error('バックアップ失敗:', e);
     throw e;
@@ -67,6 +75,20 @@ async function importItems() {
       columns: true,
       skip_empty_lines: true
     });
+
+    // 品物名の重複チェック
+    const nameCounts = records.reduce((acc, r) => {
+      acc[r.品物名] = (acc[r.品物名] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const duplicates = Object.entries(nameCounts).filter(([_, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.error('CSV内で品物名が重複しています:');
+      duplicates.forEach(([name, count]) => {
+        console.error(`  ${name} : ${count}件`);
+      });
+      process.exit(1);
+    }
 
     // 場所名からIDのマッピングを取得
     const { data: places, error: placesError } = await supabase
@@ -124,21 +146,97 @@ async function importItems() {
       }
       // 品物別前日営業準備の追加
       const itemPreparationId = IdSeqUtils.generateId('item_preparation');
-      const { error: prepError } = await supabase
+      
+      // 既存の準備情報をチェック
+      const { data: existingPreps, error: checkError } = await supabase
         .from('item_preparation')
-        .insert({
-          item_preparation_id: itemPreparationId,
-          item_id: itemId,
-          preparation_type: preparationType,
-          source_place_id: sourcePlaceId,
-          destination_place_id: destPlaceId,
-          preparation_contact: record['作成・発注依頼先'] || ''
-        });
-      if (prepError) {
-        console.error(`準備情報の追加に失敗: ${record.品物名}`, prepError);
+        .select('item_preparation_id')
+        .eq('item_id', itemId);
+
+      if (checkError) {
+        console.error(`準備情報の確認に失敗: ${record.品物名}`, checkError);
         continue;
       }
-      console.log(`追加成功: ${record.品物名}`);
+
+      if (existingPreps && existingPreps.length > 0) {
+        if (existingPreps.length > 1) {
+          console.error(`重複する準備情報が存在します: ${record.品物名} (${existingPreps.length}件)`);
+          
+          // items.csvにその品物があるかチェック
+          const existsInCsv = records.some(r => r.品物名 === record.品物名);
+          if (!existsInCsv) {
+            console.error(`重複レコードが存在し、かつitems.csvに該当する品物がありません: ${record.品物名}`);
+            console.error('この品物はitems.csvに追加してから再度実行してください。');
+            continue;
+          }
+
+          // items.csvに存在する場合のみ、重複を解消
+          // 全ての重複レコードを削除
+          const { error: deleteError } = await supabase
+            .from('item_preparation')
+            .delete()
+            .eq('item_id', itemId);
+
+          if (deleteError) {
+            console.error(`重複レコードの削除に失敗: ${record.品物名}`, deleteError);
+            continue;
+          }
+          console.log(`重複レコードを削除しました: ${record.品物名} (${existingPreps.length}件)`);
+
+          // items.csvの内容で新規追加
+          const { error: prepError } = await supabase
+            .from('item_preparation')
+            .insert({
+              item_preparation_id: itemPreparationId,
+              item_id: itemId,
+              preparation_type: preparationType,
+              source_place_id: sourcePlaceId,
+              destination_place_id: destPlaceId,
+              preparation_contact: record['作成・発注依頼先'] || ''
+            });
+
+          if (prepError) {
+            console.error(`準備情報の追加に失敗: ${record.品物名}`, prepError);
+            continue;
+          }
+          console.log(`追加成功: ${record.品物名}`);
+        } else {
+          // 1件のみの場合は更新
+          const { error: updateError } = await supabase
+            .from('item_preparation')
+            .update({
+              preparation_type: preparationType,
+              source_place_id: sourcePlaceId,
+              destination_place_id: destPlaceId,
+              preparation_contact: record['作成・発注依頼先'] || ''
+            })
+            .eq('item_preparation_id', existingPreps[0].item_preparation_id);
+
+          if (updateError) {
+            console.error(`準備情報の更新に失敗: ${record.品物名}`, updateError);
+            continue;
+          }
+          console.log(`更新成功: ${record.品物名}`);
+        }
+      } else {
+        // 新規レコードを追加
+        const { error: prepError } = await supabase
+          .from('item_preparation')
+          .insert({
+            item_preparation_id: itemPreparationId,
+            item_id: itemId,
+            preparation_type: preparationType,
+            source_place_id: sourcePlaceId,
+            destination_place_id: destPlaceId,
+            preparation_contact: record['作成・発注依頼先'] || ''
+          });
+
+        if (prepError) {
+          console.error(`準備情報の追加に失敗: ${record.品物名}`, prepError);
+          continue;
+        }
+        console.log(`追加成功: ${record.品物名}`);
+      }
     }
     console.log('データ取り込み完了');
   } catch (error) {

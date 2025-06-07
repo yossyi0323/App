@@ -19,5 +19,11 @@ export const SYMBOLS = {
 export const STORAGE_KEY_PREFIX = {
   INVENTORY: 'inventory',
   REPLENISHMENT: 'replenishment',
+  CREATION: 'creation',
   // 必要に応じて他の用途もここに追加
+} as const;
+
+export const ALL_SOURCE_PLACES = {
+  KEY: 'all-source-places',
+  LABEL: '全て',
 } as const; 
