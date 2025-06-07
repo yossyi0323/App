@@ -1,0 +1,75 @@
+# 命名規則
+
+基本単位:
+  補充: replenishment
+  在庫: inventory
+  確認: check
+  ステータス: status
+  業務: business
+  日付: date
+  品物: item
+  場所: place
+  作成: creation
+  発注: order
+  依頼: request
+  先: destination
+  元: source
+  数: count
+  量: amount
+  メモ: memo
+  予約: reservation
+  商品: product
+  パターン: pattern
+  区分: type
+  トップ: top
+  ページ: page
+  移動: move
+  一覧: list
+  ハンバーガー: hamburger
+  メニュー: menu
+  サイド: side
+  バー: bar
+  状況: situation
+  管理: management
+  データ: data
+  テーブル: table
+  フィールド: field
+
+命名規則の組み合わせ方針:
+  # 基本的な組み合わせルール
+  - 複合語は基本単位を組み合わせて作成
+  - 修飾語は先頭に配置（例：businessDate, inventoryStatus）
+  - IDは末尾に配置（例：placeId, itemId）
+  - 状態や種類を表す修飾語は末尾に配置（例：checkStatus, patternType）
+
+  # 例
+  - 業務日付: businessDate
+  - 在庫確認: inventoryCheck
+  - 場所ID: placeId
+  - 補充ステータス: replenishmentStatus
+  - 在庫状況: inventorySituation
+
+コンポーネント命名規則:
+  # Reactコンポーネント
+  - ファイル名: PascalCase（例：InventoryList.tsx）
+  - コンポーネント名: PascalCase（例：InventoryList）
+
+テーブル命名規則:
+  # データベーステーブル
+  - テーブル名: snake_case（例：inventory_status）
+  - タイムスタンプ: created_at, updated_at
+
+  # 例
+  - 場所テーブル: place
+
+変数・関数命名規則:
+  # JavaScript/TypeScript
+  - 変数名: camelCase（例：inventoryStatus）
+  - 関数名: camelCase（例：getInventoryStatus）
+  - 定数: UPPER_SNAKE_CASE（例：MAX_INVENTORY_COUNT）
+  - 型定義: PascalCase（例：InventoryStatus）
+
+  # 例
+  - 補充ステータス: replenishmentStatus
+  - 在庫取得関数: getInventory
+  - 最大在庫数: MAX_INVENTORY_COUNT
