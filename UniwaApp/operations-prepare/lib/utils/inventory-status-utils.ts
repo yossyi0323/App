@@ -29,7 +29,7 @@ export function createInventoryStatusFromViewModel(
   return {
     // 必須フィールド
     inventory_status_id: currentStatus.inventory_status_id ?? '',
-    business_date: currentStatus.business_date ?? getDateFromDateTime(selectedDate)
+    business_date: currentStatus.business_date ?? getDateFromDateTime(selectedDate),
     item_id: currentStatus.item_id ?? viewModel.item.item_id,
     
     // 状態フィールド
