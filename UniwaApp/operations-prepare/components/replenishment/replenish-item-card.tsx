@@ -55,7 +55,6 @@ export function ReplenishItemCard(
   // メモ欄を開くべきかの判定ロジックを関数化
   const getShouldOpenMemo = () =>
     isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED') ||
-    isEnumCode(PREPARATION_STATUS, preparationStatus, 'REQUIRED') ||
     !isEmpty(memo);
 
   const [isMemoOpen, setIsMemoOpen] = useState(getShouldOpenMemo());
