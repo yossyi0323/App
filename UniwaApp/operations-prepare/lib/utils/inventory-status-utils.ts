@@ -9,6 +9,8 @@ import { useRef, useEffect } from 'react';
 import { AutoSaveManager } from './auto-save-utils';
 import { AUTOSAVE } from '@/lib/constants/constants';
 import { getDateFromDateTime } from './date-time-utils';
+import { ORDER_REQUEST_STATUS } from '../schemas/enums/order-request-status';
+import { PREPARATION_STATUS } from '../schemas/enums/preparation-status';
 
 export type InventoryStatusViewModel = {
   item: Item;
@@ -33,8 +35,8 @@ export function createInventoryStatusFromViewModel(
     item_id: currentStatus.item_id ?? viewModel.item.item_id,
     
     // 状態フィールド
-    preparation_status: currentStatus.preparation_status ?? 'not-required',
-    order_status: currentStatus.order_status ?? 'not-required',
+    preparation_status: currentStatus.preparation_status ?? getCode(PREPARATION_STATUS, 'NOT_REQUIRED'),
+    order_status: currentStatus.order_status ?? getCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED'),
     current_stock: currentStatus.current_stock ?? 0,
     replenishment_count: currentStatus.replenishment_count ?? 0,
     memo: currentStatus.memo ?? '',
