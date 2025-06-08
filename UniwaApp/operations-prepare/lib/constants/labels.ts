@@ -32,7 +32,6 @@ export const LABELS = {
   CREATION_REQUIRED: '要作成',
   CREATION_COMPLETED: '作成済',
   REQUESTED: '依頼済',
-  BULK_CHECK: '一括確認',
   ENUM_CODE: '区分値コード',
   ENUM_LOGICAL_NAME: '区分値論理名',
   ENUM_DEFINITION: '定義',

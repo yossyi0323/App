@@ -226,7 +226,7 @@ export default function CreationPage() {
                         vm.item.item_id,
                         'order_status',
                         checked
-                          ? getCode(ORDER_REQUEST_STATUS, 'REQUESTED')
+                          ? getCode(ORDER_REQUEST_STATUS, 'REQUIRED')
                           : getCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED')
                       )
                     }
