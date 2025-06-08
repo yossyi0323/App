@@ -11,6 +11,8 @@ import { AUTOSAVE } from '@/lib/constants/constants';
 import { getDateFromDateTime } from './date-time-utils';
 import { ORDER_REQUEST_STATUS } from '../schemas/enums/order-request-status';
 import { PREPARATION_STATUS } from '../schemas/enums/preparation-status';
+// import { parse } from 'csv-parse/sync';
+// import fs from 'fs';
 
 export type InventoryStatusViewModel = {
   item: Item;
@@ -111,6 +113,64 @@ export function getDirtyInventoryStatuses(prev: InventoryStatus[], next: Invento
   });
 }
 
+// // 正しいステータスの組み合わせを読み込む
+// const VALID_STATUS_COMBINATIONS = (() => {
+//   const csvContent = fs.readFileSync('./StatusTransitionDefinition.csv', 'utf-8');
+//   const records = parse(csvContent, {
+//     columns: true,
+//     skip_empty_lines: true
+//   });
+
+//   return records.map((record: Record<string, string>) => {
+//     const status: Partial<InventoryStatus> = {};
+//     Object.entries(record).forEach(([field, value]) => {
+//       // スネークケースからアッパーキャメルケースに変換
+//       const enumName = field.split('_')
+//         .map(word => word.toUpperCase())
+//         .join('_');
+      
+//       status[field as keyof InventoryStatus] = getCode(
+//         {
+//           INVENTORY_STATUS: INVENTORY_STATUS,
+//           REPLENISHMENT_STATUS: REPLENISHMENT_STATUS,
+//           PREPARATION_STATUS: PREPARATION_STATUS,
+//           ORDER_REQUEST_STATUS: ORDER_REQUEST_STATUS
+//         }[enumName],
+//         value
+//       );
+//     });
+//     return status as InventoryStatus;
+//   });
+// })();
+
+// // ステータスの組み合わせが有効かどうかを判定
+// function isValidStatusViewModel(viewModel: InventoryStatusViewModel): boolean {
+//   if (!viewModel.status) return false;
+
+//   return VALID_STATUS_COMBINATIONS.some((validStatus: InventoryStatusViewModel) => {
+//     // CSVで定義された項目だけを比較
+//     const statusFields = [
+//       'inventory_status',
+//       'replenishment_status',
+//       'preparation_status',
+//       'order_status'
+//     ];
+//     const itemFields = ['pattern_type'];
+
+//     const statusMatch = statusFields.every(field => {
+//       const validValue = validStatus.status![field as keyof InventoryStatus];
+//       const currentValue = viewModel.status![field as keyof InventoryStatus];
+//       return validValue === '*' || validValue === currentValue;
+//     });
+//     const itemMatch = itemFields.every(field => {
+//       const validValue = validStatus.item[field as keyof Item];
+//       const currentValue = viewModel.item[field as keyof Item];
+//       return validValue === '*' || validValue === currentValue;
+//     });
+//     return statusMatch && itemMatch;
+//   });
+// }
+
 /**
  * 在庫補充状況管理テーブルの自動保存ロジックを共通化したカスタムフック
  */
@@ -118,7 +178,21 @@ export function useInventoryAutoSave({
   items,
   selectedPlaceId,
   selectedDate,
-  saveFunc = async (dirty) => { await saveInventoryStatusesBulk(dirty); },
+  saveFunc = async (dirty) => {
+    // 保存前にステータス遷移の検証
+    for (const status of dirty) {
+      const viewModel = items.find(i => i.item.item_id === status.item_id);
+      if (!viewModel) continue;
+
+      // if (!isValidStatusViewModel({
+      //   ...viewModel,
+      //   status
+      // })) {
+      //   throw new Error('無効なステータスの組み合わせです');
+      // }
+    }
+    await saveInventoryStatusesBulk(dirty);
+  },
   setError,
   storageKeyPrefix = 'inventory',
 }: {
