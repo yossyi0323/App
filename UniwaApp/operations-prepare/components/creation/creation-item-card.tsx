@@ -50,13 +50,11 @@ export function CreationItemCard(
     onMemoChange, 
     onOrderRequest, 
     onPreparationStatusChange,
-    onNeedsRestockChange,
-    onStockChange,
-    onReplenishmentCountChange
+    onNeedsRestockChange
   }: CreationItemCardProps) {
   // メモ欄を開くべきかの判定ロジックを関数化
   const getShouldOpenMemo = () =>
-    isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED') ||
+    !isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'NOT_REQUIRED') ||
     !isEmpty(memo);
 
   const [isMemoOpen, setIsMemoOpen] = useState(getShouldOpenMemo());
@@ -67,13 +65,12 @@ export function CreationItemCard(
   };
 
   const isCreationRequired = isEnumCode(PREPARATION_STATUS, preparationStatus, 'REQUIRED');
-  const isOrderRequired = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED');
-  const highlightClass = (isCreationRequired || isOrderRequired)
+  const isNotOrderRequired = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'NOT_REQUIRED');
+  const highlightClass = (isCreationRequired || !isNotOrderRequired)
     ? 'bg-black text-white dark:bg-white dark:text-black'
     : '';
 
-  const isNeedsRestock = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
-  const isOrderRequested = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUESTED');
+  const isNeedsRestock = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'NOT_REQUIRED');
 
   return (
     <Card className="mb-3 overflow-hidden relative bg-background">
@@ -140,7 +137,7 @@ export function CreationItemCard(
             {/* 発注依頼チェックボックス（縦並び・中央揃え） */}
             <div className="flex flex-col items-center flex-shrink-0 gap-1">
               <label className="text-xs">{LABELS.ORDER}</label>
-              <Checkbox checked={isOrderRequested} onCheckedChange={onOrderRequest} className="h-5 w-5" />
+              <Checkbox checked={isNotOrderRequired} onCheckedChange={onOrderRequest} className="h-5 w-5" />
             </div>
             <div className="flex flex-col flex-1">
               <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">{LABELS.MEMO}</label>

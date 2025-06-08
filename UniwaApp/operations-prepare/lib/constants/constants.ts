@@ -20,6 +20,7 @@ export const STORAGE_KEY_PREFIX = {
   INVENTORY: 'inventory',
   REPLENISHMENT: 'replenishment',
   CREATION: 'creation',
+  ORDER: 'order',
   // 必要に応じて他の用途もここに追加
 } as const;
 

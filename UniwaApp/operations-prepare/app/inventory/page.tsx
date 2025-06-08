@@ -279,7 +279,6 @@ export default function InventoryPage() {
               >
                 <MdCheck size={25} />
               </button>
-              <span className="text-xs ml-2">{LABELS.BULK_CHECK}</span>
               <div className="flex-1" />
               <div className="text-xs flex flex-col items-center gap-1 mr-11">
                 <span>{LABELS.NEEDS_RESTOCK}</span>

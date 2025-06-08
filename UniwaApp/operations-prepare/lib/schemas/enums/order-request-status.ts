@@ -4,7 +4,7 @@ export const ORDER_REQUEST_STATUS = {
   categoryLogicalName: 'ORDER_REQUEST_STATUS',
   values: [
     { code: '99', displayName: '発注不要', logicalName: 'NOT_REQUIRED' },
-    { code: '01', displayName: '要発注依頼', logicalName: 'REQUIRED' },
+    { code: '01', displayName: '要発注', logicalName: 'REQUIRED' },
     { code: '02', displayName: '発注依頼済', logicalName: 'REQUESTED' }
   ]
 } as const;
