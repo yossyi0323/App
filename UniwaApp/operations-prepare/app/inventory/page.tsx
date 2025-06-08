@@ -4,27 +4,27 @@ import { useState, useEffect, useRef } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { InventoryItemCard } from '@/components/inventory/inventory-item-card';
 import { PlaceSelector } from '@/components/inventory/place-selector';
-import { getPlaces, getItemsByDestination, getInventoryStatusByDate, saveInventoryStatusesBulk } from '@/lib/db-service';
-import type { Place, InventoryStatus, InventoryStatusViewModel } from '@/lib/types';
+import { saveInventoryStatusesBulk } from '@/lib/db-service';
+import type { Place, InventoryStatus, InventoryStatusViewModel, Item } from '@/lib/types';
 import { PLACE_TYPE } from '@/lib/schemas/enums/place-type';
-import { getCode } from '@/lib/utils/enum-utils';
-import { isEnumCode } from '@/lib/utils/enum-utils';
+import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName } from '@/lib/utils/enum-utils';
 import { ERROR, WARNING, INFO, $msg } from '@/lib/constants/messages';
 import { LABELS } from '@/lib/constants/labels';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
 import { REPLENISHMENT_STATUS } from '@/lib/schemas/enums/replenishment-status';
 import { MdCheck, MdCheckCircle } from 'react-icons/md';
-import type { EnumCode } from '@/lib/utils/enum-utils';
+import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
+import { ORDER_REQUEST_STATUS } from '@/lib/schemas/enums/order-request-status';
+import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
+import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import { Badge } from '@/components/ui/badge';
+import { callApi } from '@/lib/utils/api-client';
 import { useInventoryAutoSave, getDirtyInventoryStatuses, createInventoryStatusFromViewModel, updateViewModels } from '@/lib/utils/inventory-status-utils';
 import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { toEnumCode } from '@/lib/utils/enum-utils';
-import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
-import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
-import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
-import { getDisplayName } from '@/lib/utils/enum-utils';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -110,13 +110,10 @@ export default function InventoryPage() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const { data, error } = await getPlaces();
-        if (error) throw error;
-        
+        const data = await callApi<Place[]>('/api/places');
         if (data) {
           setPlaces(data);
-          // 最初の補充先を自動選択
-          const firstDestination = data.find(place => isEnumCode(PLACE_TYPE, place.place_type, 'DESTINATION'));
+          const firstDestination = data.find(place => place.place_type === getCode(PLACE_TYPE, 'DESTINATION'));
           if (firstDestination) {
             setSelectedPlaceId(firstDestination.place_id);
           }
@@ -138,18 +135,9 @@ export default function InventoryPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        if (!selectedPlaceId) return;
-        
-        // 品目一覧を取得
-        const { data: items, error: itemsError } = await getItemsByDestination(selectedPlaceId);
-        if (itemsError) throw itemsError;
-        
-        // 在庫ステータスを取得
+        const items = await callApi<Item[]>(`/api/items?destinationId=${selectedPlaceId}`);
         const date = getDateFromDateTime(selectedDate);
-        const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
-        if (statusError) throw statusError;
-        
-        // 画面表示用のデータにマッピング
+        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
           status: statuses?.find(status => status.item_id === item.item_id) || null

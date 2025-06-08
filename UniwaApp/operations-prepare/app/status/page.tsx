@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { StatusOverview } from '@/components/status/status-overview';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getItems, getInventoryStatusByDate } from '@/lib/db-service';
-import type { Item, InventoryStatus } from '@/lib/types';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import type { Item, InventoryStatus } from '@/lib/types';
 
 export default function StatusPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -19,9 +18,8 @@ export default function StatusPage() {
   useEffect(() => {
     async function loadItems() {
       try {
-        const { data, error } = await getItems();
-        if (error) throw error;
-        
+        const response = await fetch('/api/items');
+        const data: Item[] = await response.json();
         setItems(data || []);
       } catch (err: any) {
         setError('商品の読み込み中にエラーが発生しました: ' + err.message);
@@ -38,9 +36,8 @@ export default function StatusPage() {
     async function loadInventoryStatuses() {
       try {
         const dateString = getDateFromDateTime(selectedDate);
-        const { data, error } = await getInventoryStatusByDate(dateString);
-        if (error) throw error;
-        
+        const response = await fetch(`/api/inventory-status?date=${dateString}`);
+        const data: InventoryStatus[] = await response.json();
         setInventoryStatuses(data || []);
       } catch (err: any) {
         setError('在庫状況の読み込み中にエラーが発生しました: ' + err.message);
