@@ -247,6 +247,13 @@ export default function InventoryPage() {
               return (
                 <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2 justify-between">
                   <div className="flex gap-2 ml-2">
+                    <button
+                      type="button"
+                      className="pl-2 rounded-full transition-colors"
+                      onClick={handleCheckChangeAll}
+                    >
+                      <MdCheck size={25} />
+                    </button>
                     <Badge
                       variant={allCleared ? "secondary" : "default"}
                       className="text-xs font-normal px-2 py-0.5 align-middle"
@@ -254,23 +261,10 @@ export default function InventoryPage() {
                       {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}
                     </Badge>
                   </div>
-                  <span className="text-xs mr-10">{LABELS.INVENTORY_CHECK}</span>
+                  <span className="text-xs mr-10">{getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}</span>
                 </div>
               );
             })()}
-            <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2">
-              <button
-                type="button"
-                className="pl-2 rounded-full transition-colors"
-                onClick={handleCheckChangeAll}
-              >
-                <MdCheck size={25} />
-              </button>
-              <div className="flex-1" />
-              <div className="text-xs flex flex-col items-center gap-1 mr-11">
-                <span>{LABELS.NEEDS_RESTOCK}</span>
-              </div>
-            </div>
             {/* 在庫リスト */}
             {items.map(viewModel => {
               const status = createInventoryStatusFromViewModel(viewModel, selectedDate);

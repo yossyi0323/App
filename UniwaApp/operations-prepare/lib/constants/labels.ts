@@ -16,7 +16,7 @@ export const LABELS = {
   TOGGLE_MEMO: 'メモ欄を開く',
   ITEM_NAME: '名前',
   MENU: 'メニュー',
-  INVENTORY_CHECK: '在庫チェック',
+  INVENTORY_CHECK: '在庫確認',
   DATE_SELECTOR: {
     SELECT_DATE: '日付を選択',
     PREV_DAY: '前日',
