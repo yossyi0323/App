@@ -11,13 +11,14 @@ import { Button } from '@/components/ui/button';
 import { ReservationForm } from '@/components/reservation/reservation-form';
 import { DateSelector } from '@/components/date-selector';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 
 export default function Home() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const router = useRouter();
   
   const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
+    setBusinessDate(date.toISOString().split('T')[0]);
   };
   
   const menuItems = [
@@ -32,10 +33,10 @@ export default function Home() {
     <div>
       <h1 className="text-xl font-bold mb-4">トップページ</h1>
       
-      <DateSelector date={selectedDate} onDateChange={handleDateChange} />
+      <DateSelector date={new Date(businessDate)} onDateChange={handleDateChange} />
       
       <div className="grid gap-4">
-        <ReservationForm date={getDateFromDateTime(selectedDate)} />
+        <ReservationForm date={businessDate} />
         
         <Card>
           <CardHeader className="pb-2">

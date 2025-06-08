@@ -26,9 +26,11 @@ import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
 import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { callApi } from '@/lib/utils/api-client';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
+import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
 
 export default function ReplenishmentPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
@@ -37,7 +39,7 @@ export default function ReplenishmentPage() {
   const autoSaveRef = useInventoryAutoSave({
     items,
     selectedPlaceId,
-    selectedDate,
+    selectedDate: parseDate(businessDate),
     setError,
     storageKeyPrefix: STORAGE_KEY_PREFIX.REPLENISHMENT,
   });
@@ -72,7 +74,7 @@ export default function ReplenishmentPage() {
       setIsLoading(true);
       try {
         const items = await callApi<Item[]>(`/api/items?sourceId=${selectedPlaceId}`);
-        const date = getDateFromDateTime(selectedDate);
+        const date = businessDate;
         const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
@@ -86,7 +88,7 @@ export default function ReplenishmentPage() {
       }
     }
     loadItems();
-  }, [selectedPlaceId, selectedDate]);
+  }, [selectedPlaceId, businessDate]);
 
   // ステータス更新
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
@@ -94,7 +96,7 @@ export default function ReplenishmentPage() {
       if (vm.item.item_id !== itemId) return vm;
       return {
         ...vm,
-        status: createInventoryStatusFromViewModel(vm, selectedDate, { [field]: value })
+        status: createInventoryStatusFromViewModel(vm, parseDate(businessDate), { [field]: value })
       };
     }));
   };
@@ -103,11 +105,15 @@ export default function ReplenishmentPage() {
     setSelectedPlaceId(placeId);
   };
 
+  const handleDateChange = (date: Date) => {
+    setBusinessDate(formatDate(date));
+  };
+
   return (
     <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.REPLENISHMENT}</h1>
-        <DateSelector date={selectedDate} onDateChange={setSelectedDate} />
+        <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
         <div className="mb-3">
           <PlaceSelector
             places={places}
@@ -138,7 +144,7 @@ export default function ReplenishmentPage() {
               const filtered = items.filter(vm => {
                 const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
                 const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
                 const isTargetStatus =
                   isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
@@ -146,7 +152,7 @@ export default function ReplenishmentPage() {
                 return isMove && isTargetStatus;
               });
               const countRequired = filtered.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
                 return isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
               }).length;
@@ -172,7 +178,7 @@ export default function ReplenishmentPage() {
                 const patternType = vm.item.pattern_type ? toEnumCode(PREPARATION_PATTERN, vm.item.pattern_type) : undefined;
                 const isMove = patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'MOVE');
                 // 補充ステータスが「要補充」または「補充済」
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 const replenishmentStatus = getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status));
                 const isTargetStatus =
                   isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED') ||
@@ -180,12 +186,12 @@ export default function ReplenishmentPage() {
                 return isMove && isTargetStatus;
               })
               .map(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return (
                   <ReplenishItemCard
                     key={vm.item.item_id}
                     item={vm.item}
-                    date={getDateFromDateTime(selectedDate)}
+                    date={businessDate}
                     currentStock={status.current_stock}
                     restockAmount={status.replenishment_count}
                     replenishmentStatus={getCodeAsEnumCode(REPLENISHMENT_STATUS, getLogicalName(REPLENISHMENT_STATUS, status.replenishment_status))}
