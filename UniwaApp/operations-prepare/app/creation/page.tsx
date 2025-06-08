@@ -27,7 +27,7 @@ import { callApi } from '@/lib/utils/api-client';
 
 export default function CreationPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string>(ALL_SOURCE_PLACES.KEY);
   const [places, setPlaces] = useState<Place[]>([]);
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +49,6 @@ export default function CreationPage() {
         const data = await callApi<Place[]>('/api/places');
         if (data) {
           setPlaces(data);
-          const firstSource = data.find(place => place.place_type === placeType);
-          if (firstSource) {
-            setSelectedPlaceId(firstSource.place_id);
-          }
         }
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.LOCATION) + (err?.message ? `: ${err.message}` : ''));

@@ -6,6 +6,7 @@ import { StatusOverview } from '@/components/status/status-overview';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import type { Item, InventoryStatus } from '@/lib/types';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 export default function StatusPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -66,8 +67,8 @@ export default function StatusPage() {
       )}
       
       {isLoading ? (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">読み込み中...</p>
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <LoadingIndicator />
         </div>
       ) : (
         <StatusOverview

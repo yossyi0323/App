@@ -156,6 +156,7 @@ export default function InventoryPage() {
   
   // バリデーション例（業務日付・補充先必須）
   useEffect(() => {
+    if (isLoading) return;
     if (!selectedDate) setError($msg(ERROR.E10010, LABELS.BUSINESS_DATE));
     else if (!selectedPlaceId) setError($msg(ERROR.E10010, LABELS.PLACE));
     else setError(null);
@@ -219,12 +220,10 @@ export default function InventoryPage() {
             className="w-full"
           />
         </div>
-        {error && (
-          <ErrorMessage message={error} className="mb-4" />
-        )}
+        {error && <ErrorMessage message={error} className="mb-4" />}
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[40vh]">
-            <LoadingIndicator message={$msg(INFO.I30030)} />
+            <LoadingIndicator />
           </div>
         ) : items.length === 0 ? (
           <div className="py-8 text-center">
