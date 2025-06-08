@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { InventoryItemCard } from '@/components/inventory/inventory-item-card';
-import { getItems, getInventoryStatusByDate, saveInventoryStatusesBulk, getPlaces, getItemsByDestination } from '@/lib/db-service';
-import type { Item, InventoryStatus, InventoryStatusViewModel } from '@/lib/types';
+import type { Item, InventoryStatus, InventoryStatusViewModel, Place } from '@/lib/types';
 import { getCode, isEnumCode, EnumCode } from '@/lib/utils/enum-utils';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
 import { REPLENISHMENT_STATUS } from '@/lib/schemas/enums/replenishment-status';
@@ -24,6 +23,7 @@ import { ALL_SOURCE_PLACES, STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { getDisplayName } from '@/lib/utils/enum-utils';
 import { OrderItemCard } from '@/components/order/order-item-card';
+import { callApi } from '@/lib/utils/api-client';
 
 
 export default function OrderPage() {
@@ -39,30 +39,15 @@ export default function OrderPage() {
     storageKeyPrefix: STORAGE_KEY_PREFIX.ORDER,
   });
 
-  // 品目・在庫ステータスの取得
+  // 品目一覧の取得
   useEffect(() => {
     async function loadItems() {
       setIsLoading(true);
       try {
-        let itemsData: Item[] = [];
-        // 全場所分の品目を集約
-        const { data: places, error: placesError } = await getPlaces();
-        if (placesError) throw placesError;
-        if (!places) return;
-        for (const place of places) {
-          // getItemsByDestination等、正しいAPIを使う
-          const { data, error: itemsError } = await getItemsByDestination(place.place_id);
-          if (itemsError) throw itemsError;
-          if (data) {
-            itemsData = [...itemsData, ...data];
-          }
-        }
-        // 在庫ステータスを取得
+        const items = await callApi<Item[]>('/api/items');
         const date = getDateFromDateTime(selectedDate);
-        const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
-        if (statusError) throw statusError;
-        // 画面表示用のデータにマッピング
-        const viewModels = itemsData?.map(item => ({
+        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
+        const viewModels = items?.map(item => ({
           item,
           status: statuses?.find(status => status.item_id === item.item_id) || null
         })) || [];

@@ -110,6 +110,10 @@ alwaysApply: true
        - 選定の根拠
      - 各比較項目ごとの判定悔過をそうだと判断した根拠も明確に回答すること
        - 例えば、拡張性：〇△×と回答するなら、なにを根拠や基準に〇と△を分けたのかを明記すること
+     - DBアクセスはlib/db-service.ts（Repository層）で一元管理し、API Route/UseCase層以外から直接呼ばない
+     - 業務ロジック・ViewModel変換・バリデーションはlib/utils/xxx-utils.ts等（UseCase層）で管理
+     - API Route（app/api/xxx/route.ts）はController層として、クライアントとの唯一の窓口とする
+     - クライアントサイドはAPI Route経由でのみデータ取得・更新を行う
    - 合意形成
      - 提案内容の詳細な説明
      - 質問や懸念点への回答

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { PlaceSelector } from '@/components/inventory/place-selector';
 import { getPlaces, getItemsBySource, getInventoryStatusByDate, saveInventoryStatusesBulk } from '@/lib/db-service';
@@ -13,6 +13,7 @@ import { PREPARATION_STATUS } from '@/lib/schemas/enums/preparation-status';
 import { ORDER_REQUEST_STATUS } from '@/lib/schemas/enums/order-request-status';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { Button } from '@/components/ui/button';
 import { LABELS } from '@/lib/constants/labels';
 import { MESSAGES, $msg, ERROR } from '@/lib/constants/messages';
 import { createInventoryStatusFromViewModel, useInventoryAutoSave } from '@/lib/utils/inventory-status-utils';
@@ -22,10 +23,11 @@ import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
 import { STORAGE_KEY_PREFIX, SYMBOLS, ALL_SOURCE_PLACES } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { CreationItemCard } from '@/components/creation/creation-item-card';
+import { callApi } from '@/lib/utils/api-client';
 
 export default function CreationPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string>(ALL_SOURCE_PLACES.KEY);
   const [places, setPlaces] = useState<Place[]>([]);
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +46,9 @@ export default function CreationPage() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const { data, error } = await getPlaces();
-        if (error) throw error;
+        const data = await callApi<Place[]>('/api/places');
         if (data) {
           setPlaces(data);
-          // 初期値は「全補充元」を選択
-          setSelectedPlaceId(ALL_SOURCE_PLACES.KEY);
         }
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.LOCATION) + (err?.message ? `: ${err.message}` : ''));
@@ -66,31 +65,15 @@ export default function CreationPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        let itemsData: Item[] = [];
-        if (selectedPlaceId === ALL_SOURCE_PLACES.KEY) {
-          // 全補充元の品目を取得
-          const sourcePlaces = places.filter(place => place.place_type === placeType);
-          for (const place of sourcePlaces) {
-            const { data, error: itemsError } = await getItemsBySource(place.place_id);
-            if (itemsError) throw itemsError;
-            if (data) {
-              itemsData = [...itemsData, ...data];
-            }
-          }
-        } else {
-          const { data, error: itemsError } = await getItemsBySource(selectedPlaceId as string);
-          if (itemsError) throw itemsError;
-          if (data) {
-            itemsData = data;
-          }
-        }
+        const items = selectedPlaceId === ALL_SOURCE_PLACES.KEY
+          ? await callApi<Item[]>(`/api/items`)
+          : await callApi<Item[]>(`/api/items?sourceId=${selectedPlaceId}`);
         const date = getDateFromDateTime(selectedDate);
-        const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
-        if (statusError) throw statusError;
-        const viewModels = itemsData.map(item => ({
+        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
+        const viewModels = items?.map(item => ({
           item,
           status: statuses?.find(status => status.item_id === item.item_id) || null
-        }));
+        })) || [];
         setItems(viewModels);
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.ITEM) + (err?.message ? `: ${err.message}` : ''));
@@ -99,7 +82,7 @@ export default function CreationPage() {
       }
     }
     loadItems();
-  }, [selectedPlaceId, selectedDate, places]);
+  }, [selectedPlaceId, selectedDate]);
 
   // ステータス更新
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {

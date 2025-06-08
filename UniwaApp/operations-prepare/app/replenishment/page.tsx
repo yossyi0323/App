@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DateSelector } from '@/components/date-selector';
 import { PlaceSelector } from '@/components/inventory/place-selector';
-import { getPlaces, getItemsBySource, getInventoryStatusByDate, saveInventoryStatusesBulk } from '@/lib/db-service';
-import type { Place, InventoryStatus, InventoryStatusViewModel } from '@/lib/types';
+import type { Place, InventoryStatus, InventoryStatusViewModel, Item } from '@/lib/types';
 import { PLACE_TYPE } from '@/lib/schemas/enums/place-type';
 import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName } from '@/lib/utils/enum-utils';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
@@ -26,6 +25,7 @@ import { useInventoryAutoSave } from '@/lib/utils/inventory-status-utils';
 import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
 import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
+import { callApi } from '@/lib/utils/api-client';
 
 export default function ReplenishmentPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -48,8 +48,7 @@ export default function ReplenishmentPage() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const { data, error } = await getPlaces();
-        if (error) throw error;
+        const data = await callApi<Place[]>('/api/places');
         if (data) {
           setPlaces(data);
           const firstSource = data.find(place => place.place_type === placeType);
@@ -72,11 +71,9 @@ export default function ReplenishmentPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        const { data: items, error: itemsError } = await getItemsBySource(selectedPlaceId as string);
-        if (itemsError) throw itemsError;
+        const items = await callApi<Item[]>(`/api/items?sourceId=${selectedPlaceId}`);
         const date = getDateFromDateTime(selectedDate);
-        const { data: statuses, error: statusError } = await getInventoryStatusByDate(date);
-        if (statusError) throw statusError;
+        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
           status: statuses?.find(status => status.item_id === item.item_id) || null

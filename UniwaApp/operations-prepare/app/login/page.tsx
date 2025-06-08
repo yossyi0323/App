@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import LoginForm from '@/components/auth/login-form';
 import { useSupabase } from '@/components/provider/supabase-provider';
+import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 
 export default function LoginPage() {
   const { session, isLoading } = useSupabase();
@@ -17,10 +18,8 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-pulse text-center">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingIndicator />
       </div>
     );
   }

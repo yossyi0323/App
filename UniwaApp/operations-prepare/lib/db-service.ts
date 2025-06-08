@@ -22,22 +22,30 @@ export async function getPlaces() {
   return { data, error };
 }
 
-export async function getPlacesByType(type: string) {
-  const { data, error } = await supabase
-    .from('place')
-    .select('*')
-    .eq('place_type', type);
-  
-  return { data, error };
-}
-
 // Items
 export async function getItems() {
+  // item_preparationからitem_id, preparation_typeを全件取得
   const { data, error } = await supabase
-    .from('item')
-    .select('*');
+    .from('item_preparation')
+    .select('item_id, preparation_type');
   
-  return { data, error };
+  if (error || !data) return { data: null, error };
+  
+  const itemIds = data.map(item => item.item_id);
+  const prepTypeMap = Object.fromEntries(data.map(item => [item.item_id, item.preparation_type]));
+
+  const { data: items, error: itemsError } = await supabase
+    .from('item')
+    .select('*')
+    .in('item_id', itemIds);
+
+  // item情報にpreparation_typeを付与して返す
+  const itemsWithPattern = (items || []).map(item => ({
+    ...item,
+    pattern_type: prepTypeMap[item.item_id] || null
+  }));
+
+  return { data: itemsWithPattern, error: itemsError };
 }
 
 export async function getItemsByDestination(destinationId: string) {
@@ -228,24 +236,6 @@ export async function updateReservationStatus(status: ReservationStatus) {
       memo: status.memo
     })
     .select();
-  
-  return { data, error };
-}
-
-// Item Preparations
-export async function getItemPreparations() {
-  const { data, error } = await supabase
-    .from('item_preparation')
-    .select('*');
-  
-  return { data, error };
-}
-
-export async function getItemPreparationsByItem(itemId: string) {
-  const { data, error } = await supabase
-    .from('item_preparation')
-    .select('*')
-    .eq('item_id', itemId);
   
   return { data, error };
 }
