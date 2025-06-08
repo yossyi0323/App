@@ -7,9 +7,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import type { Item, InventoryStatus } from '@/lib/types';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 
 export default function StatusPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const [items, setItems] = useState<Item[]>([]);
   const [inventoryStatuses, setInventoryStatuses] = useState<InventoryStatus[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +37,7 @@ export default function StatusPage() {
   useEffect(() => {
     async function loadInventoryStatuses() {
       try {
-        const dateString = getDateFromDateTime(selectedDate);
-        const response = await fetch(`/api/inventory-status?date=${dateString}`);
+        const response = await fetch(`/api/inventory-status?date=${businessDate}`);
         const data: InventoryStatus[] = await response.json();
         setInventoryStatuses(data || []);
       } catch (err: any) {
@@ -48,17 +48,17 @@ export default function StatusPage() {
     if (items.length > 0) {
       loadInventoryStatuses();
     }
-  }, [selectedDate, items]);
+  }, [businessDate, items]);
   
   const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
+    setBusinessDate(date.toISOString().split('T')[0]);
   };
   
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">営業準備状況</h1>
       
-      <DateSelector date={selectedDate} onDateChange={handleDateChange} />
+      <DateSelector date={new Date(businessDate)} onDateChange={handleDateChange} />
       
       {error && (
         <Alert variant="destructive" className="mb-4">
@@ -72,7 +72,7 @@ export default function StatusPage() {
         </div>
       ) : (
         <StatusOverview
-          date={getDateFromDateTime(selectedDate)}
+          date={businessDate}
           items={items}
           inventoryStatuses={inventoryStatuses}
         />

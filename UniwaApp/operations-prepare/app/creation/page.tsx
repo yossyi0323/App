@@ -24,9 +24,11 @@ import { STORAGE_KEY_PREFIX, SYMBOLS, ALL_SOURCE_PLACES } from '@/lib/constants/
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { CreationItemCard } from '@/components/creation/creation-item-card';
 import { callApi } from '@/lib/utils/api-client';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
+import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
 
 export default function CreationPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>(ALL_SOURCE_PLACES.KEY);
   const [places, setPlaces] = useState<Place[]>([]);
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
@@ -35,7 +37,7 @@ export default function CreationPage() {
   const autoSaveRef = useInventoryAutoSave({
     items,
     selectedPlaceId,
-    selectedDate,
+    selectedDate: parseDate(businessDate),
     setError,
     storageKeyPrefix: STORAGE_KEY_PREFIX.CREATION,
   });
@@ -68,7 +70,7 @@ export default function CreationPage() {
         const items = selectedPlaceId === ALL_SOURCE_PLACES.KEY
           ? await callApi<Item[]>(`/api/items`)
           : await callApi<Item[]>(`/api/items?sourceId=${selectedPlaceId}`);
-        const date = getDateFromDateTime(selectedDate);
+        const date = businessDate;
         const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
@@ -82,7 +84,7 @@ export default function CreationPage() {
       }
     }
     loadItems();
-  }, [selectedPlaceId, selectedDate]);
+  }, [selectedPlaceId, businessDate]);
 
   // ステータス更新
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
@@ -90,7 +92,7 @@ export default function CreationPage() {
       if (vm.item.item_id !== itemId) return vm;
       return {
         ...vm,
-        status: createInventoryStatusFromViewModel(vm, selectedDate, { [field]: value })
+        status: createInventoryStatusFromViewModel(vm, parseDate(businessDate), { [field]: value })
       };
     }));
   };
@@ -99,11 +101,15 @@ export default function CreationPage() {
     setSelectedPlaceId(placeId);
   };
 
+  const handleDateChange = (date: Date) => {
+    setBusinessDate(formatDate(date));
+  };
+
   return (
     <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.CREATION}</h1>
-        <DateSelector date={selectedDate} onDateChange={setSelectedDate} />
+        <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
         <div className="mb-3">
           <PlaceSelector
             places={[
@@ -141,11 +147,11 @@ export default function CreationPage() {
                 return isCreation;
               });
               const countRequired = filtered.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUIRED');
               }).length;
               const countRequested = filtered.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUESTED');
               }).length;
               const total = filtered.length;
@@ -177,12 +183,12 @@ export default function CreationPage() {
                 return isCreation;
               })
               .map(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return (
                   <CreationItemCard
                     key={vm.item.item_id}
                     item={vm.item}
-                    date={getDateFromDateTime(selectedDate)}
+                    date={businessDate}
                     currentStock={status.current_stock}
                     replenishmentCount={status.replenishment_count}
                     replenishmentStatus={status.replenishment_status as EnumCode<typeof REPLENISHMENT_STATUS>}

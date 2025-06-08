@@ -25,6 +25,8 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
 import { toEnumCode } from '@/lib/utils/enum-utils';
 import { Button } from '@/components/ui/button';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
+import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -92,7 +94,7 @@ function updateItemStatus(
 }
 
 export default function InventoryPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
@@ -101,7 +103,7 @@ export default function InventoryPage() {
   const autoSaveRef = useInventoryAutoSave({
     items,
     selectedPlaceId,
-    selectedDate,
+    selectedDate: parseDate(businessDate),
     setError,
     storageKeyPrefix: STORAGE_KEY_PREFIX.INVENTORY,
   });
@@ -135,8 +137,8 @@ export default function InventoryPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        const items = await callApi<Item[]>(`/api/items?destinationId=${selectedPlaceId}`);
-        const date = getDateFromDateTime(selectedDate);
+        const items = await callApi<Item[]>(`/api/items?placeId=${selectedPlaceId}`);
+        const date = businessDate;
         const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
@@ -152,18 +154,18 @@ export default function InventoryPage() {
     }
     
     loadItems();
-  }, [selectedPlaceId, selectedDate]);
+  }, [selectedPlaceId, businessDate]);
   
   // バリデーション例（業務日付・補充先必須）
   useEffect(() => {
     if (isLoading) return;
-    if (!selectedDate) setError($msg(ERROR.E10010, LABELS.BUSINESS_DATE));
+    if (!businessDate) setError($msg(ERROR.E10010, LABELS.BUSINESS_DATE));
     else if (!selectedPlaceId) setError($msg(ERROR.E10010, LABELS.PLACE));
     else setError(null);
-  }, [selectedDate, selectedPlaceId]);
+  }, [businessDate, selectedPlaceId]);
   
   const handleDateChange = (date: Date) => {
-    setSelectedDate(date);
+    setBusinessDate(formatDate(date));
   };
   
   const handlePlaceChange = (placeId: string) => {
@@ -195,7 +197,7 @@ export default function InventoryPage() {
   // 子からの状態変更を親のitemsに反映
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
     setItems(prev => {
-      const updated = updateItemStatus(prev, itemId, field, value, selectedDate);
+      const updated = updateItemStatus(prev, itemId, field, value, parseDate(businessDate));
       if (JSON.stringify(prev) !== JSON.stringify(updated)) {
         autoSaveRef.current?.markDirty();
       }
@@ -210,7 +212,7 @@ export default function InventoryPage() {
     <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.INVENTORY_CHECK}</h1>
-        <DateSelector date={selectedDate} onDateChange={handleDateChange} />
+        <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
         <div className="mb-3">
           <PlaceSelector
             places={places}
@@ -240,7 +242,7 @@ export default function InventoryPage() {
               // 件数集計
               const total = items.length;
               const countRequired = items.filter(vm => {
-                const status = createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(REPLENISHMENT_STATUS, status.replenishment_status, 'REQUIRED');
               }).length;
               const allCleared = countRequired === 0 || total === 0;
@@ -267,14 +269,14 @@ export default function InventoryPage() {
             })()}
             {/* 在庫リスト */}
             {items.map(viewModel => {
-              const status = createInventoryStatusFromViewModel(viewModel, selectedDate);
+              const status = createInventoryStatusFromViewModel(viewModel, parseDate(businessDate));
               const statusChange = (property: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => 
                 handleItemStatusChange(viewModel.item.item_id, property, value);
               return (
                 <InventoryItemCard
                   key={viewModel.item.item_id}
                   item={viewModel.item}
-                  date={getDateFromDateTime(selectedDate)}
+                  date={getDateFromDateTime(parseDate(businessDate))}
                   currentStock={status.current_stock}
                   restockAmount={status.replenishment_count}
                   replenishmentStatus={toEnumCode(REPLENISHMENT_STATUS, status.replenishment_status)}

@@ -24,28 +24,29 @@ import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { getDisplayName } from '@/lib/utils/enum-utils';
 import { OrderItemCard } from '@/components/order/order-item-card';
 import { callApi } from '@/lib/utils/api-client';
+import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
+import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
 
 
 export default function OrderPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { businessDate, setBusinessDate } = useBusinessDate();
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const autoSaveRef = useInventoryAutoSave({
     items,
     selectedPlaceId: ALL_SOURCE_PLACES.KEY, // 全場所分取得
-    selectedDate,
+    selectedDate: parseDate(businessDate),
     setError,
     storageKeyPrefix: STORAGE_KEY_PREFIX.ORDER,
   });
 
-  // 品目一覧の取得
   useEffect(() => {
     async function loadItems() {
       setIsLoading(true);
       try {
         const items = await callApi<Item[]>('/api/items');
-        const date = getDateFromDateTime(selectedDate);
+        const date = businessDate;
         const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
         const viewModels = items?.map(item => ({
           item,
@@ -59,24 +60,27 @@ export default function OrderPage() {
       }
     }
     loadItems();
-  }, [selectedDate]);
+  }, [businessDate]);
 
-  // ステータス更新
   const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
     setItems(prev => prev.map(vm => {
       if (vm.item.item_id !== itemId) return vm;
       return {
         ...vm,
-        status: createInventoryStatusFromViewModel(vm, selectedDate, { [field]: value })
+        status: createInventoryStatusFromViewModel(vm, parseDate(businessDate), { [field]: value })
       };
     }));
+  };
+
+  const handleDateChange = (date: Date) => {
+    setBusinessDate(formatDate(date));
   };
 
   return (
     <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.ORDER_REQUEST}</h1>
-        <DateSelector date={selectedDate} onDateChange={setSelectedDate} />
+        <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
         {error && <ErrorMessage message={error} className="mb-4" />}
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[40vh]">
@@ -94,14 +98,13 @@ export default function OrderPage() {
             {(() => {
               // 件数集計
               const filtered = items.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return !isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED');
               });
               const countRequired = items.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'REQUIRED');
               }).length;
-              
               const total = filtered.length;
               const allCleared = countRequired === 0 || total === 0;
               return (
@@ -121,12 +124,12 @@ export default function OrderPage() {
             {/* 品目リスト */}
             {items
               .filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 // 発注依頼ステータスがNOT_REQUIRED以外（要発注依頼・発注依頼済）を表示
                 return !isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED');
               })
               .map(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, selectedDate);
+                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return (
                   <OrderItemCard
                     key={vm.item.item_id}

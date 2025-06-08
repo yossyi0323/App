@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/provider/theme-provider';
 import { SupabaseProvider } from '@/components/provider/supabase-provider';
+import { BusinessDateProvider } from '@/lib/contexts/BusinessDateContext';
 import AuthGuard from '@/components/auth/auth-guard';
 import MainLayout from '@/components/layout/main-layout';
 
@@ -28,11 +29,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SupabaseProvider>
-            <AuthGuard>
-              <MainLayout>
-                {children}
-              </MainLayout>
-            </AuthGuard>
+            <BusinessDateProvider>
+              <AuthGuard>
+                <MainLayout>
+                  {children}
+                </MainLayout>
+              </AuthGuard>
+            </BusinessDateProvider>
           </SupabaseProvider>
         </ThemeProvider>
       </body>
