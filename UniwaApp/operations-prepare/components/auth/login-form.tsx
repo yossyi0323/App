@@ -6,7 +6,14 @@ import { signIn, signInWithGoogle } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
@@ -24,7 +31,7 @@ export default function LoginForm() {
 
     try {
       const { data, error } = await signIn(email, password);
-      
+
       if (error) {
         throw error;
       }
@@ -60,9 +67,7 @@ export default function LoginForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl">ログイン</CardTitle>
-        <CardDescription>
-          営業準備アプリへようこそ
-        </CardDescription>
+        <CardDescription>営業準備アプリへようこそ</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -107,11 +112,7 @@ export default function LoginForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'ログイン中...' : 'ログイン'}
           </Button>
         </CardFooter>

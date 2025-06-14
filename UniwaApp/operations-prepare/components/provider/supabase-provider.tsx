@@ -39,9 +39,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SupabaseContext.Provider value={{ session, isLoading }}>
-      {children}
-    </SupabaseContext.Provider>
+    <SupabaseContext.Provider value={{ session, isLoading }}>{children}</SupabaseContext.Provider>
   );
 }
 

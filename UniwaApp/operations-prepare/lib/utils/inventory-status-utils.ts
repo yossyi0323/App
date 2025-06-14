@@ -11,6 +11,13 @@ import { AUTOSAVE } from '@/lib/constants/constants';
 import { getDateFromDateTime } from './date-time-utils';
 import { ORDER_REQUEST_STATUS } from '../schemas/enums/order-request-status';
 import { PREPARATION_STATUS } from '../schemas/enums/preparation-status';
+import { callApi } from './api-client';
+import { $msg, ERROR, INFO } from '@/lib/constants/messages';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import type {
+  SaveInventoryStatusRequest,
+  SaveInventoryStatusResponse,
+} from '@/lib/types/api/inventory-status';
 // import { parse } from 'csv-parse/sync';
 // import fs from 'fs';
 
@@ -29,30 +36,32 @@ export function createInventoryStatusFromViewModel(
   options?: Partial<InventoryStatus>
 ): InventoryStatus {
   const currentStatus: Partial<InventoryStatus> = viewModel.status ?? {};
-  
+
   return {
     // 必須フィールド
     inventory_status_id: currentStatus.inventory_status_id ?? '',
     business_date: currentStatus.business_date ?? getDateFromDateTime(selectedDate),
     item_id: currentStatus.item_id ?? viewModel.item.item_id,
-    
+
     // 状態フィールド
-    preparation_status: currentStatus.preparation_status ?? getCode(PREPARATION_STATUS, 'NOT_REQUIRED'),
+    preparation_status:
+      currentStatus.preparation_status ?? getCode(PREPARATION_STATUS, 'NOT_REQUIRED'),
     order_status: currentStatus.order_status ?? getCode(ORDER_REQUEST_STATUS, 'NOT_REQUIRED'),
     current_stock: currentStatus.current_stock ?? 0,
     replenishment_count: currentStatus.replenishment_count ?? 0,
     memo: currentStatus.memo ?? '',
-    
+
     // システムフィールド
     created_at: currentStatus.created_at ?? new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    
+
     // ステータスコード
-    replenishment_status: currentStatus.replenishment_status ?? getCode(REPLENISHMENT_STATUS, 'NOT_REQUIRED'),
+    replenishment_status:
+      currentStatus.replenishment_status ?? getCode(REPLENISHMENT_STATUS, 'NOT_REQUIRED'),
     check_status: currentStatus.check_status ?? getCode(INVENTORY_STATUS, 'UNCONFIRMED'),
-    
+
     // オプションで上書き可能
-    ...(options ?? {})
+    ...(options ?? {}),
   };
 }
 
@@ -68,7 +77,7 @@ export function updateViewModels(
     value?: any;
   } = {}
 ): InventoryStatusViewModel[] {
-  return viewModels.map(viewModel => {
+  return viewModels.map((viewModel) => {
     // 特定のアイテムのみ更新する場合
     if (options.itemId && viewModel.item.item_id !== options.itemId) {
       return viewModel;
@@ -80,7 +89,7 @@ export function updateViewModels(
         viewModel,
         selectedDate,
         options.field ? { [options.field]: options.value } : undefined
-      )
+      ),
     };
   });
 }
@@ -92,9 +101,12 @@ export function updateViewModels(
  * @param prevStatuses 前回保存時のInventoryStatus[]
  * @returns {Promise<{ data: any, error: any, savedStatuses: InventoryStatus[] }>}
  */
-export async function saveInventoryStatusViewModels(viewModels: { status: InventoryStatus | null }[], prevStatuses: InventoryStatus[] = []) {
+export async function saveInventoryStatusViewModels(
+  viewModels: { status: InventoryStatus | null }[],
+  prevStatuses: InventoryStatus[] = []
+) {
   const statuses = viewModels
-    .map(vm => vm.status)
+    .map((vm) => vm.status)
     .filter((status): status is InventoryStatus => !!status);
   // 差分抽出
   const dirtyStatuses = getDirtyInventoryStatuses(prevStatuses, statuses);
@@ -106,9 +118,14 @@ export async function saveInventoryStatusViewModels(viewModels: { status: Invent
 /**
  * 差分抽出ユーティリティ: 前回保存時と異なるInventoryStatusのみ返す
  */
-export function getDirtyInventoryStatuses(prev: InventoryStatus[], next: InventoryStatus[]): InventoryStatus[] {
-  return next.filter(nextStatus => {
-    const prevStatus = prev.find(p => p.item_id === nextStatus.item_id && p.business_date === nextStatus.business_date);
+export function getDirtyInventoryStatuses(
+  prev: InventoryStatus[],
+  next: InventoryStatus[]
+): InventoryStatus[] {
+  return next.filter((nextStatus) => {
+    const prevStatus = prev.find(
+      (p) => p.item_id === nextStatus.item_id && p.business_date === nextStatus.business_date
+    );
     return !prevStatus || JSON.stringify(prevStatus) !== JSON.stringify(nextStatus);
   });
 }
@@ -128,7 +145,7 @@ export function getDirtyInventoryStatuses(prev: InventoryStatus[], next: Invento
 //       const enumName = field.split('_')
 //         .map(word => word.toUpperCase())
 //         .join('_');
-      
+
 //       status[field as keyof InventoryStatus] = getCode(
 //         {
 //           INVENTORY_STATUS: INVENTORY_STATUS,
@@ -178,20 +195,12 @@ export function useInventoryAutoSave({
   items,
   selectedPlaceId,
   selectedDate,
-  saveFunc = async (dirty) => {
-    // 保存前にステータス遷移の検証
-    for (const status of dirty) {
-      const viewModel = items.find(i => i.item.item_id === status.item_id);
-      if (!viewModel) continue;
 
-      // if (!isValidStatusViewModel({
-      //   ...viewModel,
-      //   status
-      // })) {
-      //   throw new Error('無効なステータスの組み合わせです');
-      // }
-    }
-    await saveInventoryStatusesBulk(dirty);
+  saveFunc = async (request: SaveInventoryStatusRequest): Promise<SaveInventoryStatusResponse> => {
+    return inventoryStatusApi.save(request).catch((error) => {
+      setError($msg(INFO.I30010));
+      throw new Error(error);
+    });
   },
   setError,
   storageKeyPrefix = 'inventory',
@@ -199,30 +208,37 @@ export function useInventoryAutoSave({
   items: InventoryStatusViewModel[];
   selectedPlaceId: string | null;
   selectedDate: Date;
-  saveFunc?: (dirty: InventoryStatus[]) => Promise<void>;
+  saveFunc?: (request: SaveInventoryStatusRequest) => Promise<SaveInventoryStatusResponse>;
   setError: (msg: string | null) => void;
   storageKeyPrefix?: string;
 }) {
   const itemsRef = useRef(items);
-  useEffect(() => { itemsRef.current = items; }, [items]);
-  const autoSaveRef = useRef<AutoSaveManager | null>(null);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+  const autoSaveRef = useRef<AutoSaveManager<
+    InventoryStatus[],
+    SaveInventoryStatusRequest,
+    SaveInventoryStatusResponse
+  > | null>(null);
 
   useEffect(() => {
     if (!selectedPlaceId || !selectedDate) return;
     const storageKey = `${storageKeyPrefix}_${getDateFromDateTime(selectedDate)}_${selectedPlaceId}`;
-    autoSaveRef.current = new AutoSaveManager({
-      getData: () => itemsRef.current.map(vm => vm.status).filter((s): s is InventoryStatus => !!s),
-      saveData: async (dirty) => {
-        try {
-          await saveFunc(dirty);
-        } catch (err: any) {
-          setError(err?.message || '保存に失敗しました');
-        }
+    autoSaveRef.current = new AutoSaveManager<
+      InventoryStatus[],
+      SaveInventoryStatusRequest,
+      SaveInventoryStatusResponse
+    >({
+      getData: () =>
+        itemsRef.current.map((vm) => vm.status).filter((s): s is InventoryStatus => !!s),
+      saveData: async (data) => {
+        return saveFunc({ statuses: data });
       },
-      getDirtyItems: getDirtyInventoryStatuses,
+      getDirtyItems: (prev, next) => getDirtyInventoryStatuses(prev, next),
       storageKey,
       initialData: [],
-      debounceMs: AUTOSAVE.DEBOUNCE_MS
+      debounceMs: AUTOSAVE.DEBOUNCE_MS,
     });
     const handleOnline = () => {
       autoSaveRef.current?.retryFailedSaves();
@@ -240,4 +256,4 @@ export function useInventoryAutoSave({
   }, [items]);
 
   return autoSaveRef;
-} 
+}

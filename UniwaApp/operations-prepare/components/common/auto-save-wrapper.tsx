@@ -1,12 +1,17 @@
 import { useEffect } from 'react';
+import type { ReactNode } from 'react';
 import type { AutoSaveManager } from '@/lib/utils/auto-save-utils';
 
-interface AutoSaveWrapperProps {
-  autoSaveManager: AutoSaveManager | null;
-  children: React.ReactNode;
-}
+// ジェネリクス型でpropsを受け取る
+export type AutoSaveWrapperProps<T, R, S> = {
+  autoSaveManager: AutoSaveManager<T, R, S> | null;
+  children: ReactNode;
+};
 
-export function AutoSaveWrapper({ autoSaveManager, children }: AutoSaveWrapperProps) {
+export function AutoSaveWrapper<T, R, S>({
+  autoSaveManager,
+  children,
+}: AutoSaveWrapperProps<T, R, S>) {
   useEffect(() => {
     if (!autoSaveManager) return;
 
@@ -24,4 +29,4 @@ export function AutoSaveWrapper({ autoSaveManager, children }: AutoSaveWrapperPr
   }, [autoSaveManager]);
 
   return <>{children}</>;
-} 
+}

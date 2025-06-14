@@ -19,15 +19,17 @@ async function backupItems() {
     .select('item_id, item_name');
   const { data: preps, error: prepError } = await supabase
     .from('item_preparation')
-    .select('item_id, preparation_type, source_place_id, destination_place_id, preparation_contact');
+    .select(
+      'item_id, preparation_type, source_place_id, destination_place_id, preparation_contact'
+    );
   const { data: places, error: placesError } = await supabase
     .from('place')
     .select('place_id, place_name');
 
   if (itemError || prepError || placesError) throw itemError || prepError || placesError;
 
-  const placeMap = new Map(places.map(p => [p.place_id, p.place_name]));
-  const itemNameMap = new Map(items.map(i => [i.item_id, i.item_name]));
+  const placeMap = new Map(places.map((p) => [p.place_id, p.place_name]));
+  const itemNameMap = new Map(items.map((i) => [i.item_id, i.item_name]));
 
   // 重複を防ぐためにSetを使用
   const uniqueRows = new Set<string>();
@@ -36,17 +38,14 @@ async function backupItems() {
   for (const prep of preps) {
     const itemName = itemNameMap.get(prep.item_id) || '';
     // 物理名→論理名変換
-    const patternLogical = getLogicalName(PREPARATION_PATTERN, prep.preparation_type) || prep.preparation_type || '';
+    const patternLogical =
+      getLogicalName(PREPARATION_PATTERN, prep.preparation_type) || prep.preparation_type || '';
     const sourcePlace = placeMap.get(prep.source_place_id) || '';
     const destPlace = placeMap.get(prep.destination_place_id) || '';
     const contact = prep.preparation_contact || '';
-    const row = [
-      itemName,
-      patternLogical,
-      sourcePlace,
-      destPlace,
-      contact
-    ].map(v => v.replace(/,/g, '，')).join(',');
+    const row = [itemName, patternLogical, sourcePlace, destPlace, contact]
+      .map((v) => v.replace(/,/g, '，'))
+      .join(',');
     uniqueRows.add(row);
   }
 
@@ -73,14 +72,17 @@ async function importItems() {
     const csvContent = readFileSync('scripts/data/items.csv', 'utf-8');
     const records: ItemRecord[] = parse(csvContent, {
       columns: true,
-      skip_empty_lines: true
+      skip_empty_lines: true,
     });
 
     // 品物名の重複チェック
-    const nameCounts = records.reduce((acc, r) => {
-      acc[r.品物名] = (acc[r.品物名] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const nameCounts = records.reduce(
+      (acc, r) => {
+        acc[r.品物名] = (acc[r.品物名] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
     const duplicates = Object.entries(nameCounts).filter(([_, count]) => count > 1);
     if (duplicates.length > 0) {
       console.error('CSV内で品物名が重複しています:');
@@ -95,9 +97,7 @@ async function importItems() {
       .from('place')
       .select('place_id, place_name');
     if (placesError) throw placesError;
-    const placeMap = new Map(
-      places.map(p => [p.place_name, p.place_id])
-    );
+    const placeMap = new Map(places.map((p) => [p.place_name, p.place_id]));
 
     // 各レコードを処理
     for (const record of records) {
@@ -126,19 +126,14 @@ async function importItems() {
       if (existingItem) {
         // 既存item_idを利用し、必要ならupdate
         itemId = existingItem.item_id;
-        await supabase
-          .from('item')
-          .update({ item_name: record.品物名 })
-          .eq('item_id', itemId);
+        await supabase.from('item').update({ item_name: record.品物名 }).eq('item_id', itemId);
       } else {
         // 新規登録
         itemId = IdSeqUtils.generateId('item');
-        const { error: itemError } = await supabase
-          .from('item')
-          .insert({
-            item_id: itemId,
-            item_name: record.品物名
-          });
+        const { error: itemError } = await supabase.from('item').insert({
+          item_id: itemId,
+          item_name: record.品物名,
+        });
         if (itemError) {
           console.error(`品物の追加に失敗: ${record.品物名}`, itemError);
           continue;
@@ -146,7 +141,7 @@ async function importItems() {
       }
       // 品物別前日営業準備の追加
       const itemPreparationId = IdSeqUtils.generateId('item_preparation');
-      
+
       // 既存の準備情報をチェック
       const { data: existingPreps, error: checkError } = await supabase
         .from('item_preparation')
@@ -160,12 +155,16 @@ async function importItems() {
 
       if (existingPreps && existingPreps.length > 0) {
         if (existingPreps.length > 1) {
-          console.error(`重複する準備情報が存在します: ${record.品物名} (${existingPreps.length}件)`);
-          
+          console.error(
+            `重複する準備情報が存在します: ${record.品物名} (${existingPreps.length}件)`
+          );
+
           // items.csvにその品物があるかチェック
-          const existsInCsv = records.some(r => r.品物名 === record.品物名);
+          const existsInCsv = records.some((r) => r.品物名 === record.品物名);
           if (!existsInCsv) {
-            console.error(`重複レコードが存在し、かつitems.csvに該当する品物がありません: ${record.品物名}`);
+            console.error(
+              `重複レコードが存在し、かつitems.csvに該当する品物がありません: ${record.品物名}`
+            );
             console.error('この品物はitems.csvに追加してから再度実行してください。');
             continue;
           }
@@ -184,16 +183,14 @@ async function importItems() {
           console.log(`重複レコードを削除しました: ${record.品物名} (${existingPreps.length}件)`);
 
           // items.csvの内容で新規追加
-          const { error: prepError } = await supabase
-            .from('item_preparation')
-            .insert({
-              item_preparation_id: itemPreparationId,
-              item_id: itemId,
-              preparation_type: preparationType,
-              source_place_id: sourcePlaceId,
-              destination_place_id: destPlaceId,
-              preparation_contact: record['作成・発注依頼先'] || ''
-            });
+          const { error: prepError } = await supabase.from('item_preparation').insert({
+            item_preparation_id: itemPreparationId,
+            item_id: itemId,
+            preparation_type: preparationType,
+            source_place_id: sourcePlaceId,
+            destination_place_id: destPlaceId,
+            preparation_contact: record['作成・発注依頼先'] || '',
+          });
 
           if (prepError) {
             console.error(`準備情報の追加に失敗: ${record.品物名}`, prepError);
@@ -208,7 +205,7 @@ async function importItems() {
               preparation_type: preparationType,
               source_place_id: sourcePlaceId,
               destination_place_id: destPlaceId,
-              preparation_contact: record['作成・発注依頼先'] || ''
+              preparation_contact: record['作成・発注依頼先'] || '',
             })
             .eq('item_preparation_id', existingPreps[0].item_preparation_id);
 
@@ -220,16 +217,14 @@ async function importItems() {
         }
       } else {
         // 新規レコードを追加
-        const { error: prepError } = await supabase
-          .from('item_preparation')
-          .insert({
-            item_preparation_id: itemPreparationId,
-            item_id: itemId,
-            preparation_type: preparationType,
-            source_place_id: sourcePlaceId,
-            destination_place_id: destPlaceId,
-            preparation_contact: record['作成・発注依頼先'] || ''
-          });
+        const { error: prepError } = await supabase.from('item_preparation').insert({
+          item_preparation_id: itemPreparationId,
+          item_id: itemId,
+          preparation_type: preparationType,
+          source_place_id: sourcePlaceId,
+          destination_place_id: destPlaceId,
+          preparation_contact: record['作成・発注依頼先'] || '',
+        });
 
         if (prepError) {
           console.error(`準備情報の追加に失敗: ${record.品物名}`, prepError);
@@ -246,4 +241,4 @@ async function importItems() {
 }
 
 // スクリプト実行
-importItems(); 
+importItems();

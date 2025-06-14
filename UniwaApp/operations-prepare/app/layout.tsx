@@ -14,11 +14,7 @@ export const metadata: Metadata = {
   description: '翌日の営業に向けた準備業務を効率化',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className={inter.className}>
@@ -31,9 +27,7 @@ export default function RootLayout({
           <SupabaseProvider>
             <BusinessDateProvider>
               <AuthGuard>
-                <MainLayout>
-                  {children}
-                </MainLayout>
+                <MainLayout>{children}</MainLayout>
               </AuthGuard>
             </BusinessDateProvider>
           </SupabaseProvider>

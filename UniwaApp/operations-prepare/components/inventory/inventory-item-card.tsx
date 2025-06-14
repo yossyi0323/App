@@ -29,9 +29,24 @@ interface InventoryItemCardProps {
   onCheckChange: (value: boolean) => void;
 }
 
-export function InventoryItemCard({ item, date, currentStock, restockAmount, replenishmentStatus, memo, isChecked, onStockChange, onRestockChange, onNeedsRestockChange, onMemoChange, onCheckChange }: InventoryItemCardProps) {
+export function InventoryItemCard({
+  item,
+  date,
+  currentStock,
+  restockAmount,
+  replenishmentStatus,
+  memo,
+  isChecked,
+  onStockChange,
+  onRestockChange,
+  onNeedsRestockChange,
+  onMemoChange,
+  onCheckChange,
+}: InventoryItemCardProps) {
   // 初期値判定をコンポーネント内で実施
-  const [isMemoOpen, setIsMemoOpen] = useState(currentStock !== 0 || restockAmount !== 0 || memo !== '');
+  const [isMemoOpen, setIsMemoOpen] = useState(
+    currentStock !== 0 || restockAmount !== 0 || memo !== ''
+  );
   const textGray = '';
 
   // 区分値→UI用boolean変換
@@ -63,14 +78,16 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
         {/* 1行目：チェックボックス・品名・ラジオ・トグル */}
         <div className="flex items-center gap-2 flex-wrap mb-2">
           {/* 未確認・確認済チェックボックス */}
-          <Checkbox 
+          <Checkbox
             checked={isChecked}
             onCheckedChange={onCheckChange}
-            className="h-5 w-5" 
+            className="h-5 w-5"
             disabled={isRestocked}
           />
           {/* 品物名 */}
-          <span className="flex-1 text-sm font-medium break-words min-w-[120px]">{item.item_name}</span>
+          <span className="flex-1 text-sm font-medium break-words min-w-[120px]">
+            {item.item_name}
+          </span>
           {/* 要補充トグルスイッチ */}
           <div className="flex flex-col items-center gap-1">
             <Switch
@@ -95,7 +112,9 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
         {isMemoOpen && (
           <div className="flex gap-2">
             <div className="flex flex-col flex-1">
-              <label htmlFor={`stock-${item.item_id}`} className={`text-xs ${textGray}`}>{LABELS.CURRENT_STOCK}</label>
+              <label htmlFor={`stock-${item.item_id}`} className={`text-xs ${textGray}`}>
+                {LABELS.CURRENT_STOCK}
+              </label>
               <Input
                 id={`stock-${item.item_id}`}
                 type="number"
@@ -107,7 +126,9 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
               />
             </div>
             <div className="flex flex-col flex-1">
-              <label htmlFor={`restock-${item.item_id}`} className={`text-xs ${textGray}`}>{LABELS.REPLENISHMENT_COUNT}</label>
+              <label htmlFor={`restock-${item.item_id}`} className={`text-xs ${textGray}`}>
+                {LABELS.REPLENISHMENT_COUNT}
+              </label>
               <Input
                 id={`restock-${item.item_id}`}
                 type="number"
@@ -123,7 +144,9 @@ export function InventoryItemCard({ item, date, currentStock, restockAmount, rep
         {/* 3行目：メモ欄（トグルON時のみ） */}
         {isMemoOpen && (
           <div>
-            <label htmlFor={`memo-${item.item_id}`} className={`text-xs ${textGray}`}>{LABELS.MEMO}</label>
+            <label htmlFor={`memo-${item.item_id}`} className={`text-xs ${textGray}`}>
+              {LABELS.MEMO}
+            </label>
             <TextareaAutosize
               id={`memo-${item.item_id}`}
               value={memo}

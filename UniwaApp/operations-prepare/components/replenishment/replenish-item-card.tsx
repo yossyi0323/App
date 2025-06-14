@@ -12,7 +12,13 @@ import { ORDER_REQUEST_STATUS } from '@/lib/schemas/enums/order-request-status';
 import type { EnumCode } from '@/lib/utils/enum-utils';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui/select';
 import isEmpty from 'lodash/isEmpty';
 import { PREPARATION_PATTERN } from '@/lib/schemas/enums/preparation-pattern';
 import { Button } from '@/components/ui/button';
@@ -37,25 +43,23 @@ interface ReplenishItemCardProps {
   onPreparationStatusChange: (value: EnumCode<typeof PREPARATION_STATUS>) => void;
 }
 
-export function ReplenishItemCard(
-  { 
-    item,
-    currentStock, 
-    restockAmount, 
-    preparationStatus, 
-    orderStatus, 
-    memo, 
-    patternType, 
-    replenishmentStatus,
-    onMemoChange, 
-    onOrderRequest, 
-    onPreparationStatusChange,
-    onNeedsRestockChange
-  }: ReplenishItemCardProps) {
+export function ReplenishItemCard({
+  item,
+  currentStock,
+  restockAmount,
+  preparationStatus,
+  orderStatus,
+  memo,
+  patternType,
+  replenishmentStatus,
+  onMemoChange,
+  onOrderRequest,
+  onPreparationStatusChange,
+  onNeedsRestockChange,
+}: ReplenishItemCardProps) {
   // メモ欄を開くべきかの判定ロジックを関数化
   const getShouldOpenMemo = () =>
-    isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED') ||
-    !isEmpty(memo);
+    isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED') || !isEmpty(memo);
 
   const [isMemoOpen, setIsMemoOpen] = useState(getShouldOpenMemo());
 
@@ -66,28 +70,35 @@ export function ReplenishItemCard(
 
   const isCreationRequired = isEnumCode(PREPARATION_STATUS, preparationStatus, 'REQUIRED');
   const isOrderRequired = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED');
-  const highlightClass = (isCreationRequired || isOrderRequired)
-    ? 'bg-black text-white dark:bg-white dark:text-black'
-    : '';
+  const highlightClass =
+    isCreationRequired || isOrderRequired
+      ? 'bg-black text-white dark:bg-white dark:text-black'
+      : '';
 
   const isNeedsRestock = isEnumCode(REPLENISHMENT_STATUS, replenishmentStatus, 'REQUIRED');
 
   return (
     <Card className="mb-3 overflow-hidden relative bg-background">
-      <CardContent className="p-4 relative z-20"> 
+      <CardContent className="p-4 relative z-20">
         <div className="flex items-center gap-2 w-full">
           {/* 品物名＋在庫数・補充数バッジ（中央） */}
           <div className="flex-1 min-w-0 inline-flex flex-wrap">
-            <span className="block text-sm font-medium break-words whitespace-normal">{item.item_name}</span>
+            <span className="block text-sm font-medium break-words whitespace-normal">
+              {item.item_name}
+            </span>
             <span className="flex flex-row flex-wrap gap-2 mx-1 my-1">
               {currentStock ? (
                 <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5 align-middle">
-                  {LABELS.CURRENT_STOCK}{SYMBOLS.COLON}{currentStock}
+                  {LABELS.CURRENT_STOCK}
+                  {SYMBOLS.COLON}
+                  {currentStock}
                 </Badge>
               ) : null}
               {restockAmount ? (
                 <Badge variant="default" className="text-xs font-normal px-2 py-0.5 align-middle">
-                  {LABELS.REPLENISHMENT_COUNT}{SYMBOLS.COLON}{restockAmount}
+                  {LABELS.REPLENISHMENT_COUNT}
+                  {SYMBOLS.COLON}
+                  {restockAmount}
                 </Badge>
               ) : null}
             </span>
@@ -99,23 +110,31 @@ export function ReplenishItemCard(
               <div className="flex items-center gap-1">
                 <Checkbox
                   checked={!isNeedsRestock}
-                  onCheckedChange={checked => onNeedsRestockChange(!checked)}
+                  onCheckedChange={(checked) => onNeedsRestockChange(!checked)}
                   className="h-5 w-5"
                 />
               </div>
             )}
             {patternType && isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION') && (
               <Select value={preparationStatus} onValueChange={onPreparationStatusChange}>
-                <SelectTrigger className={`
+                <SelectTrigger
+                  className={`
                   w-[90px] h-7 px-3 text-sm rounded-md border border-input bg-background 
                   focus:ring-2 focus:ring-ring focus:outline-none flex items-center justify-between 
-                  ${isCreationRequired ? highlightClass : ''}`}> 
-                  <SelectValue placeholder={LABELS.PREPARATION_STATUS}/>
+                  ${isCreationRequired ? highlightClass : ''}`}
+                >
+                  <SelectValue placeholder={LABELS.PREPARATION_STATUS} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'REQUIRED')}>{getDisplayName(PREPARATION_STATUS, 'REQUIRED')}</SelectItem>
-                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'REQUESTED')}>{LABELS.REQUESTED}</SelectItem>
-                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'COMPLETED')}>{getDisplayName(PREPARATION_STATUS, 'COMPLETED')}</SelectItem>
+                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'REQUIRED')}>
+                    {getDisplayName(PREPARATION_STATUS, 'REQUIRED')}
+                  </SelectItem>
+                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'REQUESTED')}>
+                    {LABELS.REQUESTED}
+                  </SelectItem>
+                  <SelectItem value={getCodeAsEnumCode(PREPARATION_STATUS, 'COMPLETED')}>
+                    {getDisplayName(PREPARATION_STATUS, 'COMPLETED')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -137,10 +156,16 @@ export function ReplenishItemCard(
             {/* 発注依頼チェックボックス（縦並び・中央揃え） */}
             <div className="flex flex-col items-center flex-shrink-0 gap-1">
               <label className="text-xs">{LABELS.ORDER}</label>
-              <Checkbox checked={isOrderRequired} onCheckedChange={onOrderRequest} className="h-5 w-5" />
+              <Checkbox
+                checked={isOrderRequired}
+                onCheckedChange={onOrderRequest}
+                className="h-5 w-5"
+              />
             </div>
             <div className="flex flex-col flex-1">
-              <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">{LABELS.MEMO}</label>
+              <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">
+                {LABELS.MEMO}
+              </label>
               <TextareaAutosize
                 id={`memo-${item.item_id}`}
                 value={memo}
@@ -155,4 +180,4 @@ export function ReplenishItemCard(
       </CardContent>
     </Card>
   );
-} 
+}

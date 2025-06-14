@@ -7,7 +7,7 @@ const defaultProps = {
     item_id: '1',
     item_name: 'テスト商品',
     created_at: '2024-03-19T00:00:00Z',
-    updated_at: '2024-03-19T00:00:00Z'
+    updated_at: '2024-03-19T00:00:00Z',
   },
   date: '2024-03-20',
   currentStock: 0,
@@ -17,7 +17,7 @@ const defaultProps = {
   onStockChange: jest.fn(),
   onRestockChange: jest.fn(),
   onNeedsRestockChange: jest.fn(),
-  onMemoChange: jest.fn()
+  onMemoChange: jest.fn(),
 };
 
 describe('InventoryItemCard', () => {
@@ -81,11 +81,11 @@ describe('InventoryItemCard', () => {
 
   it('メモ機能が正しく動作する', () => {
     render(<InventoryItemCard {...defaultProps} />);
-    
+
     // メモを開く
     const memoButton = screen.getByLabelText(LABELS.TOGGLE_MEMO);
     fireEvent.click(memoButton);
-    
+
     // メモを入力
     const memoInput = screen.getByLabelText(LABELS.MEMO);
     fireEvent.change(memoInput, { target: { value: 'テストメモ' } });
@@ -94,11 +94,11 @@ describe('InventoryItemCard', () => {
 
   it('補充済み状態では入力欄が無効化される', () => {
     render(<InventoryItemCard {...defaultProps} replenishmentStatus="restocked" />);
-    
+
     const stockInput = screen.getByLabelText(LABELS.CURRENT_STOCK);
     const restockInput = screen.getByLabelText(LABELS.REPLENISHMENT_COUNT);
     const switchElement = screen.getByRole('switch');
-    
+
     expect(stockInput).toBeDisabled();
     expect(restockInput).toBeDisabled();
     expect(switchElement).toBeDisabled();
@@ -107,8 +107,8 @@ describe('InventoryItemCard', () => {
   it('補充ステータスに応じてラベルが正しく表示される', () => {
     const { rerender } = render(<InventoryItemCard {...defaultProps} />);
     expect(screen.getByText(LABELS.NO_RESTOCK)).toBeInTheDocument();
-    
+
     rerender(<InventoryItemCard {...defaultProps} replenishmentStatus="needs-restock" />);
     expect(screen.getByText(LABELS.NEEDS_RESTOCK)).toBeInTheDocument();
   });
-}); 
+});

@@ -9,4 +9,4 @@ export class IdSeqUtils {
     // 今後テーブルごとにID生成ルールを変えたい場合はここで分岐
     return uuidv7();
   }
-} 
+}

@@ -11,7 +11,7 @@ import { getCode } from '@/lib/utils/enum-utils';
 jest.mock('@/lib/db-service', () => ({
   getPlaces: jest.fn(),
   getItemsByDestination: jest.fn(),
-  getInventoryStatusByDate: jest.fn()
+  getInventoryStatusByDate: jest.fn(),
 }));
 
 describe('InventoryPage', () => {
@@ -21,7 +21,7 @@ describe('InventoryPage', () => {
 
   it('初期表示時にローディングメッセージが表示される', async () => {
     (getPlaces as jest.Mock).mockResolvedValue({ data: null, error: null });
-    
+
     await act(async () => {
       render(<InventoryPage />);
     });
@@ -30,17 +30,19 @@ describe('InventoryPage', () => {
   });
 
   it('エラー時にエラーメッセージが表示される', async () => {
-    (getPlaces as jest.Mock).mockResolvedValue({ 
-      data: null, 
-      error: new Error('テストエラー') 
+    (getPlaces as jest.Mock).mockResolvedValue({
+      data: null,
+      error: new Error('テストエラー'),
     });
 
     await act(async () => {
       render(<InventoryPage />);
     });
-    
+
     await waitFor(() => {
-      expect(screen.getByText($msg(ERROR.E10001, LABELS.LOCATION) + ': テストエラー')).toBeInTheDocument();
+      expect(
+        screen.getByText($msg(ERROR.E10001, LABELS.LOCATION) + ': テストエラー')
+      ).toBeInTheDocument();
     });
   });
 
@@ -51,8 +53,8 @@ describe('InventoryPage', () => {
         place_name: '冷蔵庫',
         place_type: getCode(PLACE_TYPE, 'DESTINATION'),
         created_at: '2024-03-19T00:00:00Z',
-        updated_at: '2024-03-19T00:00:00Z'
-      }
+        updated_at: '2024-03-19T00:00:00Z',
+      },
     ];
 
     const mockItems = [
@@ -60,8 +62,8 @@ describe('InventoryPage', () => {
         item_id: '1',
         item_name: 'テスト商品',
         created_at: '2024-03-19T00:00:00Z',
-        updated_at: '2024-03-19T00:00:00Z'
-      }
+        updated_at: '2024-03-19T00:00:00Z',
+      },
     ];
 
     const mockStatuses = [
@@ -77,8 +79,8 @@ describe('InventoryPage', () => {
         replenishment_count: 0,
         memo: '',
         created_at: '2024-03-19T00:00:00Z',
-        updated_at: '2024-03-19T00:00:00Z'
-      }
+        updated_at: '2024-03-19T00:00:00Z',
+      },
     ];
 
     (getPlaces as jest.Mock).mockResolvedValue({ data: mockPlaces, error: null });
@@ -94,4 +96,4 @@ describe('InventoryPage', () => {
       expect(screen.getByText('冷蔵庫')).toBeInTheDocument();
     });
   });
-}); 
+});

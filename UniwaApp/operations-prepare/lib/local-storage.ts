@@ -53,7 +53,7 @@ export function useInventoryStatusStorage(date: string, itemId: string) {
 
 // Batch save for inventory statuses
 export function saveBatchInventoryStatuses(statuses: InventoryStatus[]): void {
-  statuses.forEach(status => {
+  statuses.forEach((status) => {
     const key = `inventory_status_${status.date}_${status.itemId}`;
     saveToStorage(key, status);
   });
@@ -93,12 +93,12 @@ export function useReservationStorage(date: string) {
     saveToStorage(storageKey, updatedReservations);
   };
 
-  return { 
-    reservations, 
-    addReservation, 
-    updateReservation, 
-    removeReservation, 
-    isLoading 
+  return {
+    reservations,
+    addReservation,
+    updateReservation,
+    removeReservation,
+    isLoading,
   };
 }
 
@@ -129,13 +129,14 @@ export function clearAllLocalData(): void {
   if (typeof window !== 'undefined') {
     // Only clear our app's data, not everything in localStorage
     const keys = Object.keys(localStorage);
-    const ourKeys = keys.filter(key => 
-      key.startsWith('inventory_status_') || 
-      key.startsWith('reservations_') || 
-      key.startsWith('reservation_note_')
+    const ourKeys = keys.filter(
+      (key) =>
+        key.startsWith('inventory_status_') ||
+        key.startsWith('reservations_') ||
+        key.startsWith('reservation_note_')
     );
-    
-    ourKeys.forEach(key => {
+
+    ourKeys.forEach((key) => {
       removeFromStorage(key);
     });
   }

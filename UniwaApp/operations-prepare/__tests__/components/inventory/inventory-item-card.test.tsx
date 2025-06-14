@@ -10,7 +10,7 @@ describe('InventoryItemCard', () => {
       item_id: '1',
       item_name: 'テスト品目',
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
+      updated_at: '2024-03-19T00:00:00Z',
     },
     date: '2025-05-19',
     currentStock: 0,
@@ -42,4 +42,4 @@ describe('InventoryItemCard', () => {
     fireEvent.change(screen.getByLabelText(LABELS.CURRENT_STOCK), { target: { value: 2 } });
     expect(baseProps.onStockChange).toHaveBeenCalledWith(2);
   });
-}); 
+});

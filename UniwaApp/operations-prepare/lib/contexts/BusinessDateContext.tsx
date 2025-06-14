@@ -10,9 +10,7 @@ interface BusinessDateContextType {
 const BusinessDateContext = createContext<BusinessDateContextType | undefined>(undefined);
 
 export function BusinessDateProvider({ children }: { children: ReactNode }) {
-  const [businessDate, setBusinessDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [businessDate, setBusinessDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   return (
     <BusinessDateContext.Provider value={{ businessDate, setBusinessDate }}>
@@ -27,4 +25,4 @@ export function useBusinessDate() {
     throw new Error('useBusinessDate must be used within a BusinessDateProvider');
   }
   return context;
-} 
+}

@@ -7,7 +7,14 @@ import { PlaceSelector } from '@/components/inventory/place-selector';
 import { saveInventoryStatusesBulk } from '@/lib/db-service';
 import type { Place, InventoryStatus, InventoryStatusViewModel, Item } from '@/lib/types';
 import { PLACE_TYPE } from '@/lib/schemas/enums/place-type';
-import { getCode, isEnumCode, EnumCode, getCodeAsEnumCode, getLogicalName, getDisplayName } from '@/lib/utils/enum-utils';
+import {
+  getCode,
+  isEnumCode,
+  EnumCode,
+  getCodeAsEnumCode,
+  getLogicalName,
+  getDisplayName,
+} from '@/lib/utils/enum-utils';
 import { ERROR, WARNING, INFO, $msg } from '@/lib/constants/messages';
 import { LABELS } from '@/lib/constants/labels';
 import { INVENTORY_STATUS } from '@/lib/schemas/enums/inventory-status';
@@ -19,7 +26,12 @@ import { STORAGE_KEY_PREFIX, SYMBOLS } from '@/lib/constants/constants';
 import { getDateFromDateTime } from '@/lib/utils/date-time-utils';
 import { Badge } from '@/components/ui/badge';
 import { callApi } from '@/lib/utils/api-client';
-import { useInventoryAutoSave, getDirtyInventoryStatuses, createInventoryStatusFromViewModel, updateViewModels } from '@/lib/utils/inventory-status-utils';
+import {
+  useInventoryAutoSave,
+  getDirtyInventoryStatuses,
+  createInventoryStatusFromViewModel,
+  updateViewModels,
+} from '@/lib/utils/inventory-status-utils';
 import { AutoSaveWrapper } from '@/components/common/auto-save-wrapper';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { LoadingIndicator } from '@/components/ui/LoadingIndicator';
@@ -27,6 +39,13 @@ import { toEnumCode } from '@/lib/utils/enum-utils';
 import { Button } from '@/components/ui/button';
 import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
+import { itemsApi } from '@/lib/api/items';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import { placesApi } from '@/lib/api/places';
+import {
+  SaveInventoryStatusRequest,
+  SaveInventoryStatusResponse,
+} from '@/lib/types/api/inventory-status';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -84,11 +103,11 @@ function updateItemStatus(
   value: InventoryStatus[keyof InventoryStatus],
   date: Date
 ): InventoryStatusViewModel[] {
-  return items.map(viewModel => {
+  return items.map((viewModel) => {
     if (viewModel.item.item_id !== itemId) return viewModel;
     return {
       ...viewModel,
-      status: createInventoryStatusFromViewModel(viewModel, date, { [field]: value })
+      status: createInventoryStatusFromViewModel(viewModel, date, { [field]: value }),
     };
   });
 }
@@ -107,15 +126,17 @@ export default function InventoryPage() {
     setError,
     storageKeyPrefix: STORAGE_KEY_PREFIX.INVENTORY,
   });
-  
+
   // 初期表示時に場所一覧を読み込む
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const data = await callApi<Place[]>('/api/places');
+        const data = await placesApi.getAll();
         if (data) {
           setPlaces(data);
-          const firstDestination = data.find(place => place.place_type === getCode(PLACE_TYPE, 'DESTINATION'));
+          const firstDestination = data.find(
+            (place) => place.place_type === getCode(PLACE_TYPE, 'DESTINATION')
+          );
           if (firstDestination) {
             setSelectedPlaceId(firstDestination.place_id);
           }
@@ -126,25 +147,25 @@ export default function InventoryPage() {
         setIsLoading(false);
       }
     }
-    
+
     loadPlaces();
   }, []);
-  
+
   // 選択された場所が変更されたら品目と在庫ステータスを読み込む
   useEffect(() => {
     if (!selectedPlaceId) return;
-    
+
     async function loadItems() {
       setIsLoading(true);
       try {
-        const items = await callApi<Item[]>(`/api/items?placeId=${selectedPlaceId}`);
-        const date = businessDate;
-        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
-        const viewModels = items?.map(item => ({
-          item,
-          status: statuses?.find(status => status.item_id === item.item_id) || null
-        })) || [];
-        
+        const items = await itemsApi.getByPlace(selectedPlaceId!);
+        const statuses = await inventoryStatusApi.getByDate(businessDate);
+        const viewModels =
+          items?.map((item) => ({
+            item,
+            status: statuses?.find((status) => status.item_id === item.item_id) || null,
+          })) || [];
+
         setItems(viewModels);
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.ITEM) + (err?.message ? `: ${err.message}` : ''));
@@ -152,10 +173,10 @@ export default function InventoryPage() {
         setIsLoading(false);
       }
     }
-    
+
     loadItems();
   }, [selectedPlaceId, businessDate]);
-  
+
   // バリデーション例（業務日付・補充先必須）
   useEffect(() => {
     if (isLoading) return;
@@ -163,40 +184,42 @@ export default function InventoryPage() {
     else if (!selectedPlaceId) setError($msg(ERROR.E10010, LABELS.PLACE));
     else setError(null);
   }, [businessDate, selectedPlaceId]);
-  
+
   const handleDateChange = (date: Date) => {
     setBusinessDate(formatDate(date));
   };
-  
+
   const handlePlaceChange = (placeId: string) => {
     setSelectedPlaceId(placeId);
   };
-  
+
   // 個別アイテムのチェック状態更新
   const handleCheckChange = (itemId: string, checked: boolean) => {
     handleItemStatusChange(
       itemId,
       'check_status',
-      checked 
-        ? getCode(INVENTORY_STATUS, 'CONFIRMED')
-        : getCode(INVENTORY_STATUS, 'UNCONFIRMED')
+      checked ? getCode(INVENTORY_STATUS, 'CONFIRMED') : getCode(INVENTORY_STATUS, 'UNCONFIRMED')
     );
   };
 
   // 全品目の確認状態を一括更新
   const handleCheckChangeAll = () => {
     // 全件確認済みかどうかを判定
-    const isAllConfirmed = items.every(viewModel => isItemConfirmed(viewModel.status));
+    const isAllConfirmed = items.every((viewModel) => isItemConfirmed(viewModel.status));
     // 全件確認済みなら未確認に、そうでなければ確認済みに
     const isConfirmed = !isAllConfirmed;
-    items.forEach(viewModel => {
+    items.forEach((viewModel) => {
       handleCheckChange(viewModel.item.item_id, isConfirmed);
     });
   };
 
   // 子からの状態変更を親のitemsに反映
-  const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
-    setItems(prev => {
+  const handleItemStatusChange = (
+    itemId: string,
+    field: keyof InventoryStatus,
+    value: InventoryStatus[keyof InventoryStatus]
+  ) => {
+    setItems((prev) => {
       const updated = updateItemStatus(prev, itemId, field, value, parseDate(businessDate));
       if (JSON.stringify(prev) !== JSON.stringify(updated)) {
         autoSaveRef.current?.markDirty();
@@ -206,10 +229,12 @@ export default function InventoryPage() {
   };
 
   // 選択された場所の名前を取得
-  const selectedPlace = places.find(place => place.place_id === selectedPlaceId);
-  
+  const selectedPlace = places.find((place) => place.place_id === selectedPlaceId);
+
   return (
-    <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
+    <AutoSaveWrapper<InventoryStatus[], SaveInventoryStatusRequest, SaveInventoryStatusResponse>
+      autoSaveManager={autoSaveRef.current}
+    >
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.INVENTORY_CHECK}</h1>
         <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
@@ -230,9 +255,7 @@ export default function InventoryPage() {
         ) : items.length === 0 ? (
           <div className="py-8 text-center">
             <p className="text-muted-foreground">
-              {selectedPlaceId 
-                ? $msg(WARNING.W20010)
-                : $msg(INFO.I30020)}
+              {selectedPlaceId ? $msg(WARNING.W20010) : $msg(INFO.I30020)}
             </p>
           </div>
         ) : (
@@ -241,7 +264,7 @@ export default function InventoryPage() {
             {(() => {
               // 件数集計
               const total = items.length;
-              const countRequired = items.filter(vm => {
+              const countRequired = items.filter((vm) => {
                 const status = createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(REPLENISHMENT_STATUS, status.replenishment_status, 'REQUIRED');
               }).length;
@@ -257,21 +280,27 @@ export default function InventoryPage() {
                       <MdCheck size={25} />
                     </button>
                     <Badge
-                      variant={allCleared ? "secondary" : "default"}
+                      variant={allCleared ? 'secondary' : 'default'}
                       className="text-xs font-normal px-2 py-0.5 align-middle"
                     >
-                      {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}
+                      {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}
+                      {SYMBOLS.COLON}
+                      {countRequired}
                     </Badge>
                   </div>
-                  <span className="text-xs mr-10">{getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}</span>
+                  <span className="text-xs mr-10">
+                    {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}
+                  </span>
                 </div>
               );
             })()}
             {/* 在庫リスト */}
-            {items.map(viewModel => {
+            {items.map((viewModel) => {
               const status = createInventoryStatusFromViewModel(viewModel, parseDate(businessDate));
-              const statusChange = (property: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => 
-                handleItemStatusChange(viewModel.item.item_id, property, value);
+              const statusChange = (
+                property: keyof InventoryStatus,
+                value: InventoryStatus[keyof InventoryStatus]
+              ) => handleItemStatusChange(viewModel.item.item_id, property, value);
               return (
                 <InventoryItemCard
                   key={viewModel.item.item_id}
@@ -279,17 +308,26 @@ export default function InventoryPage() {
                   date={getDateFromDateTime(parseDate(businessDate))}
                   currentStock={status.current_stock}
                   restockAmount={status.replenishment_count}
-                  replenishmentStatus={toEnumCode(REPLENISHMENT_STATUS, status.replenishment_status)}
+                  replenishmentStatus={toEnumCode(
+                    REPLENISHMENT_STATUS,
+                    status.replenishment_status
+                  )}
                   memo={status.memo}
                   isChecked={isItemConfirmed(viewModel.status)}
-                  onStockChange={value => statusChange('current_stock', value)}
-                  onRestockChange={value => statusChange('replenishment_count', value)}
-                  onNeedsRestockChange={checked => {
-                    statusChange('replenishment_status', isRequired(checked))
-                    statusChange('preparation_status', getNextPreparationStatus(checked, toEnumCode(PREPARATION_STATUS, status.preparation_status)))
+                  onStockChange={(value) => statusChange('current_stock', value)}
+                  onRestockChange={(value) => statusChange('replenishment_count', value)}
+                  onNeedsRestockChange={(checked) => {
+                    statusChange('replenishment_status', isRequired(checked));
+                    statusChange(
+                      'preparation_status',
+                      getNextPreparationStatus(
+                        checked,
+                        toEnumCode(PREPARATION_STATUS, status.preparation_status)
+                      )
+                    );
                   }}
-                  onMemoChange={value => statusChange('memo', value)}
-                  onCheckChange={checked => handleCheckChange(viewModel.item.item_id, checked)}
+                  onMemoChange={(value) => statusChange('memo', value)}
+                  onCheckChange={(checked) => handleCheckChange(viewModel.item.item_id, checked)}
                 />
               );
             })}

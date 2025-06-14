@@ -82,5 +82,6 @@ npx ts-node -r tsconfig-paths/register scripts/import-items.ts
 ---
 
 ## 参考
+
 - 詳細な仕様・運用ルールは `/docs/アプリケーション概念設計ノート.md` も参照
-- 問題・要望は開発チームまで 
+- 問題・要望は開発チームまで

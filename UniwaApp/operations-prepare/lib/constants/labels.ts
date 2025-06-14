@@ -20,7 +20,7 @@ export const LABELS = {
   DATE_SELECTOR: {
     SELECT_DATE: '日付を選択',
     PREV_DAY: '前日',
-    NEXT_DAY: '翌日'
+    NEXT_DAY: '翌日',
   },
   MENU_HOME: 'トップ',
   REPLENISHMENT: '補充',
@@ -36,4 +36,4 @@ export const LABELS = {
   ENUM_LOGICAL_NAME: '区分値論理名',
   ENUM_DEFINITION: '定義',
   // ...他のラベル
-} as const; 
+} as const;
