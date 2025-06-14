@@ -26,6 +26,12 @@ import { OrderItemCard } from '@/components/order/order-item-card';
 import { callApi } from '@/lib/utils/api-client';
 import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
+import { itemsApi } from '@/lib/api/items';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import {
+  SaveInventoryStatusRequest,
+  SaveInventoryStatusResponse,
+} from '@/lib/types/api/inventory-status';
 
 export default function OrderPage() {
   const { businessDate, setBusinessDate } = useBusinessDate();
@@ -44,9 +50,8 @@ export default function OrderPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        const items = await callApi<Item[]>('/api/items');
-        const date = businessDate;
-        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
+        const items = await itemsApi.getAll();
+        const statuses = await inventoryStatusApi.getByDate(businessDate);
         const viewModels =
           items?.map((item) => ({
             item,
@@ -85,7 +90,9 @@ export default function OrderPage() {
   };
 
   return (
-    <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
+    <AutoSaveWrapper<InventoryStatus[], SaveInventoryStatusRequest, SaveInventoryStatusResponse>
+      autoSaveManager={autoSaveRef.current}
+    >
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.ORDER_REQUEST}</h1>
         <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />

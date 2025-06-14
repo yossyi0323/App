@@ -39,6 +39,13 @@ import { toEnumCode } from '@/lib/utils/enum-utils';
 import { Button } from '@/components/ui/button';
 import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
+import { itemsApi } from '@/lib/api/items';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import { placesApi } from '@/lib/api/places';
+import {
+  SaveInventoryStatusRequest,
+  SaveInventoryStatusResponse,
+} from '@/lib/types/api/inventory-status';
 
 /**
  * 業務ロジック：補充要否を判定する
@@ -124,7 +131,7 @@ export default function InventoryPage() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const data = await callApi<Place[]>('/api/places');
+        const data = await placesApi.getAll();
         if (data) {
           setPlaces(data);
           const firstDestination = data.find(
@@ -151,9 +158,8 @@ export default function InventoryPage() {
     async function loadItems() {
       setIsLoading(true);
       try {
-        const items = await callApi<Item[]>(`/api/items?placeId=${selectedPlaceId}`);
-        const date = businessDate;
-        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
+        const items = await itemsApi.getByPlace(selectedPlaceId!);
+        const statuses = await inventoryStatusApi.getByDate(businessDate);
         const viewModels =
           items?.map((item) => ({
             item,
@@ -226,7 +232,9 @@ export default function InventoryPage() {
   const selectedPlace = places.find((place) => place.place_id === selectedPlaceId);
 
   return (
-    <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
+    <AutoSaveWrapper<InventoryStatus[], SaveInventoryStatusRequest, SaveInventoryStatusResponse>
+      autoSaveManager={autoSaveRef.current}
+    >
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.INVENTORY_CHECK}</h1>
         <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />

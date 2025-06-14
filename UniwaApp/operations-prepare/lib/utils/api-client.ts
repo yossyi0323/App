@@ -1,6 +1,13 @@
 // API呼び出し共通クライアント
 
-export async function callApi<T>(url: string, options: RequestInit = {}): Promise<T> {
+import type { ApiEndpoint } from '@/lib/constants/api-endpoints';
+
+export type ApiResponse<T> = {
+  data: T | null;
+  error: string | null;
+};
+
+export async function callApi<T>(url: ApiEndpoint, options: RequestInit = {}): Promise<T> {
   try {
     const res = await fetch(url, {
       headers: {
@@ -24,8 +31,8 @@ export async function callApi<T>(url: string, options: RequestInit = {}): Promis
       throw new Error(error);
     }
     return res.json() as Promise<T>;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // ネットワークエラー等も一元管理
-    throw new Error(err?.message || 'ネットワークエラーが発生しました');
+    throw new Error(err instanceof Error ? err.message : 'ネットワークエラーが発生しました');
   }
 }

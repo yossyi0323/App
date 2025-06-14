@@ -13,7 +13,11 @@ import { ORDER_REQUEST_STATUS } from '../schemas/enums/order-request-status';
 import { PREPARATION_STATUS } from '../schemas/enums/preparation-status';
 import { callApi } from './api-client';
 import { $msg, ERROR, INFO } from '@/lib/constants/messages';
-import { inventoryStatusApi, SaveInventoryStatusResponse } from '@/lib/api/inventory-status';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import type {
+  SaveInventoryStatusRequest,
+  SaveInventoryStatusResponse,
+} from '@/lib/types/api/inventory-status';
 // import { parse } from 'csv-parse/sync';
 // import fs from 'fs';
 
@@ -191,8 +195,9 @@ export function useInventoryAutoSave({
   items,
   selectedPlaceId,
   selectedDate,
-  saveFunc = async (dirty): Promise<SaveInventoryStatusResponse> => {
-    return inventoryStatusApi.save({ statuses: dirty }).catch((error) => {
+
+  saveFunc = async (request: SaveInventoryStatusRequest): Promise<SaveInventoryStatusResponse> => {
+    return inventoryStatusApi.save(request).catch((error) => {
       setError($msg(INFO.I30010));
       throw new Error(error);
     });
@@ -203,7 +208,7 @@ export function useInventoryAutoSave({
   items: InventoryStatusViewModel[];
   selectedPlaceId: string | null;
   selectedDate: Date;
-  saveFunc?: (dirty: InventoryStatus[]) => Promise<SaveInventoryStatusResponse>;
+  saveFunc?: (request: SaveInventoryStatusRequest) => Promise<SaveInventoryStatusResponse>;
   setError: (msg: string | null) => void;
   storageKeyPrefix?: string;
 }) {
@@ -213,19 +218,24 @@ export function useInventoryAutoSave({
   }, [items]);
   const autoSaveRef = useRef<AutoSaveManager<
     InventoryStatus[],
+    SaveInventoryStatusRequest,
     SaveInventoryStatusResponse
   > | null>(null);
 
   useEffect(() => {
     if (!selectedPlaceId || !selectedDate) return;
     const storageKey = `${storageKeyPrefix}_${getDateFromDateTime(selectedDate)}_${selectedPlaceId}`;
-    autoSaveRef.current = new AutoSaveManager<InventoryStatus[], SaveInventoryStatusResponse>({
+    autoSaveRef.current = new AutoSaveManager<
+      InventoryStatus[],
+      SaveInventoryStatusRequest,
+      SaveInventoryStatusResponse
+    >({
       getData: () =>
         itemsRef.current.map((vm) => vm.status).filter((s): s is InventoryStatus => !!s),
-      saveData: async (dirty) => {
-        return saveFunc(dirty);
+      saveData: async (data) => {
+        return saveFunc({ statuses: data });
       },
-      getDirtyItems: getDirtyInventoryStatuses,
+      getDirtyItems: (prev, next) => getDirtyInventoryStatuses(prev, next),
       storageKey,
       initialData: [],
       debounceMs: AUTOSAVE.DEBOUNCE_MS,

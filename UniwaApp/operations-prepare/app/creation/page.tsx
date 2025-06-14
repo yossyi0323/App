@@ -42,6 +42,10 @@ import { CreationItemCard } from '@/components/creation/creation-item-card';
 import { callApi } from '@/lib/utils/api-client';
 import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
+import { itemsApi } from '@/lib/api/items';
+import { inventoryStatusApi } from '@/lib/api/inventory-status';
+import { placesApi } from '@/lib/api/places';
+import { SaveInventoryStatusRequest, SaveInventoryStatusResponse } from '@/lib/types/api/inventory-status';
 
 export default function CreationPage() {
   const { businessDate, setBusinessDate } = useBusinessDate();
@@ -64,7 +68,7 @@ export default function CreationPage() {
   useEffect(() => {
     async function loadPlaces() {
       try {
-        const data = await callApi<Place[]>('/api/places');
+        const data = await placesApi.getAll();
         if (data) {
           setPlaces(data);
         }
@@ -85,10 +89,9 @@ export default function CreationPage() {
       try {
         const items =
           selectedPlaceId === ALL_SOURCE_PLACES.KEY
-            ? await callApi<Item[]>(`/api/items`)
-            : await callApi<Item[]>(`/api/items?sourceId=${selectedPlaceId}`);
-        const date = businessDate;
-        const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
+            ? await itemsApi.getAll()
+            : await itemsApi.getBySource(selectedPlaceId);
+        const statuses = await inventoryStatusApi.getByDate(businessDate);
         const viewModels =
           items?.map((item) => ({
             item,
@@ -132,7 +135,9 @@ export default function CreationPage() {
   };
 
   return (
-    <AutoSaveWrapper autoSaveManager={autoSaveRef.current}>
+    <AutoSaveWrapper<InventoryStatus[], SaveInventoryStatusRequest, SaveInventoryStatusResponse>
+      autoSaveManager={autoSaveRef.current}
+    >
       <div>
         <h1 className="text-xl font-bold mb-4">{LABELS.CREATION}</h1>
         <DateSelector date={parseDate(businessDate)} onDateChange={handleDateChange} />
