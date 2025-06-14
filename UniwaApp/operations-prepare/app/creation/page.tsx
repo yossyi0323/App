@@ -237,7 +237,11 @@ export default function CreationPage() {
                   patternType &&
                   creationCode &&
                   isEnumCode(PREPARATION_PATTERN, patternType, 'CREATION');
-                return isCreation;
+                const status = vm.status
+                  ? vm.status
+                  : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
+                const isNotRequired = isEnumCode(PREPARATION_STATUS, status.preparation_status, 'NOT_REQUIRED');
+                return isCreation && !isNotRequired;
               })
               .map((vm) => {
                 const status = vm.status
