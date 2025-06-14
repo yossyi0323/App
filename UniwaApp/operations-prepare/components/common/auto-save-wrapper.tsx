@@ -24,4 +24,4 @@ export function AutoSaveWrapper({ autoSaveManager, children }: AutoSaveWrapperPr
   }, [autoSaveManager]);
 
   return <>{children}</>;
-} 
+}

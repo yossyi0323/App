@@ -18,7 +18,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   if (DISABLE_AUTH) {
     return <>{children}</>;
   }
-  
+
   useEffect(() => {
     setIsClient(true);
   }, []);

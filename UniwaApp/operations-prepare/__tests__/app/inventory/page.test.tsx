@@ -80,7 +80,7 @@ describe('InventoryPage', () => {
     await waitFor(() => {
       // BulkActionBarの見出しとして表示される場所名を特定
       const headings = screen.getAllByRole('heading', { level: 2 });
-      expect(headings.some(h => h.textContent === '場所A')).toBe(true);
+      expect(headings.some((h) => h.textContent === '場所A')).toBe(true);
     });
     // PlaceSelectorのドロップダウンはUI的にJestで開けないため、BulkActionBar側でassert
   });
@@ -118,7 +118,9 @@ describe('InventoryPage', () => {
     });
     await waitFor(() => {
       // メッセージ定義＋ラベル定義でassert
-      expect(screen.getByText($msg(ERROR.E10001, LABELS.LOCATION) + ': テストエラー')).toBeInTheDocument();
+      expect(
+        screen.getByText($msg(ERROR.E10001, LABELS.LOCATION) + ': テストエラー')
+      ).toBeInTheDocument();
     });
   });
 
@@ -127,14 +129,15 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
     });
     // 未確認の件数 = ステータスが未確認の件数 + ステータスがnullの件数
-    const unconfirmedCount = mockStatuses.filter(
-      s => s.check_status === getCode(INVENTORY_STATUS, 'UNCONFIRMED')
-    ).length + (mockItems.length - mockStatuses.length);
+    const unconfirmedCount =
+      mockStatuses.filter((s) => s.check_status === getCode(INVENTORY_STATUS, 'UNCONFIRMED'))
+        .length +
+      (mockItems.length - mockStatuses.length);
     await waitFor(() => {
       // バッジ要素を取得
       const badges = screen.getAllByRole('status');
       // 未確認バッジを特定（ラベルで絞り込み）
-      const unconfirmedBadge = badges.find(badge => 
+      const unconfirmedBadge = badges.find((badge) =>
         badge.textContent?.includes(LABELS.UNCONFIRMED)
       );
       // バッジが存在することを確認
@@ -148,4 +151,4 @@ describe('InventoryPage', () => {
       expect(count).toBe(String(unconfirmedCount));
     });
   });
-}); 
+});

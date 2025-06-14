@@ -31,7 +31,7 @@ export function OrderItemCard({
   orderStatus,
   memo,
   onMemoChange,
-  onOrderRequestChange
+  onOrderRequestChange,
 }: OrderItemCardProps) {
   // メモ欄を開くべきかの判定ロジックを関数化
   const getShouldOpenMemo = () => !isEmpty(memo);
@@ -44,27 +44,30 @@ export function OrderItemCard({
   };
 
   const isOrderRequired = isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUIRED');
-  const highlightClass = isOrderRequired
-    ? 'bg-black text-white dark:bg-white dark:text-black'
-    : '';
-
+  const highlightClass = isOrderRequired ? 'bg-black text-white dark:bg-white dark:text-black' : '';
 
   return (
     <Card className="mb-3 overflow-hidden relative bg-background">
-      <CardContent className="p-4 relative z-20"> 
+      <CardContent className="p-4 relative z-20">
         <div className="flex items-center gap-2 w-full">
           {/* 品物名＋在庫数・補充数バッジ（中央） */}
           <div className="flex-1 min-w-0 inline-flex flex-wrap">
-            <span className="block text-sm font-medium break-words whitespace-normal">{item.item_name}</span>
+            <span className="block text-sm font-medium break-words whitespace-normal">
+              {item.item_name}
+            </span>
             <span className="flex flex-row flex-wrap gap-2 mx-1 my-1">
               {currentStock ? (
                 <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5 align-middle">
-                  {LABELS.CURRENT_STOCK}{SYMBOLS.COLON}{currentStock}
+                  {LABELS.CURRENT_STOCK}
+                  {SYMBOLS.COLON}
+                  {currentStock}
                 </Badge>
               ) : null}
               {restockAmount ? (
                 <Badge variant="secondary" className="text-xs font-normal px-2 py-0.5 align-middle">
-                  {LABELS.REPLENISHMENT_COUNT}{SYMBOLS.COLON}{restockAmount}
+                  {LABELS.REPLENISHMENT_COUNT}
+                  {SYMBOLS.COLON}
+                  {restockAmount}
                 </Badge>
               ) : null}
             </span>
@@ -75,7 +78,7 @@ export function OrderItemCard({
             <div className="flex items-center gap-1">
               <Checkbox
                 checked={isEnumCode(ORDER_REQUEST_STATUS, orderStatus, 'REQUESTED')}
-                onCheckedChange={checked => onOrderRequestChange(!!checked)}
+                onCheckedChange={(checked) => onOrderRequestChange(!!checked)}
                 className="h-5 w-5"
               />
             </div>
@@ -95,7 +98,9 @@ export function OrderItemCard({
         {isMemoOpen && (
           <div className="mt-2">
             <div className="flex flex-col">
-              <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">{LABELS.MEMO}</label>
+              <label htmlFor={`memo-${item.item_id}`} className="text-xs mb-1 ml-1">
+                {LABELS.MEMO}
+              </label>
               <TextareaAutosize
                 id={`memo-${item.item_id}`}
                 value={memo}

@@ -20,14 +20,14 @@ interface RestockItemCardProps {
   showCreateOptions?: boolean;
 }
 
-export function RestockItemCard({ 
-  item, 
-  date, 
+export function RestockItemCard({
+  item,
+  date,
   onStatusChange,
-  showCreateOptions = false
+  showCreateOptions = false,
 }: RestockItemCardProps) {
   const { status, updateStatus, isLoading } = useInventoryStatusStorage(date, item.item_id);
-  
+
   const [isRestocked, setIsRestocked] = useState(false);
   const [isCreationRequested, setIsCreationRequested] = useState(false);
   const [isCreated, setIsCreated] = useState(false);
@@ -39,7 +39,9 @@ export function RestockItemCard({
       setIsRestocked(isEnumCode(REPLENISHMENT_STATUS, status.replenishment_status, 'COMPLETED'));
       if (showCreateOptions) {
         setIsCreated(isEnumCode(PREPARATION_STATUS, status.preparation_status, 'COMPLETED'));
-        setIsCreationRequested(isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUESTED'));
+        setIsCreationRequested(
+          isEnumCode(PREPARATION_STATUS, status.preparation_status, 'REQUESTED')
+        );
       }
       setNotes(status.memo || '');
     }
@@ -91,9 +93,7 @@ export function RestockItemCard({
     onStatusChange?.(
       item.item_id,
       'preparation_status',
-      checked
-        ? getCode(PREPARATION_STATUS, 'COMPLETED')
-        : getCode(PREPARATION_STATUS, 'REQUIRED')
+      checked ? getCode(PREPARATION_STATUS, 'COMPLETED') : getCode(PREPARATION_STATUS, 'REQUIRED')
     );
   };
 
@@ -111,9 +111,7 @@ export function RestockItemCard({
     onStatusChange?.(
       item.item_id,
       'preparation_status',
-      checked
-        ? getCode(PREPARATION_STATUS, 'REQUESTED')
-        : getCode(PREPARATION_STATUS, 'REQUIRED')
+      checked ? getCode(PREPARATION_STATUS, 'REQUESTED') : getCode(PREPARATION_STATUS, 'REQUIRED')
     );
   };
 
@@ -145,9 +143,7 @@ export function RestockItemCard({
     <Card className="mb-3 overflow-hidden">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
-          <Label className="text-base font-medium">
-            {item.item_name}
-          </Label>
+          <Label className="text-base font-medium">{item.item_name}</Label>
           {showCreateOptions ? getCreateBadge() : getRestockBadge()}
         </div>
 
@@ -165,7 +161,9 @@ export function RestockItemCard({
         )}
 
         <div className="mt-3">
-          <Label htmlFor={`notes-${item.item_id}`} className="text-xs mb-1 block">メモ</Label>
+          <Label htmlFor={`notes-${item.item_id}`} className="text-xs mb-1 block">
+            メモ
+          </Label>
           <Textarea
             id={`notes-${item.item_id}`}
             value={notes}
@@ -185,10 +183,7 @@ export function RestockItemCard({
                 checked={isCreated}
                 onCheckedChange={handleCreatedChange}
               />
-              <Label 
-                htmlFor={`created-${item.item_id}`}
-                className="text-sm cursor-pointer"
-              >
+              <Label htmlFor={`created-${item.item_id}`} className="text-sm cursor-pointer">
                 作成済
               </Label>
             </div>
@@ -198,7 +193,7 @@ export function RestockItemCard({
                 checked={isCreationRequested}
                 onCheckedChange={handleCreationRequestedChange}
               />
-              <Label 
+              <Label
                 htmlFor={`creation-requested-${item.item_id}`}
                 className="text-sm cursor-pointer"
               >
@@ -213,10 +208,7 @@ export function RestockItemCard({
               checked={isRestocked}
               onCheckedChange={handleRestockedChange}
             />
-            <Label 
-              htmlFor={`restocked-${item.item_id}`}
-              className="text-sm cursor-pointer"
-            >
+            <Label htmlFor={`restocked-${item.item_id}`} className="text-sm cursor-pointer">
               補充済にする
             </Label>
           </div>

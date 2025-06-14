@@ -11,15 +11,15 @@ describe('PlaceSelector', () => {
       place_name: '冷蔵庫',
       place_type: getCode(PLACE_TYPE, 'DESTINATION'),
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
+      updated_at: '2024-03-19T00:00:00Z',
     },
     {
       place_id: '2',
       place_name: '冷凍庫',
       place_type: getCode(PLACE_TYPE, 'DESTINATION'),
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
-    }
+      updated_at: '2024-03-19T00:00:00Z',
+    },
   ];
 
   const defaultProps = {
@@ -27,7 +27,7 @@ describe('PlaceSelector', () => {
     selectedPlaceId: null,
     onPlaceChange: jest.fn(),
     type: getCode(PLACE_TYPE, 'DESTINATION'),
-    className: 'w-full'
+    className: 'w-full',
   };
 
   beforeEach(() => {
@@ -47,11 +47,11 @@ describe('PlaceSelector', () => {
   it('場所の選択が正しく動作する', () => {
     render(<PlaceSelector {...defaultProps} />);
     const select = screen.getByRole('combobox');
-    
+
     fireEvent.click(select);
     const option = screen.getByText('冷蔵庫');
     fireEvent.click(option);
-    
+
     expect(defaultProps.onPlaceChange).toHaveBeenCalledWith('1');
   });
 
@@ -63,17 +63,17 @@ describe('PlaceSelector', () => {
         place_name: 'テスト場所3',
         place_type: getCode(PLACE_TYPE, 'SUPPLIER'),
         created_at: '2024-03-19T00:00:00Z',
-        updated_at: '2024-03-19T00:00:00Z'
-      }
+        updated_at: '2024-03-19T00:00:00Z',
+      },
     ];
 
     render(<PlaceSelector {...defaultProps} places={mixedPlaces} />);
-    
+
     const select = screen.getByRole('combobox');
     fireEvent.click(select);
-    
+
     expect(screen.getByText('冷蔵庫')).toBeInTheDocument();
     expect(screen.getByText('冷凍庫')).toBeInTheDocument();
     expect(screen.queryByText('テスト場所3')).not.toBeInTheDocument();
   });
-}); 
+});

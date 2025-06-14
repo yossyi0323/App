@@ -13,7 +13,7 @@ export const AUTOSAVE = {
 export const SYMBOLS = {
   COLON: '：',
   SLASH: '/',
-  SPACE: ' '
+  SPACE: ' ',
 } as const;
 
 export const STORAGE_KEY_PREFIX = {
@@ -27,4 +27,4 @@ export const STORAGE_KEY_PREFIX = {
 export const ALL_SOURCE_PLACES = {
   KEY: 'all-source-places',
   LABEL: '全て',
-} as const; 
+} as const;

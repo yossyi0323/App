@@ -17,14 +17,14 @@ interface StatusOverviewProps {
 
 export function StatusOverview({ date, items, inventoryStatuses }: StatusOverviewProps) {
   const [showActionNeeded, setShowActionNeeded] = useState(true);
-  
+
   const getItemStatus = (itemId: string) => {
-    return inventoryStatuses.find(status => status.itemId === itemId);
+    return inventoryStatuses.find((status) => status.itemId === itemId);
   };
 
   const needsAction = (status: InventoryStatus | undefined) => {
     if (!status) return false;
-    
+
     return (
       status.checkStatus === 'unchecked' ||
       status.restockStatus === 'needs-restock' ||
@@ -34,7 +34,7 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
   };
 
   const filteredItems = showActionNeeded
-    ? items.filter(item => needsAction(getItemStatus(item.id)))
+    ? items.filter((item) => needsAction(getItemStatus(item.id)))
     : items;
 
   const renderStatusBadge = (status: string) => {
@@ -77,10 +77,7 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
               checked={showActionNeeded}
               onCheckedChange={(checked) => setShowActionNeeded(!!checked)}
             />
-            <Label 
-              htmlFor="show-action-needed"
-              className="text-sm cursor-pointer"
-            >
+            <Label htmlFor="show-action-needed" className="text-sm cursor-pointer">
               要対応のみ表示
             </Label>
           </div>
@@ -94,10 +91,10 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
             <TabsTrigger value="create">作成</TabsTrigger>
             <TabsTrigger value="order">発注</TabsTrigger>
           </TabsList>
-          
+
           <ScrollArea className="h-[calc(100vh-300px)]">
             <TabsContent value="check" className="mt-0">
-              {filteredItems.map(item => {
+              {filteredItems.map((item) => {
                 const status = getItemStatus(item.id);
                 return (
                   <div key={item.id} className="py-2 border-b">
@@ -114,9 +111,9 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
                 );
               })}
             </TabsContent>
-            
+
             <TabsContent value="restock" className="mt-0">
-              {filteredItems.map(item => {
+              {filteredItems.map((item) => {
                 const status = getItemStatus(item.id);
                 return (
                   <div key={item.id} className="py-2 border-b">
@@ -135,9 +132,9 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
                 );
               })}
             </TabsContent>
-            
+
             <TabsContent value="create" className="mt-0">
-              {filteredItems.map(item => {
+              {filteredItems.map((item) => {
                 const status = getItemStatus(item.id);
                 return (
                   <div key={item.id} className="py-2 border-b">
@@ -154,9 +151,9 @@ export function StatusOverview({ date, items, inventoryStatuses }: StatusOvervie
                 );
               })}
             </TabsContent>
-            
+
             <TabsContent value="order" className="mt-0">
-              {filteredItems.map(item => {
+              {filteredItems.map((item) => {
                 const status = getItemStatus(item.id);
                 return (
                   <div key={item.id} className="py-2 border-b">

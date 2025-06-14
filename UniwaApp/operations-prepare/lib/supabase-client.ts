@@ -22,9 +22,7 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signInWithGoogle() {
-  const redirectTo = typeof window !== 'undefined'
-    ? `${window.location.origin}/`
-    : undefined;
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo },

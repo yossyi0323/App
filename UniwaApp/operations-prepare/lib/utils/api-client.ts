@@ -5,7 +5,7 @@ export async function callApi<T>(url: string, options: RequestInit = {}): Promis
     const res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        ...(options.headers || {})
+        ...(options.headers || {}),
       },
       ...options,
     });
@@ -28,4 +28,4 @@ export async function callApi<T>(url: string, options: RequestInit = {}): Promis
     // ネットワークエラー等も一元管理
     throw new Error(err?.message || 'ネットワークエラーが発生しました');
   }
-} 
+}

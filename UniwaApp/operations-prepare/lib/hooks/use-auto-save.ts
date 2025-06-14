@@ -39,7 +39,7 @@ export function useAutoSave<T>({
 
   const saveData = () => {
     if (value === null || !isDirty) return;
-    
+
     setIsSaving(true);
     onSave(value);
     setIsDirty(false);
@@ -76,6 +76,6 @@ export function useAutoSave<T>({
     isDirty,
     isSaving,
     handleBlur,
-    saveNow: saveData
+    saveNow: saveData,
   };
 }

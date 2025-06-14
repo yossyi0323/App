@@ -82,4 +82,4 @@ test.describe('在庫確認画面', () => {
     await page.getByLabel('在庫数').press('Enter');
     await expect(page.getByText('保存しました')).toBeVisible();
   });
-}); 
+});

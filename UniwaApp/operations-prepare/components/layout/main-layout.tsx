@@ -3,11 +3,22 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Menu, X, Sun, Moon, Home, Box, Truck, PlusCircle, ShoppingCart, Clipboard } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Sun,
+  Moon,
+  Home,
+  Box,
+  Truck,
+  PlusCircle,
+  ShoppingCart,
+  Clipboard,
+} from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { LABELS } from '@/lib/constants/labels';
 
 interface MainLayoutProps {
@@ -64,12 +75,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
                       <ul className="space-y-2">
                         {menuItems.map((item) => (
                           <li key={item.path}>
-                            <Link 
+                            <Link
                               href={item.path}
                               onClick={() => setIsOpen(false)}
                               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                                pathname === item.path 
-                                  ? 'bg-primary text-primary-foreground' 
+                                pathname === item.path
+                                  ? 'bg-primary text-primary-foreground'
                                   : 'hover:bg-secondary'
                               }`}
                             >
@@ -84,18 +95,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </div>
               </SheetContent>
             </Sheet>
-            <h1 className="text-lg font-semibold">
-              営業準備アプリ
-            </h1>
+            <h1 className="text-lg font-semibold">営業準備アプリ</h1>
           </div>
           <div className="flex items-center gap-2">
             {mounted && (
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
-                {theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 <span className="sr-only">テーマ切替</span>
               </Button>
             )}
@@ -104,21 +109,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 container px-4 py-4 max-w-lg mx-auto">
-        {children}
-      </main>
+      <main className="flex-1 container px-4 py-4 max-w-lg mx-auto">{children}</main>
 
       {/* Mobile navigation */}
       <div className="md:hidden sticky bottom-0 z-40 bg-background border-t border-border">
         <nav className="flex items-center justify-around h-16">
           {menuItems.map((item) => (
-            <Link 
+            <Link
               key={item.path}
               href={item.path}
               className={`flex flex-col items-center justify-center w-full h-full text-xs ${
-                pathname === item.path 
-                  ? 'text-primary' 
-                  : 'text-muted-foreground'
+                pathname === item.path ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               {item.icon}

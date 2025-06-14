@@ -53,7 +53,8 @@ export function isEnumLogicalName(enumObj: any, code: string, logicalName: strin
 // 区分値カテゴリ名取得
 // categoryLogicalNameが存在しない場合はthrow
 export function getCategoryLogicalName(enumDef: any): string {
-  if (!enumDef?.categoryLogicalName) throwEnumNotFoundError('getCategoryLogicalName', 'categoryLogicalName undefined');
+  if (!enumDef?.categoryLogicalName)
+    throwEnumNotFoundError('getCategoryLogicalName', 'categoryLogicalName undefined');
   return enumDef.categoryLogicalName;
 }
 // codeがEnum定義に存在しない場合はthrow
@@ -61,15 +62,15 @@ export function toEnumCode<T extends { values: readonly { code: string }[] }>(
   enumDef: T,
   code: unknown
 ): EnumCode<T> {
-  const valid = enumDef.values.map(v => v.code);
-  if (!(typeof code === 'string' && valid.includes(code))) throwEnumNotFoundError('toEnumCode', String(code));
+  const valid = enumDef.values.map((v) => v.code);
+  if (!(typeof code === 'string' && valid.includes(code)))
+    throwEnumNotFoundError('toEnumCode', String(code));
   return code as EnumCode<T>;
 }
 // logicalNameがEnum定義に存在しない場合はthrow
-export function getCodeAsEnumCode<T extends { values: readonly { code: string, logicalName: string }[] }>(
-  enumDef: T,
-  logicalName: string
-): EnumCode<T> {
+export function getCodeAsEnumCode<
+  T extends { values: readonly { code: string; logicalName: string }[] },
+>(enumDef: T, logicalName: string): EnumCode<T> {
   const code = getCode(enumDef, logicalName);
   return toEnumCode(enumDef, code);
-} 
+}

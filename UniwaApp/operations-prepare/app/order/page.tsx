@@ -27,7 +27,6 @@ import { callApi } from '@/lib/utils/api-client';
 import { useBusinessDate } from '@/lib/contexts/BusinessDateContext';
 import { formatDate, parseDate } from '@/lib/utils/date-time-utils';
 
-
 export default function OrderPage() {
   const { businessDate, setBusinessDate } = useBusinessDate();
   const [items, setItems] = useState<InventoryStatusViewModel[]>([]);
@@ -48,10 +47,11 @@ export default function OrderPage() {
         const items = await callApi<Item[]>('/api/items');
         const date = businessDate;
         const statuses = await callApi<InventoryStatus[]>(`/api/inventory-status?date=${date}`);
-        const viewModels = items?.map(item => ({
-          item,
-          status: statuses?.find(status => status.item_id === item.item_id) || null
-        })) || [];
+        const viewModels =
+          items?.map((item) => ({
+            item,
+            status: statuses?.find((status) => status.item_id === item.item_id) || null,
+          })) || [];
         setItems(viewModels);
       } catch (err: any) {
         setError($msg(ERROR.E10001, LABELS.ITEM) + (err?.message ? `: ${err.message}` : ''));
@@ -62,14 +62,22 @@ export default function OrderPage() {
     loadItems();
   }, [businessDate]);
 
-  const handleItemStatusChange = (itemId: string, field: keyof InventoryStatus, value: InventoryStatus[keyof InventoryStatus]) => {
-    setItems(prev => prev.map(vm => {
-      if (vm.item.item_id !== itemId) return vm;
-      return {
-        ...vm,
-        status: createInventoryStatusFromViewModel(vm, parseDate(businessDate), { [field]: value })
-      };
-    }));
+  const handleItemStatusChange = (
+    itemId: string,
+    field: keyof InventoryStatus,
+    value: InventoryStatus[keyof InventoryStatus]
+  ) => {
+    setItems((prev) =>
+      prev.map((vm) => {
+        if (vm.item.item_id !== itemId) return vm;
+        return {
+          ...vm,
+          status: createInventoryStatusFromViewModel(vm, parseDate(businessDate), {
+            [field]: value,
+          }),
+        };
+      })
+    );
   };
 
   const handleDateChange = (date: Date) => {
@@ -88,21 +96,23 @@ export default function OrderPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">
-              {$msg(MESSAGES.I30020)}
-            </p>
+            <p className="text-muted-foreground">{$msg(MESSAGES.I30020)}</p>
           </div>
         ) : (
           <div>
             {/* ヘッダー行 */}
             {(() => {
               // 件数集計
-              const filtered = items.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
+              const filtered = items.filter((vm) => {
+                const status = vm.status
+                  ? vm.status
+                  : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return !isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED');
               });
-              const countRequired = items.filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
+              const countRequired = items.filter((vm) => {
+                const status = vm.status
+                  ? vm.status
+                  : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'REQUIRED');
               }).length;
               const total = filtered.length;
@@ -111,10 +121,14 @@ export default function OrderPage() {
                 <div className="flex items-center px-2 py-2 border-b border-border text-sm mb-2 justify-between">
                   <div className="flex gap-2 ml-2">
                     <Badge
-                      variant={allCleared ? "secondary" : "default"}
+                      variant={allCleared ? 'secondary' : 'default'}
                       className="text-xs font-normal px-2 py-0.5 align-middle"
                     >
-                      {getDisplayName(ORDER_REQUEST_STATUS, 'REQUIRED')}{SYMBOLS.COLON}{countRequired}{SYMBOLS.SLASH}{total}
+                      {getDisplayName(ORDER_REQUEST_STATUS, 'REQUIRED')}
+                      {SYMBOLS.COLON}
+                      {countRequired}
+                      {SYMBOLS.SLASH}
+                      {total}
                     </Badge>
                   </div>
                   <span className="text-xs mr-7">{LABELS.ORDER_REQUEST}</span>
@@ -123,13 +137,17 @@ export default function OrderPage() {
             })()}
             {/* 品目リスト */}
             {items
-              .filter(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
+              .filter((vm) => {
+                const status = vm.status
+                  ? vm.status
+                  : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 // 発注依頼ステータスがNOT_REQUIRED以外（要発注依頼・発注依頼済）を表示
                 return !isEnumCode(ORDER_REQUEST_STATUS, status.order_status, 'NOT_REQUIRED');
               })
-              .map(vm => {
-                const status = vm.status ? vm.status : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
+              .map((vm) => {
+                const status = vm.status
+                  ? vm.status
+                  : createInventoryStatusFromViewModel(vm, parseDate(businessDate));
                 return (
                   <OrderItemCard
                     key={vm.item.item_id}
@@ -138,14 +156,16 @@ export default function OrderPage() {
                     restockAmount={status.replenishment_count}
                     orderStatus={toEnumCode(ORDER_REQUEST_STATUS, status.order_status)}
                     memo={status.memo}
-                    onMemoChange={v => handleItemStatusChange(vm.item.item_id, 'memo', v)}
-                    onOrderRequestChange={v => handleItemStatusChange(
-                      vm.item.item_id,
-                      'order_status',
-                      v
-                        ? getCode(ORDER_REQUEST_STATUS, 'REQUESTED')
-                        : getCode(ORDER_REQUEST_STATUS, 'REQUIRED')
-                    )}
+                    onMemoChange={(v) => handleItemStatusChange(vm.item.item_id, 'memo', v)}
+                    onOrderRequestChange={(v) =>
+                      handleItemStatusChange(
+                        vm.item.item_id,
+                        'order_status',
+                        v
+                          ? getCode(ORDER_REQUEST_STATUS, 'REQUESTED')
+                          : getCode(ORDER_REQUEST_STATUS, 'REQUIRED')
+                      )
+                    }
                   />
                 );
               })}

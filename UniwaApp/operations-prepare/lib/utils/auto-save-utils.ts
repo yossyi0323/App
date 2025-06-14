@@ -1,30 +1,28 @@
 import { debounce } from 'lodash';
+import { MESSAGES, $msg, ERROR } from '@/lib/constants/messages';
 
-// 保存対象のデータの型定義
-export type SaveData = any;
-
-export interface AutoSaveConfig {
+export interface AutoSaveConfig<T, R = void> {
   // 保存対象のデータを取得する関数
-  getData: () => SaveData;
+  getData: () => T;
   // 保存処理を実行する関数
-  saveData: (data: SaveData) => Promise<void>;
+  saveData: (data: T) => Promise<R>;
   // ローカルストレージのキー
   storageKey: string;
   // debounceの待機時間（ミリ秒）
   debounceMs?: number;
   // 差分検知のための比較関数（オプション）
-  isEqual?: (a: SaveData, b: SaveData) => boolean;
-  getDirtyItems?: (prev: SaveData, next: SaveData) => SaveData;
-  initialData?: SaveData;
+  isEqual?: (a: T, b: T) => boolean;
+  getDirtyItems?: (prev: T, next: T) => T;
+  initialData?: T;
 }
 
-export class AutoSaveManager {
-  private config: AutoSaveConfig;
+export class AutoSaveManager<T, R = void> {
+  private config: AutoSaveConfig<T, R>;
   private isDirty: boolean = false;
-  private lastSavedData: SaveData;
+  private lastSavedData: T;
   private saveTimer: NodeJS.Timeout | null = null;
 
-  constructor(config: AutoSaveConfig) {
+  constructor(config: AutoSaveConfig<T, R>) {
     this.config = {
       debounceMs: 3000,
       isEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b),
@@ -36,7 +34,7 @@ export class AutoSaveManager {
   }
 
   // 現在のデータを取得
-  public getData(): SaveData {
+  public getData(): T {
     return this.config.getData();
   }
 
@@ -90,7 +88,7 @@ export class AutoSaveManager {
       this.isDirty = false;
       this.removeFromLocalStorage();
     } catch (error) {
-      console.error('自動保存に失敗しました:', error);
+      console.error($msg(ERROR.E10002, '自動保存'), error);
       this.saveToLocalStorage(currentData);
     }
   }
@@ -103,16 +101,16 @@ export class AutoSaveManager {
         this.lastSavedData = JSON.parse(saved);
       }
     } catch (error) {
-      console.error('ローカルストレージからの読み込みに失敗しました:', error);
+      console.error($msg(ERROR.E10001, 'ローカルストレージ'), error);
     }
   }
 
   // ローカルストレージに一時保存
-  private saveToLocalStorage(data: SaveData): void {
+  private saveToLocalStorage(data: T): void {
     try {
       localStorage.setItem(this.config.storageKey, JSON.stringify(data));
     } catch (error) {
-      console.error('ローカルストレージへの保存に失敗しました:', error);
+      console.error($msg(ERROR.E10002, 'ローカルストレージ'), error);
     }
   }
 
@@ -121,7 +119,7 @@ export class AutoSaveManager {
     try {
       localStorage.removeItem(this.config.storageKey);
     } catch (error) {
-      console.error('ローカルストレージからの削除に失敗しました:', error);
+      console.error($msg(ERROR.E10004, 'ローカルストレージ'), error);
     }
   }
 
@@ -131,12 +129,12 @@ export class AutoSaveManager {
       const saved = localStorage.getItem(this.config.storageKey);
       if (!saved) return;
 
-      const data = JSON.parse(saved);
+      const data = JSON.parse(saved) as T;
       await this.config.saveData(data);
       // 保存成功時はローカルストレージから削除
       localStorage.removeItem(this.config.storageKey);
     } catch (error) {
-      console.error('再送信に失敗しました:', error);
+      console.error($msg(ERROR.E10002, '再送信'), error);
     }
   }
 
@@ -146,7 +144,7 @@ export class AutoSaveManager {
   }
 
   // 前回保存時の内容を取得
-  public getLastSavedData(): SaveData | null {
+  public getLastSavedData(): T | null {
     return this.lastSavedData;
   }
 }
@@ -171,4 +169,4 @@ const autoSave = new AutoSaveManager({
 const handleInputChange = () => {
   autoSave.markDirty();
 };
-*/ 
+*/

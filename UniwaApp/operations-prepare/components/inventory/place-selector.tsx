@@ -26,16 +26,15 @@ export function PlaceSelector({
   type,
   className,
 }: PlaceSelectorProps) {
-  const filteredPlaces = places.filter(place => isEnumCode(PLACE_TYPE, place.place_type, getLogicalName(PLACE_TYPE, type)));
-  
+  const filteredPlaces = places.filter((place) =>
+    isEnumCode(PLACE_TYPE, place.place_type, getLogicalName(PLACE_TYPE, type))
+  );
+
   const logicalName = getLogicalName(PLACE_TYPE, type);
   const placeholder = (logicalName ? getDisplayName(PLACE_TYPE, logicalName) : '') + 'を選択';
-  
+
   return (
-    <Select
-      value={selectedPlaceId || ''}
-      onValueChange={onPlaceChange}
-    >
+    <Select value={selectedPlaceId || ''} onValueChange={onPlaceChange}>
       <SelectTrigger className={className}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

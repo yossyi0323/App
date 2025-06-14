@@ -13,7 +13,7 @@ export const ERROR = {
 export const WARNING = {
   W20001: '${1}が存在しません。',
   W20002: '在庫が不足しています。',
-  W20010: 'この場所に登録されている品物はありません。'
+  W20010: 'この場所に登録されている品物はありません。',
 } as const;
 
 export const INFO = {
@@ -30,15 +30,15 @@ export const INFO = {
   I30011: '最終保存: ${1}',
   I30012: '${1}を選択してください。',
   I30020: '確認する場所を選択してください。',
-  I30030: 'Loading...'
+  I30030: 'Loading...',
 } as const;
 
 export const MESSAGES = {
   ...ERROR,
   ...WARNING,
-  ...INFO
+  ...INFO,
 } as const;
 
 export function $msg(template: string, ...params: (string | number)[]): string {
   return template.replace(/\$\{(\d+)\}/g, (_, n) => params[Number(n) - 1]?.toString() ?? '');
-} 
+}

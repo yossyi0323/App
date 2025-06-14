@@ -9,7 +9,7 @@ import { getCode } from '@/lib/utils/enum-utils';
 jest.mock('@/lib/db-service', () => ({
   getPlaces: jest.fn(),
   getItemsByDestination: jest.fn(),
-  getInventoryStatusByDate: jest.fn()
+  getInventoryStatusByDate: jest.fn(),
 }));
 
 describe('InventoryPage', () => {
@@ -19,8 +19,8 @@ describe('InventoryPage', () => {
       place_name: 'テスト場所1',
       place_type: getCode(PLACE_TYPE, 'DESTINATION'),
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
-    }
+      updated_at: '2024-03-19T00:00:00Z',
+    },
   ];
 
   const mockItems = [
@@ -28,8 +28,8 @@ describe('InventoryPage', () => {
       item_id: '1',
       item_name: 'テスト品目1',
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
-    }
+      updated_at: '2024-03-19T00:00:00Z',
+    },
   ];
 
   const mockStatuses = [
@@ -45,8 +45,8 @@ describe('InventoryPage', () => {
       replenishment_count: 0,
       memo: '',
       created_at: '2024-03-19T00:00:00Z',
-      updated_at: '2024-03-19T00:00:00Z'
-    }
+      updated_at: '2024-03-19T00:00:00Z',
+    },
   ];
 
   beforeEach(() => {
@@ -58,52 +58,52 @@ describe('InventoryPage', () => {
 
   it('初期表示時に場所一覧が読み込まれる', async () => {
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(getPlaces).toHaveBeenCalled();
     });
-    
+
     expect(screen.getByText('テスト場所1')).toBeInTheDocument();
   });
 
   it('場所を選択すると品目一覧が読み込まれる', async () => {
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(getPlaces).toHaveBeenCalled();
     });
-    
+
     // 場所を選択
     const select = screen.getByRole('combobox');
     fireEvent.click(select);
     const option = screen.getByText('テスト場所1');
     fireEvent.click(option);
-    
+
     await waitFor(() => {
       expect(getItemsByDestination).toHaveBeenCalledWith('1');
       expect(getInventoryStatusByDate).toHaveBeenCalled();
     });
-    
+
     expect(screen.getByText('テスト品目1')).toBeInTheDocument();
   });
 
   it('日付を変更すると品目一覧が再読み込みされる', async () => {
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(getPlaces).toHaveBeenCalled();
     });
-    
+
     // 場所を選択
     const select = screen.getByRole('combobox');
     fireEvent.click(select);
     const option = screen.getByText('テスト場所1');
     fireEvent.click(option);
-    
+
     // 日付を変更
     const dateInput = screen.getByLabelText(LABELS.BUSINESS_DATE);
     fireEvent.change(dateInput, { target: { value: '2024-03-21' } });
-    
+
     await waitFor(() => {
       expect(getInventoryStatusByDate).toHaveBeenCalledWith('2024-03-21');
     });
@@ -111,9 +111,9 @@ describe('InventoryPage', () => {
 
   it('エラー発生時にエラーメッセージが表示される', async () => {
     (getPlaces as jest.Mock).mockResolvedValue({ data: null, error: new Error('テストエラー') });
-    
+
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/テストエラー/)).toBeInTheDocument();
     });
@@ -121,29 +121,29 @@ describe('InventoryPage', () => {
 
   it('一括操作が正しく動作する', async () => {
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(getPlaces).toHaveBeenCalled();
     });
-    
+
     // 場所を選択
     const select = screen.getByRole('combobox');
     fireEvent.click(select);
     const option = screen.getByText('テスト場所1');
     fireEvent.click(option);
-    
+
     await waitFor(() => {
       expect(screen.getByText('テスト品目1')).toBeInTheDocument();
     });
-    
+
     // 一括確認ボタンをクリック
     const checkAllButton = screen.getByText(LABELS.MARK_ALL_CHECKED);
     fireEvent.click(checkAllButton);
-    
+
     // 一括補充ボタンをクリック
     const restockAllButton = screen.getByText(LABELS.MARK_ALL_NEEDS_RESTOCK);
     fireEvent.click(restockAllButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText(LABELS.CONFIRMED)).toBeInTheDocument();
       expect(screen.getByText(LABELS.NEEDS_RESTOCK)).toBeInTheDocument();
@@ -152,19 +152,19 @@ describe('InventoryPage', () => {
 
   it('ステータスバッジが正しく表示される', async () => {
     render(<InventoryPage />);
-    
+
     await waitFor(() => {
       expect(getPlaces).toHaveBeenCalled();
     });
-    
+
     // 場所を選択
     const select = screen.getByRole('combobox');
     fireEvent.click(select);
     const option = screen.getByText('テスト場所1');
     fireEvent.click(option);
-    
+
     await waitFor(() => {
       expect(screen.getByText(LABELS.UNCONFIRMED)).toBeInTheDocument();
     });
   });
-}); 
+});

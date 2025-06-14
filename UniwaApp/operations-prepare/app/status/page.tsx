@@ -15,7 +15,7 @@ export default function StatusPage() {
   const [inventoryStatuses, setInventoryStatuses] = useState<InventoryStatus[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Load items on mount
   useEffect(() => {
     async function loadItems() {
@@ -29,10 +29,10 @@ export default function StatusPage() {
         setIsLoading(false);
       }
     }
-    
+
     loadItems();
   }, []);
-  
+
   // Load inventory statuses when date changes
   useEffect(() => {
     async function loadInventoryStatuses() {
@@ -44,38 +44,34 @@ export default function StatusPage() {
         setError('在庫状況の読み込み中にエラーが発生しました: ' + err.message);
       }
     }
-    
+
     if (items.length > 0) {
       loadInventoryStatuses();
     }
   }, [businessDate, items]);
-  
+
   const handleDateChange = (date: Date) => {
     setBusinessDate(date.toISOString().split('T')[0]);
   };
-  
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">営業準備状況</h1>
-      
+
       <DateSelector date={new Date(businessDate)} onDateChange={handleDateChange} />
-      
+
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[40vh]">
           <LoadingIndicator />
         </div>
       ) : (
-        <StatusOverview
-          date={businessDate}
-          items={items}
-          inventoryStatuses={inventoryStatuses}
-        />
+        <StatusOverview date={businessDate} items={items} inventoryStatuses={inventoryStatuses} />
       )}
     </div>
   );
