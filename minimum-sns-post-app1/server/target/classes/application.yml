@@ -1,0 +1,61 @@
+# minimum-sns-post-app1 設定
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: minimum-sns-post-app1-api
+    
+  # データベース設定
+  datasource:
+    url: jdbc:postgresql://localhost:5432/minimum_sns_post_app1
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    
+  # JPA/Hibernate設定
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        
+  # CORS設定（開発用）
+  web:
+    cors:
+      allowed-origins: "http://localhost:3000,http://localhost:8081"
+      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+      allowed-headers: "*"
+      allow-credentials: true
+
+# ログ設定
+logging:
+  level:
+    com.example.anonymousmemo: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+# テスト環境設定
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
