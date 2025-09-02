@@ -4,11 +4,11 @@ FROM node:16-alpine as build
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# package.jsonとpackage-lock.jsonをコピー
-COPY package*.json ./
+# package.jsonをコピー
+COPY package.json ./
 
-# 依存関係をインストール
-RUN npm ci
+# 依存関係をインストール（package-lock.jsonを無視して新しく生成）
+RUN npm install
 
 # ソースコードをコピー
 COPY . .
