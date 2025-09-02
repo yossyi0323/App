@@ -8,15 +8,21 @@
 - **Vue.js 2.6.14** (Options API)
 - **Axios** (HTTP通信)
 - **Vue CLI** (開発環境)
+- **Nginx** (本番配信)
 
 ### バックエンド
-- **Java 11**
+- **Java 17**
 - **Spring Boot 2.7.14**
 - **Spring Data JPA**
 - **Maven** (ビルドツール)
 
 ### データベース
 - **PostgreSQL**
+
+### インフラ・デプロイ
+- **Docker & Docker Compose**
+- **WSL2** (Windows環境)
+- **Multi-stage Docker builds**
 
 ## プロジェクト構造
 
@@ -50,7 +56,61 @@ minimum-sns-post-app1/
 
 ## セットアップ方法
 
-### 1. 前提条件
+### Docker環境での立ち上げ（推奨）
+
+WSL2 + Docker環境での簡単セットアップ方法です。
+
+#### 1. 前提条件
+- **Windows 11/10** with WSL2
+- **Docker Desktop** または **Docker Engine in WSL2**
+- **Git**
+
+#### 2. リポジトリクローン
+```bash
+# WSL2環境で実行
+git clone https://gitlab.com/yossyi0323/app.git
+cd app/minimum-sns-post-app1
+```
+
+#### 3. Docker環境での起動
+```bash
+# 全サービス（PostgreSQL、Backend、Frontend）を一括起動
+docker-compose up -d --build
+
+# 起動状況確認
+docker-compose ps
+
+# ログ確認（問題がある場合）
+docker-compose logs -f
+```
+
+#### 4. アプリケーションアクセス
+- **フロントエンド**: http://localhost:3000
+- **バックエンドAPI**: http://localhost:8080/api/posts
+- **ヘルスチェック**: http://localhost:8080/api/posts/health
+
+#### 5. 停止方法
+```bash
+# アプリケーション停止
+docker-compose down
+
+# WSL2から出る
+exit
+
+# WSL2完全停止（PowerShellで）
+wsl --shutdown
+```
+
+#### Docker構成
+- **PostgreSQL**: ポート5432（データベース）
+- **Spring Boot**: ポート8080（バックエンドAPI）
+- **Vue.js + Nginx**: ポート3000（フロントエンド）
+
+---
+
+### 従来の開発環境セットアップ
+
+#### 1. 前提条件
 
 以下のソフトウェアがインストールされていることを確認してください：
 
@@ -231,7 +291,39 @@ mvn clean install
 
 ## トラブルシューティング
 
-### よくある問題
+### Docker環境での問題
+
+1. **フロントエンドビルドエラー（npm ERESOLVE）**
+   ```bash
+   # 依存関係の競合エラーが発生した場合
+   # package.jsonのバージョンを調整済み
+   docker-compose down
+   docker-compose up --build  # 再ビルドで解決
+   ```
+
+2. **バックエンドヘルスチェック失敗**
+   ```bash
+   # curlコマンドが見つからないエラー
+   # Dockerfileでcurlをインストール済み
+   docker-compose logs backend  # ログで確認
+   ```
+
+3. **WSL2でのDocker起動問題**
+   ```bash
+   # Docker Engineのインストール確認
+   docker --version
+   
+   # サービス起動
+   sudo service docker start
+   ```
+
+4. **メモリ不足**
+   ```bash
+   # WSL2のメモリ設定確認
+   # .wslconfigでメモリ制限を調整
+   ```
+
+### 従来環境での問題
 
 1. **データベース接続エラー**
    - PostgreSQLサービスが起動しているか確認
@@ -258,8 +350,9 @@ mvn clean install
 - 画像投稿機能
 - 検索機能
 - ページネーション
-- Docker化
 - CI/CD パイプライン
+- Kubernetes対応
+- 本番環境デプロイ
 
 ## ライセンス
 
