@@ -4,19 +4,20 @@ FROM openjdk:17-jdk-slim
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# Mavenラッパーとpom.xmlをコピー
-COPY mvnw .
-COPY .mvn .mvn
+# Mavenをインストール
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+
+# pom.xmlをコピー
 COPY pom.xml .
 
 # 依存関係をダウンロード（キャッシュ効率化）
-RUN ./mvnw dependency:go-offline
+RUN mvn dependency:go-offline
 
 # ソースコードをコピー
 COPY src src
 
 # アプリケーションをビルド
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # 実行可能JARファイルを指定
 EXPOSE 8080
