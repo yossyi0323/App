@@ -4,8 +4,8 @@ FROM openjdk:17-jdk-slim
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# Mavenをインストール
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+# Mavenとcurlをインストール
+RUN apt-get update && apt-get install -y maven curl && rm -rf /var/lib/apt/lists/*
 
 # pom.xmlをコピー
 COPY pom.xml .
