@@ -206,7 +206,9 @@ export default function ReplenishmentPage() {
                       {total}
                     </Badge>
                   </div>
-                  <span className="text-xs mr-10">{LABELS.REPLENISHMENT}</span>
+                  <span className="text-xs mr-10">
+                    {getDisplayName(REPLENISHMENT_STATUS, 'COMPLETED')}
+                  </span>
                 </div>
               );
             })()}

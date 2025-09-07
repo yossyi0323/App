@@ -1,0 +1,21 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="192" height="192" rx="24" fill="#1f2937"/>
+  
+  <!-- メインアイコン：チェックリスト -->
+  <rect x="48" y="48" width="96" height="96" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+  
+  <!-- チェックボックス1 -->
+  <rect x="60" y="64" width="12" height="12" rx="2" fill="#10b981"/>
+  <path d="M63 67 L66 70 L75 61" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="84" y1="70" x2="120" y2="70" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- チェックボックス2 -->
+  <rect x="60" y="88" width="12" height="12" rx="2" fill="#10b981"/>
+  <path d="M63 91 L66 94 L75 85" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="84" y1="94" x2="120" y2="94" stroke="#374151" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- チェックボックス3（未完了） -->
+  <rect x="60" y="112" width="12" height="12" rx="2" fill="#ffffff" stroke="#d1d5db" stroke-width="2"/>
+  <line x1="84" y1="118" x2="120" y2="118" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
+</svg>

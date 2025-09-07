@@ -288,7 +288,7 @@ export default function InventoryPage() {
                       {countRequired}
                     </Badge>
                   </div>
-                  <span className="text-xs mr-10">
+                  <span className="text-xs mr-8">
                     {getDisplayName(REPLENISHMENT_STATUS, 'REQUIRED')}
                   </span>
                 </div>

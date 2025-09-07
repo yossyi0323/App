@@ -80,3 +80,39 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* PWA用スタイル - セーフエリア対応 */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* PWAスタンドアロンモード用スタイル */
+@media all and (display-mode: standalone) {
+  body {
+    /* スタンドアロンモード時の上部余白調整 */
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  
+  /* ステータスバー領域の背景色統一 */
+  html {
+    background-color: hsl(var(--background));
+  }
+  
+  /* 左サイドメニュー（Sheet）のセーフエリア対応 */
+  [data-radix-popper-content-wrapper] {
+    padding-top: env(safe-area-inset-top) !important;
+    padding-left: env(safe-area-inset-left) !important;
+  }
+  
+  /* 下部ナビゲーションのセーフエリア対応 */
+  .bottom-nav-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

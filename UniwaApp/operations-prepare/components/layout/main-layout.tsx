@@ -62,9 +62,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
                   <span className="sr-only">メニュー</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0">
+              <SheetContent side="left" className="p-0" style={{paddingLeft: 'env(safe-area-inset-left)'}}>
                 <div className="flex flex-col h-full">
-                  <div className="p-4 border-b flex justify-between items-center">
+                  <div className="p-4 border-b flex justify-between items-center" style={{paddingTop: 'max(1rem, env(safe-area-inset-top))'}}>
                     <h2 className="text-lg font-medium">メニュー</h2>
                     <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
                       <X className="h-5 w-5" />
@@ -112,7 +112,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-1 container px-4 py-4 max-w-lg mx-auto">{children}</main>
 
       {/* Mobile navigation */}
-      <div className="md:hidden sticky bottom-0 z-40 bg-background border-t border-border">
+      <div className="md:hidden sticky bottom-0 z-40 bg-background border-t border-border bottom-nav-safe">
         <nav className="flex items-center justify-around h-16">
           {menuItems.map((item) => (
             <Link

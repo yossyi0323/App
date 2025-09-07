@@ -1,0 +1,239 @@
+[
+  {
+    "tags": {},
+    "filePath": "components/inventory/inventory-item-card.tsx",
+    "description": "",
+    "displayName": "InventoryItemCard",
+    "methods": [],
+    "props": {
+      "item": {
+        "defaultValue": null,
+        "description": "",
+        "name": "item",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "Item"
+        }
+      },
+      "date": {
+        "defaultValue": null,
+        "description": "",
+        "name": "date",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "string"
+        }
+      },
+      "currentStock": {
+        "defaultValue": null,
+        "description": "",
+        "name": "currentStock",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "number"
+        }
+      },
+      "restockAmount": {
+        "defaultValue": null,
+        "description": "",
+        "name": "restockAmount",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "number"
+        }
+      },
+      "replenishmentStatus": {
+        "defaultValue": null,
+        "description": "",
+        "name": "replenishmentStatus",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "\"99\" | \"01\" | \"02\""
+        }
+      },
+      "memo": {
+        "defaultValue": null,
+        "description": "",
+        "name": "memo",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "string"
+        }
+      },
+      "isChecked": {
+        "defaultValue": null,
+        "description": "",
+        "name": "isChecked",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "boolean"
+        }
+      },
+      "onStockChange": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onStockChange",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(value: number) => void"
+        }
+      },
+      "onRestockChange": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onRestockChange",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(value: number) => void"
+        }
+      },
+      "onNeedsRestockChange": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onNeedsRestockChange",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(value: boolean) => void"
+        }
+      },
+      "onMemoChange": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onMemoChange",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(value: string) => void"
+        }
+      },
+      "onCheckChange": {
+        "defaultValue": null,
+        "description": "",
+        "name": "onCheckChange",
+        "parent": {
+          "fileName": "components/inventory/inventory-item-card.tsx",
+          "name": "InventoryItemCardProps"
+        },
+        "declarations": [
+          {
+            "fileName": "components/inventory/inventory-item-card.tsx",
+            "name": "InventoryItemCardProps"
+          }
+        ],
+        "required": true,
+        "type": {
+          "name": "(value: boolean) => void"
+        }
+      }
+    }
+  }
+]

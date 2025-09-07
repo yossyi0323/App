@@ -12,6 +12,25 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: '飲食店営業準備アプリ',
   description: '翌日の営業に向けた準備業務を効率化',
+  manifest: '/manifest.json',
+  themeColor: '#000000',
+  icons: {
+    icon: '/icon.jpg',
+    shortcut: '/icon.jpg',
+    apple: '/icon.jpg',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '営業準備アプリ'
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover'
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
