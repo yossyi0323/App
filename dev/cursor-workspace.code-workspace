@@ -7,6 +7,15 @@
     {
       "name": "Obsidian Vault",
       "path": "C:\\Users\\YOSHITO\\Documents\\Obsidian Vault"
+    },
+    {
+      "name": ".cursor",
+      "path": "C:\\Users\\YOSHITO\\Documents\\App\\.cursor"
     }
-  ]
+  ],
+  "settings": {
+    "cursor.rules": [
+      ".cursor/rules/*.mdc"
+    ]
+  }
 }
