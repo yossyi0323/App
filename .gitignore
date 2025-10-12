@@ -6,11 +6,6 @@ node_modules/
 # Testing
 coverage/
 
-# E2E Testing / Playwright output
-test-results/         # テスト失敗時のスクリーンショットや動画、ログなど
-playwright-report/    # npx playwright show-report で使う HTMLレポートのデータ
-.auth/                # 認証状態（storageState）を保存するフォルダ
-
 # Production
 build/
 dist/

@@ -32,7 +32,8 @@ export default function Home() {
   const router = useRouter();
 
   const handleDateChange = (date: Date) => {
-    setBusinessDate(date.toISOString().split('T')[0]);
+    // タイムゾーンを考慮せず、ローカル日付をそのまま使用
+    setBusinessDate(format(date, 'yyyy-MM-dd'));
   };
 
   const menuItems = [
@@ -45,7 +46,7 @@ export default function Home() {
     {
       name: '補充（移動）',
       icon: <Truck className="h-6 w-6" />,
-      path: '/restock/move',
+      path: '/replenishment',
       description: '在庫の補充・移動',
     },
     {
