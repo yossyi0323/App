@@ -12,6 +12,10 @@ export default defineConfig({
     baseURL: 'http://localhost:3000', 
     browserName: 'chromium', 
     
+    // 日本標準時を設定
+    timezoneId: 'Asia/Tokyo',
+    locale: 'ja-JP',
+    
     // 省略時、失敗時のみスクリーンショットなどを撮る設定が推奨されます
     // screenshot: 'only-on-failure', 
   },

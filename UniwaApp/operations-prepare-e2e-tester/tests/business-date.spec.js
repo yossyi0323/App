@@ -40,14 +40,13 @@ test('業務日付を2025/06/07に変更できること', async ({ page }) => {
   await expect(currentMonthLocator).toHaveText(TARGET_MONTH_YEAR);
 
   // 4. ターゲットの日（7日）をクリック
-  // アプリケーション側のバグ修正により、表示上の日付をクリックすれば良くなるため、
-  // ロケーターを「day-outside」クラスを持たない「7」のボタンに修正します。
+  // ブラウザのタイムゾーンをAsia/Tokyoに設定しているため、
+  // 表示されている「7」をそのままクリックすれば7日が選択される
   const targetDayCell = page
     .locator('button[name="day"]')
     .filter({ hasNot: page.locator('.day-outside') }) // 他の月の日付を除外
     .filter({ hasText: /^7$/ }); // テキストコンテンツが「7」のものを選択
   
-  // クリック操作を実行
   await targetDayCell.click();
 
 
