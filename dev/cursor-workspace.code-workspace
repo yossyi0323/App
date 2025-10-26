@@ -2,15 +2,15 @@
   "folders": [
     {
       "name": "App",
-      "path": "C:\\Users\\YOSHITO\\Documents\\App"
+      "path": ".."
     },
     {
       "name": "Obsidian Vault",
-      "path": "C:\\Users\\YOSHITO\\Documents\\Obsidian Vault"
+      "path": "../../Obsidian Vault"
     },
     {
       "name": ".cursor",
-      "path": "C:\\Users\\YOSHITO\\Documents\\App\\.cursor"
+      "path": "../.cursor"
     }
   ],
   "settings": {
