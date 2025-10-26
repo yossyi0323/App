@@ -1,0 +1,14 @@
+{
+  "name": "moc-app-explorer",
+  "version": "1.0.0",
+  "description": "Playwright scripts to explore and test moc-app",
+  "type": "module",
+  "scripts": {
+    "explore": "playwright test --headed",
+    "explore:headless": "playwright test"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}
+
