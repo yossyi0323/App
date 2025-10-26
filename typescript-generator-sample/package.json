@@ -1,0 +1,12 @@
+{
+  "name": "typescript-generator-sample",
+  "version": "1.0.0",
+  "description": "Sample project to test typescript-generator",
+  "scripts": {
+    "generate": "typescript-generator --jaxrsApplication sample --outputKind module --outputFile generated/types.ts *.java"
+  },
+  "devDependencies": {
+    "quicktype": "^23.2.6",
+    "typescript-generator": "^1.0.1"
+  }
+}

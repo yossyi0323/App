@@ -1,0 +1,207 @@
+# AI Collaboration & Handover Protocol
+
+## Purpose
+Enable seamless collaboration between AI agents across multiple machines (Mini-PC and Tablet-PC) without user intervention in the handover process.
+
+## Log Location
+`C:\Users\YOSHITO\Documents\Obsidian Vault\Notes\Private\2. work\2.3. エンジニア\個人開発\App\UniwaApp\nextday-operations-prepare\00_プロジェクト管理\ai-handover\ai.log`
+or
+`C:\Users\yoshi\Documents\Obsidian Vault\Notes\Private\2. work\2.3. エンジニア\個人開発\App\UniwaApp\nextday-operations-prepare\00_プロジェクト管理\ai-handover\ai.log`
+
+## Core Principles
+
+1. **Autonomous Logging**: Write to ai.log continuously during work, like application.log
+2. **Honest Communication**: Be frank about code quality, risks, and concerns
+3. **Context Preservation**: Ensure next AI can pick up exactly where you left off
+4. **User-Independent**: User doesn't read logs; this is AI-to-AI communication
+5. **Incremental Updates**: Append to log throughout session, not just at end
+
+## Session Start Protocol
+
+### 1. Read Latest State (Mandatory)
+```
+Read last 200 lines of ai.log to understand:
+- What was the last AI working on?
+- What decisions were made?
+- What concerns exist?
+- What's the next priority?
+```
+
+### 2. Announce Session Start
+```
+[YYYY-MM-DD HH:MM:SS] SESSION START
+Machine: [Mini-PC/Tablet-PC]
+Agent: Cursor AI
+Previous session ended: [timestamp from log]
+Resuming from: [brief context]
+```
+
+## During Work Protocol
+
+### Log Everything Important
+Write to ai.log immediately when:
+- Making architectural decisions
+- Discovering code issues
+- Implementing features
+- Running into blockers
+- Having concerns about user's request
+- Finding better approaches
+- Completing milestones
+
+### Log Format (Flexible)
+```
+[YYYY-MM-DD HH:MM:SS] [CATEGORY] Message
+```
+
+Categories:
+- `DECISION`: Technical decision made
+- `CONCERN`: Risk or code quality issue
+- `PROGRESS`: Work completed
+- `BLOCKER`: Something preventing progress
+- `TODO`: New task identified
+- `QUESTION`: Unclear user intent
+- `REFACTOR`: Code that needs improvement
+- `TEST`: Test results
+- `NOTE`: General observation
+
+### Example Entries
+```
+[2025-10-27 14:23:15] DECISION Chose楽観的ロック for inventory_status table. Reason: Low concurrent access expected, simpler than pessimistic. Future社ガイドライン recommends this.
+
+[2025-10-27 14:45:32] CONCERN User wants "自動保存" but unclear if they want debounce like operations-prepare (3sec). Need to clarify but proceeding with 3sec assumption.
+
+[2025-10-27 15:12:08] PROGRESS Implemented AutoSaveManager Vue3 version in lib/utils/auto-save.ts. Based on operations-prepare design but adapted for Composition API.
+
+[2025-10-27 15:45:00] REFACTOR InventoryStatusService needs refactoring - too many responsibilities. Should split into InventoryQueryService and InventoryCommandService.
+
+[2025-10-27 16:20:13] BLOCKER Can't proceed with authentication implementation until user decides: Google OAuth vs email/password. Added to TODO.md.
+```
+
+## Session End Protocol
+
+### 1. Write Summary
+```
+[YYYY-MM-DD HH:MM:SS] SESSION END
+Duration: [duration]
+Commits: [commit hashes]
+Files modified: [list]
+Tests: [pass/fail/not run]
+
+Summary of work:
+- [What was accomplished]
+- [Decisions made]
+- [Issues discovered]
+
+Top concerns for next AI:
+1. [Most critical concern]
+2. [Second concern]
+3. ...
+
+Immediate next steps:
+1. [Highest priority task]
+2. [Second priority]
+3. ...
+
+Context notes:
+- [Important context next AI needs]
+- [Assumptions made that need validation]
+```
+
+### 2. Update latest.md (Optional Quick Reference)
+Create/update `ai-handover/latest.md` with condensed current state for quick scanning.
+
+## Inter-AI Communication Guidelines
+
+### Be Brutally Honest
+- Call out code smells directly
+- Point out potential bugs
+- Suggest refactoring without sugar-coating
+- Challenge architectural decisions if questionable
+
+### Provide Context, Not Just Facts
+BAD:
+```
+[2025-10-27 14:23:15] DECISION Using UUID v7
+```
+
+GOOD:
+```
+[2025-10-27 14:23:15] DECISION Using UUID v7 for all entity IDs. Reason: operations-prepare used this, provides time-ordered IDs for better DB performance, Future社ガイドライン recommends. Trade-off: slightly larger than BIGINT but negligible for this app scale.
+```
+
+### Mark Uncertainty
+When user's intent is unclear:
+```
+[2025-10-27 15:30:00] QUESTION User said "ちゃんと動くようにして" - interpreting as "ensure all tests pass + fix linter errors". If wrong, next AI should clarify with user.
+```
+
+### Cross-Reference Documents
+```
+[2025-10-27 14:45:00] NOTE See operations-prepare/docs/auto-save-design.md for original design philosophy. Adapting to Vue3 but keeping core principles (debounce, dirty tracking, LocalStorage backup).
+```
+
+## Continuous Improvement
+
+### Review & Adapt
+Every ~10 sessions, one AI should:
+1. Review ai.log effectiveness
+2. Propose protocol improvements
+3. Write suggestions in log with `[PROTOCOL]` tag
+
+### Example
+```
+[2025-11-05 10:00:00] PROTOCOL After 15 sessions, noticed we're logging too much low-level detail. Suggest: only log decisions/concerns/blockers, skip routine progress updates. What do you think, next AI?
+```
+
+## File Operations
+
+### Append to Log
+```typescript
+// Pseudo-code for reference
+import fs from 'fs';
+const logPath = 'C:\\Users\\YOSHITO\\Documents\\Obsidian Vault\\Notes\\Private\\2. work\\2.3. エンジニア\\個人開発\\App\\UniwaApp\\nextday-operations-prepare\\00_プロジェクト管理\\ai-handover\\ai.log';
+
+function log(category: string, message: string) {
+  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const entry = `[${timestamp}] [${category}] ${message}\n`;
+  fs.appendFileSync(logPath, entry, 'utf8');
+}
+```
+
+### Read Log
+Read last N lines for context (200 lines ≈ last 2-3 sessions usually sufficient).
+
+## Integration with Existing Rules
+
+This protocol works alongside:
+- `base-rule.mdc`: Development rules
+- `date-awareness.mdc`: Date handling rules
+- `no-emoji-usage.mdc`: No emoji in responses
+- `obsidian-docs-placement.mdc`: Document organization
+
+## User Interaction
+
+User doesn't need to:
+- Read ai.log
+- Manage handover process
+- Coordinate between machines
+
+User may:
+- Check if collaboration is working well
+- Request improvements if needed
+- Ignore the logs entirely if preferred
+
+## Summary
+
+**Core Loop:**
+1. Start session → Read ai.log tail
+2. During work → Log decisions/concerns/progress incrementally
+3. End session → Write summary
+4. Next AI repeats
+
+**Success Metric:**
+Next AI can seamlessly continue work without asking user "what was I working on?" or "why was this decision made?"
+
+---
+
+**Note to AIs**: This is YOUR space. Communicate honestly and efficiently. If this protocol isn't working, evolve it. User trusts you to make it work.
