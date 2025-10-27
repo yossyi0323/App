@@ -1,0 +1,70 @@
+[2025-10-27 14:19:00] SESSION START
+Machine: Unknown (workspace setup phase)
+Agent: Cursor AI
+Previous session: N/A (first session with new log structure)
+Resuming from: Rule files review and ai-collaboration protocol update
+
+[2025-10-27 14:20:15] DECISION Changed AI collaboration log structure from single ai.log to daily files (yyyyMMdd.log). Reason: User requested to avoid long files that are difficult to read. Daily separation provides better organization and easier reference to specific dates.
+
+[2025-10-27 14:21:30] PROGRESS Read and understood 8 rule files:
+- ai-collaboration.mdc: AI-to-AI handover protocol
+- concrete-language.mdc: No vague expressions, always use specific numbers/facts
+- date-awareness.mdc: Always confirm current date, Obsidian daily note format is yyyyMMdd.md
+- documentation-writing.mdc: Separate concerns, avoid over-generalization
+- judgment-criteria.mdc: Never use "Pros/Cons", always define evaluation criteria
+- no-emoji-usage.mdc: No emoji usage without explicit user request
+- obsidian-docs-placement.mdc: Document placement rules for Obsidian
+- rule-management.mdc: Rule file naming and management
+
+[2025-10-27 14:22:00] PROGRESS Updated ai-collaboration.mdc:
+- Changed log location from single ai.log to daily {yyyyMMdd}.log files
+- Updated session start protocol to read today's log + previous days if needed
+- Updated file operations example code to use daily log files
+- Added "Daily Separation" to core principles
+
+[2025-10-27 14:23:00] NOTE Current project context:
+- Working on nextday-operations-prepare (営業準備アプリ)
+- Frontend: Vue.js + shadcn-vue (selected based on operations-prepare design)
+- Backend: Spring Boot + Springdoc OpenAPI
+- Database: PostgreSQL + A5:SQL Mk-2 for ER diagrams
+- Documentation: Centralized in Obsidian Vault
+- Key decisions recorded in ADRs (001: API spec format, 002: Frontend UI framework)
+
+[2025-10-27 14:23:30] NOTE Pending architectural decisions identified in previous session:
+- Authentication method (Google OAuth, email, ID/password)
+- Session management (JWT, Cookie, localStorage, server session)
+- Authorization (RBAC, ABAC, simple role-based)
+- Optimistic locking vs pessimistic locking
+- Multiple other decisions tracked in アーキテクチャ検討項目一覧.md
+
+[2025-10-27 14:24:00] NOTE User preferences and rules understood:
+- Always use concrete language with specific numbers/facts
+- Never use "Good/Bad" or "Pros/Cons" - define evaluation criteria instead
+- No emoji usage
+- Confirm current date for time-sensitive queries
+- Obsidian daily notes use yyyyMMdd.md format (no hyphens)
+- User prefers minimal interaction - proceed with inferred actions unless clarification needed
+- Always verify code works before reporting completion
+
+[2025-10-27 14:24:30] SESSION END
+Duration: ~5 minutes
+Files modified: C:\Users\YOSHITO\Documents\App\.cursor\rules\ai-collaboration.mdc
+
+Summary:
+- Reviewed all rule files and confirmed understanding
+- Updated AI collaboration protocol to use daily log files instead of single file
+- Ready to proceed with nextday-operations-prepare development
+
+Top priorities for next session:
+1. Authentication method selection (highest priority architectural decision)
+2. Session management selection
+3. Database optimistic locking implementation
+4. Continue with development phases as outlined in project docs
+
+Context notes:
+- User has existing operations-prepare app (Next.js) as design reference
+- Playwright scripts exist for capturing app screenshots
+- shadcn-vue selected as frontend UI framework to match operations-prepare design
+- All architectural decisions should be recorded as ADRs
+- Technical evaluations should use comparison tables with specific evaluation criteria
+

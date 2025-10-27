@@ -4,21 +4,31 @@
 Enable seamless collaboration between AI agents across multiple machines (Mini-PC and Tablet-PC) without user intervention in the handover process.
 
 ## Log Location
-`C:\Users\yoshi\Documents\App\ai\ai.log`
+`C:\Users\YOSHITO\Documents\App\ai\{yyyyMMdd}.log`
+
+例：
+- `20251027.log` - 2025年10月27日のログ
+- `20251028.log` - 2025年10月28日のログ
+- `latest.md` - 最新状態のクイックサマリー（オプション）
 
 ## Core Principles
 
-1. **Autonomous Logging**: Write to ai.log continuously during work, like application.log
+1. **Autonomous Logging**: Write to daily log file continuously during work, like application.log
 2. **Honest Communication**: Be frank about code quality, risks, and concerns
 3. **Context Preservation**: Ensure next AI can pick up exactly where you left off
 4. **User-Independent**: User doesn't read logs; this is AI-to-AI communication
 5. **Incremental Updates**: Append to log throughout session, not just at end
+6. **Daily Separation**: Each day gets its own log file for better organization
 
 ## Session Start Protocol
 
 ### 1. Read Latest State (Mandatory)
 ```
-Read last 200 lines of ai.log to understand:
+1. 現在の日付を取得（Get-Date -Format "yyyyMMdd"）
+2. 当日のログファイル（{yyyyMMdd}.log）を読み込み
+3. 必要に応じて前日・前々日のログも参照
+
+理解すること:
 - What was the last AI working on?
 - What decisions were made?
 - What concerns exist?
@@ -157,7 +167,11 @@ Every ~10 sessions, one AI should:
 ```typescript
 // Pseudo-code for reference
 import fs from 'fs';
-const logPath = 'C:\\Users\\YOSHITO\\Documents\\Obsidian Vault\\Notes\\Private\\2. work\\2.3. エンジニア\\個人開発\\App\\UniwaApp\\nextday-operations-prepare\\00_プロジェクト管理\\ai-handover\\ai.log';
+import path from 'path';
+
+const baseDir = 'C:\\Users\\YOSHITO\\Documents\\App\\ai';
+const today = new Date().toISOString().substring(0, 10).replace(/-/g, ''); // yyyyMMdd
+const logPath = path.join(baseDir, `${today}.log`);
 
 function log(category: string, message: string) {
   const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -167,7 +181,8 @@ function log(category: string, message: string) {
 ```
 
 ### Read Log
-Read last N lines for context (200 lines ≈ last 2-3 sessions usually sufficient).
+- 当日のログファイルを全行読み込み（通常は数百行程度）
+- 必要に応じて前日・前々日のログも参照
 
 ## Integration with Existing Rules
 
@@ -192,13 +207,18 @@ User may:
 ## Summary
 
 **Core Loop:**
-1. Start session → Read ai.log tail
-2. During work → Log decisions/concerns/progress incrementally
+1. Start session → Read today's log file (and recent days if needed)
+2. During work → Log decisions/concerns/progress incrementally to today's log
 3. End session → Write summary
 4. Next AI repeats
 
 **Success Metric:**
 Next AI can seamlessly continue work without asking user "what was I working on?" or "why was this decision made?"
+
+**Log Organization:**
+- Each day = one log file (`yyyyMMdd.log`)
+- Easy to find specific day's activity
+- No single file becomes too large
 
 ---
 
