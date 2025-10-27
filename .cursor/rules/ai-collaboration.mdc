@@ -20,6 +20,61 @@ Enable seamless collaboration between AI agents across multiple machines (Mini-P
 5. **Incremental Updates**: Append to log throughout session, not just at end
 6. **Daily Separation**: Each day gets its own log file for better organization
 
+## Machine Sync Protocol
+
+### Git Synchronization Responsibility
+
+**User manages ALL Git operations:**
+- User performs `git add`, `git commit`, `git push`, `git pull`
+- User handles merge conflicts
+- User decides when and what to commit
+- User manages branching strategy
+
+**AI responsibilities:**
+- **DO NOT** run any git commands (add/commit/push/pull/status) unless explicitly asked
+- **DO NOT** suggest "let's commit this"
+- **DO NOT** assume code is out of sync
+- **ONLY** provide git command examples when user asks "how do I...?"
+- User has already synced - trust that working tree is current
+
+### Reading Changes After Sync
+
+When user says "同期した" or similar, AI should:
+
+1. **Read today's AI log first**
+   ```powershell
+   # Read ai/{yyyyMMdd}.log to understand context
+   ```
+
+2. **Check recent Git commits to see what changed**
+   ```powershell
+   git log --oneline -5 --name-status
+   ```
+   This shows:
+   - Recent commit messages
+   - Files added/modified/deleted
+   - What the other AI worked on
+
+3. **Understand the handover**
+   - What was completed?
+   - What files were changed?
+   - What's the next priority?
+   - Any blockers or concerns?
+
+### What NOT to do
+
+- ❌ Don't run `git pull` (user already synced)
+- ❌ Don't run `git status` and worry about "uncommitted changes" (user manages commits)
+- ❌ Don't suggest committing every change immediately
+- ❌ Don't assume you need to clean up Git state
+
+### What TO do
+
+- ✅ Read ai.log to understand context
+- ✅ Run `git log` to see what changed
+- ✅ Trust that user has synced properly
+- ✅ Continue from where the other AI left off
+
 ## Session Start Protocol
 
 ### 1. Read Latest State (Mandatory)
