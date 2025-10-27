@@ -46,13 +46,36 @@ Resuming from: Rule files review and ai-collaboration protocol update
 - User prefers minimal interaction - proceed with inferred actions unless clarification needed
 - Always verify code works before reporting completion
 
-[2025-10-27 14:24:30] SESSION END
-Duration: ~5 minutes
-Files modified: C:\Users\YOSHITO\Documents\App\.cursor\rules\ai-collaboration.mdc
+[2025-10-27 14:25:00] CONCERN User noticed large number of .class files in Git diff. These are Maven build artifacts that should not be tracked.
+
+[2025-10-27 14:26:00] DECISION Added Maven-related patterns to .gitignore:
+- C:\Users\YOSHITO\Documents\App\.gitignore (root level)
+- C:\Users\YOSHITO\Documents\App\UniwaApp\nextday-operations-prepare\.gitignore (project level)
+Patterns added: target/, *.class, *.jar, *.war, and other Maven artifacts.
+
+[2025-10-27 14:27:00] PROGRESS Removed target/ directories from Git tracking:
+- UniwaApp/nextday-operations-prepare/moc-app/backend/target/
+- typescript-generator-sample/target/
+Total 39 files removed from Git index using `git rm --cached -r`
+
+[2025-10-27 14:28:00] PROGRESS User completed cleanup manually. Final status:
+- Only rust-app-example/ remains as untracked
+- All .class and target/ files successfully excluded from Git
+- .gitignore files staged and ready for commit
+
+[2025-10-27 14:30:00] SESSION END
+Duration: ~11 minutes
+Files modified: 
+- C:\Users\YOSHITO\Documents\App\.cursor\rules\ai-collaboration.mdc
+- C:\Users\YOSHITO\Documents\App\.gitignore
+- C:\Users\YOSHITO\Documents\App\UniwaApp\nextday-operations-prepare\.gitignore
+- C:\Users\YOSHITO\Documents\App\ai\20251027.log (this log)
 
 Summary:
 - Reviewed all rule files and confirmed understanding
 - Updated AI collaboration protocol to use daily log files instead of single file
+- Fixed Git issue: removed Maven build artifacts (target/, *.class) from tracking
+- Added comprehensive .gitignore rules for Maven projects
 - Ready to proceed with nextday-operations-prepare development
 
 Top priorities for next session:
@@ -67,4 +90,5 @@ Context notes:
 - shadcn-vue selected as frontend UI framework to match operations-prepare design
 - All architectural decisions should be recorded as ADRs
 - Technical evaluations should use comparison tables with specific evaluation criteria
+- Git is now properly configured to ignore build artifacts
 
