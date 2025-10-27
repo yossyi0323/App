@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto-Save Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .save-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .save-status.saving {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+    .save-status.saved {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    .save-status.error {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .save-status.conflict {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .item {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .item-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .item-version {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .item-input {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    input[type="number"] {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 16px;
+      width: 120px;
+    }
+    label {
+      font-weight: 500;
+      color: #374151;
+    }
+    .info {
+      margin-top: 30px;
+      padding: 16px;
+      background-color: #f3f4f6;
+      border-radius: 8px;
+    }
+    .info h3 {
+      margin-top: 0;
+    }
+    .info ul {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Auto-Save Demo</h1>
+  <p>Try editing the inventory count. It will auto-save after 3 seconds of inactivity.</p>
+  
+  <div id="save-status" class="save-status" style="display: none;"></div>
+  
+  <div id="items-container"></div>
+  
+  <div class="info">
+    <h3>How to test:</h3>
+    <ul>
+      <li>Edit inventory count → Wait 3 seconds → Auto-saves</li>
+      <li>Edit multiple times quickly → Debounce resets → Saves only once</li>
+      <li>Check console for save logs</li>
+    </ul>
+    <p><strong>Note:</strong> This demo uses mock API (simulates network delay). In real app, replace with actual API calls.</p>
+  </div>
+  
+  <script type="module">
+    import { AutoSaveManager, SaveState, ConflictError } from '../dist/index.js';
+    
+    // Mock data
+    const items = [
+      { id: '1', name: 'じゃがいも', inventoryCount: 10, version: 1 },
+      { id: '2', name: 'にんじん', inventoryCount: 5, version: 1 },
+      { id: '3', name: 'トマト', inventoryCount: 15, version: 1 }
+    ];
+    
+    // Mock API (simulates 500ms network delay)
+    async function mockSaveApi(data) {
+      console.log('API: Saving...', data);
+      
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('API: Saved successfully');
+          resolve({
+            ...data,
+            version: data.version + 1
+          });
+        }, 500);
+      });
+    }
+    
+    // UI Elements
+    const saveStatusEl = document.getElementById('save-status');
+    
+    function showSaveStatus(message, state) {
+      saveStatusEl.textContent = message;
+      saveStatusEl.className = 'save-status ' + state;
+      saveStatusEl.style.display = 'block';
+      
+      if (state === 'saved') {
+        setTimeout(() => {
+          saveStatusEl.style.display = 'none';
+        }, 2000);
+      }
+    }
+    
+    // Create AutoSaveManager
+    const autoSave = new AutoSaveManager({
+      debounceMs: 3000,
+      saveFunction: mockSaveApi,
+      callbacks: {
+        onSaving: () => {
+          showSaveStatus('保存中...', 'saving');
+          console.log('AutoSave: Saving...');
+        },
+        onSaved: () => {
+          showSaveStatus('保存しました', 'saved');
+          console.log('AutoSave: Saved!');
+        },
+        onError: (error) => {
+          showSaveStatus('保存エラー', 'error');
+          console.error('AutoSave: Error', error);
+        },
+        onConflict: () => {
+          showSaveStatus('他のユーザーが更新しました', 'conflict');
+          console.error('AutoSave: Conflict detected');
+          alert('他のユーザーが更新しました。ページをリロードしてください。');
+        }
+      }
+    });
+    
+    // Render items
+    const container = document.getElementById('items-container');
+    
+    items.forEach(item => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'item';
+      
+      itemEl.innerHTML = `
+        <div class="item-header">
+          <div class="item-name">${item.name}</div>
+          <div class="item-version">version: ${item.version}</div>
+        </div>
+        <div class="item-input">
+          <label>在庫数:</label>
+          <input 
+            type="number" 
+            value="${item.inventoryCount}" 
+            data-item-id="${item.id}"
+          />
+        </div>
+      `;
+      
+      container.appendChild(itemEl);
+      
+      // Add event listener
+      const input = itemEl.querySelector('input');
+      input.addEventListener('input', (e) => {
+        const newCount = parseInt(e.target.value) || 0;
+        const currentItem = items.find(i => i.id === item.id);
+        
+        const updatedItem = {
+          ...currentItem,
+          inventoryCount: newCount
+        };
+        
+        console.log('User input:', updatedItem);
+        autoSave.update(item.id, updatedItem);
+      });
+    });
+    
+    // Before unload
+    window.addEventListener('beforeunload', async (e) => {
+      if (autoSave.hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = '';
+        console.log('Unsaved changes detected, forcing save...');
+        await autoSave.forceSave();
+      }
+    });
+    
+    console.log('Demo loaded. Try editing inventory counts!');
+  </script>
+</body>
+</html>
+

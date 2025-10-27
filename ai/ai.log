@@ -1,0 +1,86 @@
+[2025-10-27 02:25:30] SESSION START
+Machine: Mini-PC
+Agent: Cursor AI
+Context: Initial setup of AI collaboration protocol
+
+[2025-10-27 02:25:30] DECISION Created AI collaboration protocol in .cursor/rules/ai-collaboration.mdc
+Reason: User has 2 machines (Mini-PC + Tablet-PC) and wants AI agents to autonomously share context without user intervention. Designed log-based handover system inspired by application.log pattern.
+
+[2025-10-27 02:25:30] NOTE Protocol principles:
+- Autonomous logging throughout session
+- Honest, frank communication between AIs
+- User doesn't read logs - this is AI-to-AI space
+- Log decisions, concerns, blockers, progress incrementally
+- Next AI reads log tail to resume context seamlessly
+
+[2025-10-27 02:25:30] PROGRESS Created directory structure:
+- ai-handover/ai.log (this file)
+- .cursor/rules/ai-collaboration.mdc (protocol definition)
+
+[2025-10-27 02:25:30] NOTE Current project state:
+- Project: nextday-operations-prepare (飲食店翌日営業準備アプリ)
+- Tech stack: Java/Spring Boot + Vue.js (Options API) + PostgreSQL
+- Previous version: operations-prepare (Next.js + Supabase)
+- Goal: Rebuild with本業技術スタック for learning大規模システム開発
+- Phase: Phase 0 (Project setup) completed, Phase 1 (Requirements) in progress
+- Key documents exist in operations-prepare/docs/ - need to migrate learnings
+
+[2025-10-27 02:25:30] TODO High priority items from TODO.md:
+1. 認証方式選定 (Google OAuth vs email/password)
+2. セッション管理選定 (JWT vs Cookie vs localStorage)
+3. 認可設計 (single user vs multi-user vs role-based)
+4. 排他制御選定 (楽観ロック vs 悲観ロック) - Future社ガイドライン推奨は楽観ロック
+
+[2025-10-27 02:25:30] CONTEXT User just switched from Tablet-PC to Mini-PC
+User wants to understand project background and establish collaboration workflow. Spent this session explaining project context and creating AI handover mechanism.
+
+[2025-10-27 02:25:30] NOTE This is first log entry - establishing baseline. Next AI: read this log to understand current state and continue from here.
+
+[2025-10-27 02:26:00] SESSION PAUSE
+Next steps for next AI:
+1. Review operations-prepare docs for migration decisions
+2. Begin Phase 1 work (業務フロー documentation)
+3. Or address TODO high priority items if user directs
+
+Status: Clean state, no uncommitted changes in this session (only added collaboration infrastructure)
+
+[2025-10-27 13:07:00] SESSION RESUME
+Machine: Mini-PC
+Agent: Cursor AI
+Context: Continuing from yesterday's session
+
+[2025-10-27 13:07:00] PROGRESS Tools development started
+- Created Tools/auto-save/ - Google Sheets-like auto-save library
+- TypeScript, framework-agnostic
+- Full test coverage (40 tests, all passing)
+- Demo app working
+- Documentation complete (Japanese README with Mermaid diagrams)
+
+[2025-10-27 13:07:00] DECISION Tools design philosophy established
+- Framework agnostic (React, Vue, Vanilla JS)
+- Monorepo with npm Workspaces
+- Simple API (debounce only, no blur/periodic triggers)
+- Based on Google Sheets behavior
+
+[2025-10-27 13:07:00] DECISION Auto-save specifications
+- Debounce 3 seconds only (learned from operations-prepare mistakes)
+- No rollback on error (same as Google Sheets)
+- Optimistic locking support (version-based)
+- Offline support deferred to Phase 2
+
+[2025-10-27 13:07:00] PROGRESS Monorepo setup
+- Created App/package.json with workspaces
+- Tools can be used via workspace:* without npm publish
+- AI log location moved: App/ai/ai.log (was in Obsidian, keeping Obsidian clean)
+
+[2025-10-27 13:07:00] NOTE Documentation structure
+- Code docs: App/Tools/auto-save/README.md (technical)
+- Obsidian docs: Obsidian/.../App/Tools/auto-save.md (design decisions, lessons learned)
+- Development guide: App/Tools/docs/tools-development-guide.md
+
+[2025-10-27 13:07:00] REFACTOR Moved AI logs from Obsidian to App/ai/
+Reason: User wants to keep Obsidian clean, App/ is for experimentation
+New location: App/ai/ai.log
+Updated ai-collaboration.mdc with new path
+
+

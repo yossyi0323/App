@@ -1,0 +1,31 @@
+{
+  "name": "@tools/auto-save",
+  "version": "1.0.0",
+  "description": "Google Sheets-like auto-save functionality for any JavaScript framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "demo": "vite demo --open"
+  },
+  "keywords": [
+    "autosave",
+    "auto-save",
+    "debounce",
+    "optimistic-lock",
+    "framework-agnostic"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitest/ui": "^4.0.3",
+    "jsdom": "^27.0.1",
+    "typescript": "^5.2.2",
+    "vite": "^7.1.12",
+    "vitest": "^4.0.3"
+  }
+}
