@@ -4,12 +4,16 @@
 Enable seamless collaboration between AI agents across multiple machines (Mini-PC and Tablet-PC) without user intervention in the handover process.
 
 ## Log Location
-`C:\Users\YOSHITO\Documents\App\ai\{yyyyMMdd}.log`
+
+**Mini-PC:** `C:\Users\yoshi\Documents\App\ai\{yyyyMMdd}.log`
+**Tablet-PC:** `C:\Users\YOSHITO\Documents\App\ai\{yyyyMMdd}.log`
 
 例：
 - `20251027.log` - 2025年10月27日のログ
 - `20251028.log` - 2025年10月28日のログ
 - `latest.md` - 最新状態のクイックサマリー（オプション）
+
+**Note:** User folder name differs between machines. Both paths are valid.
 
 ## Core Principles
 
@@ -218,22 +222,34 @@ Every ~10 sessions, one AI should:
 
 ## File Operations
 
-### Append to Log
-```typescript
-// Pseudo-code for reference
-import fs from 'fs';
-import path from 'path';
+### How to Write to AI Log
 
-const baseDir = 'C:\\Users\\YOSHITO\\Documents\\App\\ai';
-const today = new Date().toISOString().substring(0, 10).replace(/-/g, ''); // yyyyMMdd
-const logPath = path.join(baseDir, `${today}.log`);
+**DO NOT use PowerShell echo commands.** Use file operation tools instead.
 
-function log(category: string, message: string) {
-  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const entry = `[${timestamp}] [${category}] ${message}\n`;
-  fs.appendFileSync(logPath, entry, 'utf8');
-}
+**Correct method:**
+1. Get current date: `Get-Date -Format "yyyy-MM-dd HH:mm:ss"`
+2. Read existing log: `read_file` tool on `ai/{yyyyMMdd}.log`
+3. Append new entries to the content
+4. Write back: `write` tool to save the updated log
+
+**Example workflow:**
 ```
+# Mini-PC
+1. read_file: C:\Users\yoshi\Documents\App\ai\20251027.log
+2. Add your log entries to the content
+3. write: Save the complete updated content
+
+# Tablet-PC
+1. read_file: C:\Users\YOSHITO\Documents\App\ai\20251027.log
+2. Add your log entries to the content
+3. write: Save the complete updated content
+```
+
+**Why NOT PowerShell echo:**
+- ❌ Requires escaping special characters (backticks, quotes)
+- ❌ Hard to read and maintain
+- ❌ Error-prone with multiline content
+- ✅ File tools are cleaner and more reliable
 
 ### Read Log
 - 当日のログファイルを全行読み込み（通常は数百行程度）
