@@ -5,24 +5,28 @@ Enable seamless collaboration between AI agents across multiple machines (Mini-P
 
 ## Log Location
 
-**Mini-PC:** `C:\Users\yoshi\Documents\App\ai\{yyyyMMdd}.log`
-**Tablet-PC:** `C:\Users\YOSHITO\Documents\App\ai\{yyyyMMdd}.log`
+**Mini-PC:** `C:\Users\yoshi\Documents\App\ai\{yyyyMMdd}-{HHmmss}.log`
+**Tablet-PC:** `C:\Users\YOSHITO\Documents\App\ai\{yyyyMMdd}-{HHmmss}.log`
 
 例：
-- `20251027.log` - 2025年10月27日のログ
-- `20251028.log` - 2025年10月28日のログ
-- `latest.md` - 最新状態のクイックサマリー（オプション）
+- `20251027-143000.log` - 2025年10月27日 14:30:00開始のセッション
+- `20251027-223000.log` - 2025年10月27日 22:30:00開始のセッション
+- `20251028-091500.log` - 2025年10月28日 09:15:00開始のセッション
 
-**Note:** User folder name differs between machines. Both paths are valid.
+**Note:** 
+- User folder name differs between machines. Both paths are valid.
+- Each session creates a new log file (timestamp-based)
+- Keeps individual files small for fast write operations
+- Reading multiple files in parallel is fast
 
 ## Core Principles
 
-1. **Autonomous Logging**: Write to daily log file continuously during work, like application.log
+1. **Autonomous Logging**: Write session log at end of work session
 2. **Honest Communication**: Be frank about code quality, risks, and concerns
 3. **Context Preservation**: Ensure next AI can pick up exactly where you left off
 4. **User-Independent**: User doesn't read logs; this is AI-to-AI communication
-5. **Incremental Updates**: Append to log throughout session, not just at end
-6. **Daily Separation**: Each day gets its own log file for better organization
+5. **Session Separation**: Each session creates new log file (timestamp-based) for fast writes
+6. **Parallel Reading**: Multiple log files read in parallel for fast context loading
 
 ## Machine Sync Protocol
 
@@ -83,8 +87,8 @@ When user says "同期した" or similar, AI should:
 
 ### 1. Read Latest State (Mandatory)
 ```
-1. 現在の日付を取得（Get-Date -Format "yyyyMMdd"）
-2. 当日のログファイル（{yyyyMMdd}.log）を読み込み
+1. 現在の日時を取得（Get-Date -Format "yyyyMMdd-HHmmss"）
+2. 当日の全セッションログを並列読み込み（{yyyyMMdd}-*.log）
 3. 必要に応じて前日・前々日のログも参照
 
 理解すること:
@@ -93,6 +97,11 @@ When user says "同期した" or similar, AI should:
 - What concerns exist?
 - What's the next priority?
 ```
+
+**読み込み例:**
+- 今日が2025-11-03なら：`20251103-*.log`で全セッションを並列読み込み
+- 前日も必要なら：`20251102-*.log`も追加
+- 複数ファイルだが、並列読み込みなので速い
 
 ### 2. Announce Session Start
 ```
@@ -105,15 +114,23 @@ Resuming from: [brief context]
 
 ## During Work Protocol
 
-### Log Everything Important
-Write to ai.log immediately when:
-- Making architectural decisions
-- Discovering code issues
-- Implementing features
-- Running into blockers
-- Having concerns about user's request
-- Finding better approaches
-- Completing milestones
+### When to Write Log
+
+**Write log at SESSION END only** (not during session)
+
+Reason:
+- Writing to large files during session becomes slow
+- Session-based files stay small (200 lines or less)
+- All important information preserved in session summary
+
+**What to record in session summary:**
+- Architectural decisions made
+- Code issues discovered
+- Features implemented
+- Blockers encountered
+- Concerns about user's request
+- Better approaches found
+- Milestones completed
 
 ### Log Format (Flexible)
 ```
@@ -222,38 +239,53 @@ Every ~10 sessions, one AI should:
 
 ## File Operations
 
-### How to Write to AI Log
+### How to Write Session Log
 
-**DO NOT use PowerShell echo commands.** Use file operation tools instead.
+**At SESSION START:**
+1. Get session start timestamp: `Get-Date -Format "yyyyMMdd-HHmmss"`
+2. Save timestamp for later use (for filename)
 
-**Correct method:**
-1. Get current date: `Get-Date -Format "yyyy-MM-dd HH:mm:ss"`
-2. Read existing log: `read_file` tool on `ai/{yyyyMMdd}.log`
-3. Append new entries to the content
-4. Write back: `write` tool to save the updated log
+**At SESSION END:**
+1. Create log content (all session events, decisions, summary)
+2. Write to new file: `write` tool to `ai/{yyyyMMdd}-{HHmmss}.log`
+3. File is created once per session
 
 **Example workflow:**
 ```
-# Mini-PC
-1. read_file: C:\Users\yoshi\Documents\App\ai\20251027.log
-2. Add your log entries to the content
-3. write: Save the complete updated content
+# Session start (2025-11-03 09:15:00)
+1. Get timestamp: "20251103-091500"
+2. Remember for session end
 
-# Tablet-PC
-1. read_file: C:\Users\YOSHITO\Documents\App\ai\20251027.log
-2. Add your log entries to the content
-3. write: Save the complete updated content
+# Session end
+1. Create log content (entire session summary)
+2. write: C:\Users\yoshi\Documents\App\ai\20251103-091500.log
+   (Mini-PC path, or C:\Users\YOSHITO\... for Tablet-PC)
+3. Done - new file created
 ```
 
-**Why NOT PowerShell echo:**
-- ❌ Requires escaping special characters (backticks, quotes)
-- ❌ Hard to read and maintain
-- ❌ Error-prone with multiline content
-- ✅ File tools are cleaner and more reliable
+**Advantages:**
+- No need to read existing file (create new file each time)
+- Fast writes (only write once, at end)
+- Small files (each session ~100-200 lines)
+- No incremental updates during session
 
-### Read Log
-- 当日のログファイルを全行読み込み（通常は数百行程度）
-- 必要に応じて前日・前々日のログも参照
+### How to Read Session Logs
+
+**Reading today's logs:**
+```
+# Get all session logs for today
+glob_file_search: "ai/20251103-*.log"
+# Then read_file for each in parallel
+```
+
+**Reading multiple days:**
+```
+# Today + yesterday
+glob_file_search: "ai/202511{02,03}-*.log"
+# Or just read all recent logs in parallel
+```
+
+**Note:** Parallel reading is fast even with many small files
 
 ## Integration with Existing Rules
 
@@ -278,18 +310,19 @@ User may:
 ## Summary
 
 **Core Loop:**
-1. Start session → Read today's log file (and recent days if needed)
-2. During work → Log decisions/concerns/progress incrementally to today's log
-3. End session → Write summary
+1. Start session → Get timestamp, read today's session logs in parallel (and recent days if needed)
+2. During work → Work without logging (keep it fast)
+3. End session → Create comprehensive session log in new file
 4. Next AI repeats
 
 **Success Metric:**
 Next AI can seamlessly continue work without asking user "what was I working on?" or "why was this decision made?"
 
 **Log Organization:**
-- Each day = one log file (`yyyyMMdd.log`)
-- Easy to find specific day's activity
-- No single file becomes too large
+- Each session = one log file (`{yyyyMMdd}-{HHmmss}.log`)
+- Easy to find specific session by timestamp
+- Each file stays small (~100-200 lines) for fast writes
+- Multiple files read in parallel for fast context loading
 
 ---
 

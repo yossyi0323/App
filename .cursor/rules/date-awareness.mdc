@@ -102,15 +102,19 @@ priority: 1
 ### 確認手順
 
 ```
-1. 最新のai.logを確認（ai/{yyyyMMdd}.log）
-   - 今日のログがない場合は、最新の日付のログを確認
+1. 今日のセッションログを全て取得（glob_file_search: "ai/{yyyyMMdd}-*.log"）
+   - 例: 20251103-*.log → その日の全セッションログ
+   - 今日のログがない場合は、前日・前々日のログを確認
    
-2. 前回セッションの以下を確認：
+2. 取得したログファイルを並列で読み込み（read_file）
+   - 複数ファイルでも並列読み込みなので速い
+   
+3. 最新セッション（最後のファイル）の以下を確認：
    - "Next session priorities" または "Immediate next steps"
    - "Top priorities from previous session"
    - SESSION PAUSEまたはSESSION END付近の記述
    
-3. Periodic Note状態と前回の優先事項を合わせて報告
+4. Periodic Note状態と前回の優先事項を統合（内部で処理）
 ```
 
 ### 報告形式
