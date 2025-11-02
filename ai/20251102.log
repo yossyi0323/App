@@ -1,0 +1,84 @@
+[2025-11-02 22:30:00] SESSION START
+Machine: Mini-PC
+Agent: Cursor AI
+Previous session: 2025-10-27 on Tablet-PC
+Resuming from: 6 days gap since last session
+
+[2025-11-02 22:35:00] NOTE Current date awareness issue
+User pointed out I incorrectly said "Saturday" when it was actually Sunday (2025-11-02 Sunday).
+Reminded to always confirm date with correct day-of-week format.
+
+[2025-11-02 22:40:00] PROGRESS Confirmed Periodic Note status
+User asked "今日やるべきことはあるかな" - this triggers Periodic Note check per date-awareness.mdc.
+
+Status:
+- Daily Note (20251102.md): Not created
+- Weekly Note (2025-W44.md): Not created
+- Monthly Note (2025-11.md): Not created
+- Quarterly Note (2025-Q4.md): Created, 175 lines, detailed Q4 goals
+
+[2025-11-02 22:45:00] DECISION Updated date-awareness.mdc with Periodic Note check protocol
+Reason: User requested that "やること" questions should always trigger Periodic Note status check.
+Added comprehensive section explaining:
+- Which notes to check (Daily/Weekly/Monthly/Quarterly)
+- File name formats and paths
+- Reporting format template
+- Importance of reporting uncreated notes
+
+[2025-11-02 22:50:00] CONCERN Emoji usage violation
+Used emoji (❌✅) in reporting format template despite no-emoji-usage.mdc rule.
+Fixed immediately after user pointed it out.
+
+[2025-11-02 23:15:00] NOTE User's daily activity: Cooking experiment
+User made 味噌漬け (miso-marinated meat).
+Issues encountered:
+- Insufficient defrosting (microwave left core frozen)
+- Surface burned but inside undercooked (red parts remained)
+- Had to re-cook, which caused miso aroma to dissipate
+
+Root cause analysis:
+Insufficient defrosting → uneven cooking → overcooking to compensate → lost flavor
+
+User wants to record this in Daily Note (20251102.md).
+
+[2025-11-02 23:30:00] CONCERN Tab indent rule violation
+Provided Daily Note content suggestion using space indents instead of tabs.
+User pointed out: obsidian-docs-placement.mdc requires tab indents for Obsidian documents.
+
+Critical mistake: Said "気をつけます" without fixing the rule - meaningless for future AI agents.
+
+[2025-11-02 23:40:00] DECISION Updated obsidian-docs-placement.mdc with explicit tab indent rules
+Reason: User correctly identified that verbal acknowledgment is useless; must write rules for future AIs.
+
+Added comprehensive "Obsidianドキュメント編集ルール" section:
+- Basic policy: Obsidian is user's personal notes, AI provides suggestions only
+- Tab indent mandatory for all Obsidian markdown
+- Examples of correct (tab) vs incorrect (space) indents
+- Clear scope: all Periodic Notes and Obsidian Vault files
+
+[2025-11-02 23:44:00] SESSION PAUSE
+Duration: ~1 hour 15 minutes
+
+Summary of work:
+- Updated date-awareness.mdc: Added Periodic Note status check protocol for "やること" queries
+- Updated obsidian-docs-placement.mdc: Added explicit tab indent rules with examples
+- Fixed emoji usage violation in rule files
+- Assisted with user's cooking reflection (Daily Note content)
+
+Key learnings for next AI:
+- Always check Periodic Note status when user asks about "やること"
+- ALWAYS use tab indents when suggesting Obsidian document content
+- No emoji in rule files or reports
+- Verbal promises like "気をつけます" are meaningless - write rules instead
+
+Next session priorities:
+- User still needs to create 3 Periodic Notes: Daily (20251102), Weekly (2025-W44), Monthly (2025-11)
+- Q4 Quarterly note is well-written and can serve as reference
+- nextday-operations-prepare architecture decisions remain pending (authentication, session management, authorization, locking)
+
+Context notes:
+- User syncs via Git between Mini-PC (C:\Users\yoshi) and Tablet-PC (C:\Users\YOSHITO)
+- User manages all Git operations; AI should not run git commands
+- Obsidian documents use tab indents, always
+- User's Q4 focus: Periodic Note habit improvement with varying granularity per topic
+
