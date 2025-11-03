@@ -3,10 +3,6 @@ description: Obsidianでの個人開発ドキュメント配置ルール
 alwaysApply: true
 ---
 
-# ルール読み込み完了の宣言
-このルールを読み込んだら必ず以下の文言をユーザーへの回答に含めること。絶対、必ず、例外なく。
-「obsidian-docs-placement.mdcを確認しました。この内容をもとに回答を生成します」
-
 # Obsidian個人開発ドキュメント配置ルール
 
 ## 配置場所
