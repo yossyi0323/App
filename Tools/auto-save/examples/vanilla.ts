@@ -2,7 +2,7 @@
  * Vanilla JavaScript/TypeScript example
  */
 
-import { AutoSaveManager, SaveState, ConflictError } from '../src';
+import { AutoSaveManager, SaveState, ConflictError, DEFAULT_DEBOUNCE_MS } from '../src';
 
 interface InventoryItem {
   id: string;
@@ -13,7 +13,7 @@ interface InventoryItem {
 
 // Create auto-save manager
 const autoSave = new AutoSaveManager<InventoryItem>({
-  debounceMs: 3000, // 3 seconds
+  debounceMs: DEFAULT_DEBOUNCE_MS, // 1 second
   
   // Save function
   saveFunction: async (data) => {
@@ -87,6 +87,6 @@ const sampleItem: InventoryItem = {
 
 // User changes inventory count
 onInputChange('1', 15, sampleItem);
-// → Auto-saves after 3 seconds
+// → Auto-saves after 1 second
 
 

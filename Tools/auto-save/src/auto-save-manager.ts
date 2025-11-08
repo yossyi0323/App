@@ -5,14 +5,15 @@ import {
   Versionable,
   SaveState,
   ConflictError,
-  AutoSaveCallbacks
+  AutoSaveCallbacks,
+  DEFAULT_DEBOUNCE_MS
 } from './types';
 
 /**
  * Google Sheets-like auto-save manager
  * 
  * Features:
- * - Debounced auto-save (default: 3 seconds)
+ * - Debounced auto-save (default: 1 second)
  * - Dirty tracking (only save changed items)
  * - Optimistic locking support (version management)
  * - Save state management
@@ -30,7 +31,7 @@ export class AutoSaveManager<T extends Versionable> {
   private debouncedSave: () => void;
 
   constructor(config: AutoSaveConfig<T>) {
-    this.debounceMs = config.debounceMs ?? 3000;
+    this.debounceMs = config.debounceMs ?? DEFAULT_DEBOUNCE_MS;
     this.saveFunction = config.saveFunction;
     this.callbacks = config.callbacks ?? {};
     

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AutoSaveManager } from '../auto-save-manager';
-import { SaveState, ConflictError } from '../types';
+import { SaveState, ConflictError, DEFAULT_DEBOUNCE_MS } from '../types';
 
 interface TestData {
   id: string;
@@ -23,7 +23,7 @@ describe('AutoSaveManager', () => {
     const onSaved = vi.fn();
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn,
       callbacks: { onSaving, onSaved }
     });
@@ -34,7 +34,7 @@ describe('AutoSaveManager', () => {
     expect(saveFn).not.toHaveBeenCalled();
 
     // Advance time
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     await vi.runAllTimersAsync();
 
     expect(saveFn).toHaveBeenCalledTimes(1);
@@ -46,7 +46,7 @@ describe('AutoSaveManager', () => {
     const saveFn = vi.fn().mockResolvedValue({ id: '1', value: 15, version: 2 });
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
@@ -58,7 +58,7 @@ describe('AutoSaveManager', () => {
 
     expect(saveFn).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     await vi.runAllTimersAsync();
 
     expect(saveFn).toHaveBeenCalledTimes(1);
@@ -69,11 +69,11 @@ describe('AutoSaveManager', () => {
     const saveFn = vi.fn();
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     await vi.runAllTimersAsync();
 
     expect(saveFn).not.toHaveBeenCalled();
@@ -84,14 +84,14 @@ describe('AutoSaveManager', () => {
     const onConflict = vi.fn();
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn,
       callbacks: { onConflict }
     });
 
     manager.update('1', { id: '1', value: 10, version: 1 });
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     
     try {
       await vi.runAllTimersAsync();
@@ -108,14 +108,14 @@ describe('AutoSaveManager', () => {
     const onConflict = vi.fn();
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn,
       callbacks: { onConflict }
     });
 
     manager.update('1', { id: '1', value: 10, version: 1 });
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     
     try {
       await vi.runAllTimersAsync();
@@ -131,14 +131,14 @@ describe('AutoSaveManager', () => {
     const onError = vi.fn();
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn,
       callbacks: { onError }
     });
 
     manager.update('1', { id: '1', value: 10, version: 1 });
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     
     try {
       await vi.runAllTimersAsync();
@@ -154,7 +154,7 @@ describe('AutoSaveManager', () => {
     const saveFn = vi.fn().mockResolvedValue({ id: '1', value: 10, version: 2 });
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
@@ -168,17 +168,17 @@ describe('AutoSaveManager', () => {
 
   it('should prevent concurrent saves', async () => {
     const saveFn = vi.fn().mockImplementation(() => 
-      new Promise(resolve => setTimeout(() => resolve({ id: '1', value: 10, version: 2 }), 1000))
+      new Promise(resolve => setTimeout(() => resolve({ id: '1', value: 10, version: 2 }), DEFAULT_DEBOUNCE_MS))
     );
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
     manager.update('1', { id: '1', value: 10, version: 1 });
 
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
     const save1 = manager.forceSave();
     const save2 = manager.forceSave(); // Should be ignored
 
@@ -191,7 +191,7 @@ describe('AutoSaveManager', () => {
     const saveFn = vi.fn().mockResolvedValue({ id: '1', value: 10, version: 2 });
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
@@ -208,14 +208,14 @@ describe('AutoSaveManager', () => {
     const saveFn = vi.fn().mockResolvedValue({ id: '1', value: 10, version: 2 });
 
     const manager = new AutoSaveManager<TestData>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       saveFunction: saveFn
     });
 
     expect(manager.getSaveState()).toBe(SaveState.IDLE);
 
     manager.update('1', { id: '1', value: 10, version: 1 });
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(DEFAULT_DEBOUNCE_MS);
 
     // Check state during save
     expect(manager.getSaveState()).toBe(SaveState.SAVING);

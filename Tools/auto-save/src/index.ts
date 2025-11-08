@@ -7,7 +7,8 @@ export {
   AutoSaveCallbacks,
   AutoSaveConfig,
   SaveState,
-  ConflictError
+  ConflictError,
+  DEFAULT_DEBOUNCE_MS
 } from './types';
 
 

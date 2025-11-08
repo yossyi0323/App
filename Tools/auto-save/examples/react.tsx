@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { AutoSaveManager, SaveState } from '../src';
+import { AutoSaveManager, SaveState, DEFAULT_DEBOUNCE_MS } from '../src';
 
 interface InventoryItem {
   id: string;
@@ -21,7 +21,7 @@ export function useAutoSave() {
   useEffect(() => {
     // Create auto-save manager
     autoSaveRef.current = new AutoSaveManager<InventoryItem>({
-      debounceMs: 3000,
+      debounceMs: DEFAULT_DEBOUNCE_MS,
       
       saveFunction: async (data) => {
         const response = await fetch(`/api/inventory-status/${data.id}`, {

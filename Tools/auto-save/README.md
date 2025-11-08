@@ -4,7 +4,7 @@ Googleスプレッドシート的な自動保存機能を、どんなJavaScript�
 
 ## 特徴
 
-- **Debounce自動保存**（デフォルト3秒、入力停止後に保存）
+- **Debounce自動保存**（デフォルト1秒、入力停止後に保存）
 - **差分検知**（変更されたアイテムのみ保存、重複保存を防止）
 - **楽観ロック対応**（versionベースの競合検出）
 - **保存状態管理**（「保存中...」「保存しました」などの状態）
@@ -64,15 +64,15 @@ sequenceDiagram
     User->>Input: データ入力
     Input->>ASM: update(id, data)
     ASM->>ASM: dirtyフラグON
-    ASM->>Timer: タイマーリセット（3秒）
+    ASM->>Timer: タイマーリセット（1秒）
     
-    Note over Timer: 3秒待機...
+    Note over Timer: 1秒待機...
     
     User->>Input: 追加で入力
     Input->>ASM: update(id, data)
-    ASM->>Timer: タイマーリセット（再度3秒）
+    ASM->>Timer: タイマーリセット（再度1秒）
     
-    Note over Timer: 3秒待機...
+    Note over Timer: 1秒待機...
     
     Timer->>ASM: タイマー発火
     ASM->>UI: onSaving() 「保存中...」
@@ -103,7 +103,7 @@ interface MyData {
 }
 
 const autoSave = new AutoSaveManager<MyData>({
-  debounceMs: 3000,  // 3秒
+  debounceMs: 1000,  // 1秒
   
   saveFunction: async (data) => {
     const response = await fetch(`/api/items/${data.id}`, {
@@ -129,7 +129,7 @@ const autoSave = new AutoSaveManager<MyData>({
 // ユーザーがデータを変更した時
 function handleChange(id: string, newData: MyData) {
   autoSave.update(id, newData);
-  // 3秒後に自動保存される
+  // 1秒後に自動保存される
 }
 ```
 
@@ -138,7 +138,7 @@ function handleChange(id: string, newData: MyData) {
 Googleスプレッドシートと同じ挙動を実現：
 
 1. **ユーザーがデータ入力** → dirtyフラグON
-2. **3秒間入力がない** → 自動保存実行
+2. **1秒間入力がない** → 自動保存実行
 3. **保存中** → 「保存中...」表示
 4. **保存成功** → 「保存しました」表示（2秒後に消える）
 5. **競合検出（409）** → ユーザーに通知してリロードを促す
@@ -211,7 +211,7 @@ await db.update(inventoryStatus)
 
 ```typescript
 new AutoSaveManager<T>({
-  debounceMs?: number;           // デフォルト: 3000（3秒）
+  debounceMs?: number;           // デフォルト: 1000（1秒）
   saveFunction: (data: T) => Promise<T>;
   callbacks?: {
     onSaving?: () => void;       // 保存開始時

@@ -1,4 +1,9 @@
 /**
+ * Default debounce time in milliseconds
+ */
+export const DEFAULT_DEBOUNCE_MS = 1000;
+
+/**
  * Data with version for optimistic locking
  */
 export interface Versionable {

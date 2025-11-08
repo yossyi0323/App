@@ -3,7 +3,7 @@
  */
 
 import { ref, onUnmounted } from 'vue';
-import { AutoSaveManager, SaveState } from '../src';
+import { AutoSaveManager, SaveState, DEFAULT_DEBOUNCE_MS } from '../src';
 
 interface InventoryItem {
   id: string;
@@ -18,7 +18,7 @@ export function useAutoSave() {
   
   // Create auto-save manager
   const autoSave = new AutoSaveManager<InventoryItem>({
-    debounceMs: 3000,
+    debounceMs: DEFAULT_DEBOUNCE_MS,
     
     saveFunction: async (data) => {
       // Call your API (axios, ofetch, etc.)
