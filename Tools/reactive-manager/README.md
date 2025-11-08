@@ -1,6 +1,7 @@
 # @tools/reactive-manager
 
 画面操作に呼応してデータを自動的に同期・保存するライブラリ。REST API統合、debounce自動保存、楽観ロック対応。
+※auto-saveの後継ライブラリとして開発。
 
 ## 特徴
 
