@@ -20,6 +20,7 @@ pub enum AppError {
     #[error("データベースエラー: {0}")]
     DatabaseError(#[from] sqlx::Error),
 
+    #[allow(dead_code)]
     #[error("内部サーバーエラー: {0}")]
     InternalError(String),
 }

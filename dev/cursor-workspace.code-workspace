@@ -16,6 +16,9 @@
   "settings": {
     "cursor.rules": [
       ".cursor/rules/*.mdc"
+    ],
+    "rust-analyzer.linkedProjects": [
+      "../minimum-sns-post-app2/server/Cargo.toml"
     ]
   }
 }
