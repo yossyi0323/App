@@ -51,7 +51,7 @@ When user says "同期した" or similar, AI should:
 
 1. **Read today's AI log first**
    ```powershell
-   # Read ai/{yyyyMMdd}.log to understand context
+   # Read App/ai/{yyyyMMdd}.log to understand context
    ```
 
 2. **Check recent Git commits to see what changed**
@@ -247,7 +247,7 @@ Every ~10 sessions, one AI should:
 
 **At SESSION END:**
 1. Create log content (all session events, decisions, summary)
-2. Write to new file: `write` tool to `ai/{yyyyMMdd}-{HHmmss}.log`
+2. Write to new file: `write` tool to `App/ai/{yyyyMMdd}-{HHmmss}.log`
 3. File is created once per session
 
 **Example workflow:**

@@ -99,7 +99,8 @@ priority: 1
 ### 確認手順
 
 ```
-1. 今日のセッションログを全て取得（glob_file_search: "ai/{yyyyMMdd}-*.log"）
+1. 今日のセッションログを全て取得
+   - glob_file_search: "ai/{yyyyMMdd}-*.log"
    - 例: 20251103-*.log → その日の全セッションログ
    - 今日のログがない場合は、前日・前々日のログを確認
    

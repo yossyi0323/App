@@ -9,7 +9,7 @@ alwaysApply: false
 
 このファイルを参照するときは、以下も読むと文脈が理解できる：
 - `secretary-behavior.mdc`: 秘書としての提案行動
-- `ai/{yyyyMMdd}.log`: 時系列のエピソード記憶
+- `App/ai/{yyyyMMdd}.log`: 時系列のエピソード記憶
 
 ## このファイルの役割
 

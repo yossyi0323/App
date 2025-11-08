@@ -18,12 +18,16 @@ C:\Users\YOSHITO\Documents\Obsidian Vault\Notes\Private\2. work\エンジニア\
 ## ディレクトリ構造
 ```
 Notes/Private/2. work/エンジニア/個人開発/App/
-├── ai/yyyymmdd/AIエージェント同士のコンテキストの引き継ぎ用のドキュメント
 ├── UniwaApp/
 ├── minimum-sns-post-app1/
 └── Tools/
     └── 自作ツール群
 ```
+
+**注意：**
+- AIセッションログ（`ai/{yyyyMMdd}-*.log`）は**Appワークスペース配下**に配置される
+- Obsidian内ではなく、`C:\Users\yoshi\Documents\App\ai\` に配置
+- Obsidianには設計ドキュメントのみ、ログはAppワークスペース
 
 ## 移行予定
 現在はPrivate配下で管理しているが、将来的に新分類体系が安定した際に以下に移行予定：
