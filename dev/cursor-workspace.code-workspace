@@ -19,6 +19,7 @@
     ],
     "rust-analyzer.linkedProjects": [
       "../minimum-sns-post-app2/server/Cargo.toml"
-    ]
+    ],
+    "task.allowAutomaticTasks": "off"
   }
 }
