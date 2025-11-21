@@ -26,6 +26,33 @@ alwaysApply: false
 
 ---
 
+## テスト実行ルール（重要）
+
+### E2Eテストの実行方法（3回目の指摘 - 2025-11-21）
+
+**E2Eテストは必ずコマンドライン出力で完結する方式で実行すること**
+
+- **禁止**: ブラウザを開いて結果を表示するモード（`playwright test --ui`など）
+- **推奨**: `playwright test` または `npx playwright test --reporter=list` コマンドでコマンドライン出力のみで結果を確認
+- **設定**: `playwright.config.ts`の`reporter`は`[['list'], ['json', { outputFile: 'test-results/results.json' }]]`を使用（HTMLレポートは除外）
+- **理由**: AIが結果を確認できないと意味がないため、必ずコマンドライン出力で完結させる
+
+**設定例:**
+```typescript
+reporter: [['list'], ['json', { outputFile: 'test-results/results.json' }]]
+```
+
+**実行コマンド:**
+```bash
+npm run test:e2e
+# または
+npx playwright test --reporter=list
+```
+
+**注意**: このルール違反は既に3回指摘されている。今後は必ず守ること。
+
+---
+
 ## nextday-operations-prepare
 
 ### 現在のステータス
