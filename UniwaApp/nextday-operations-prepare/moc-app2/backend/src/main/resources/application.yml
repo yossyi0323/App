@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: operations-prepare-moc2
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operations_prepare_moc2?useUnicode=true&characterEncoding=UTF-8
+    username: postgres
+    password: 
+    driver-class-name: org.postgresql.Driver
+  
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: NON_NULL
+
+# UroboroSQL設定
+uroborosql:
+  sql-path: classpath:sql
+  named-param-prefix: /*
+
+logging:
+  level:
+    com.uniwa.operationsprepare: DEBUG
+    org.springframework.web: DEBUG
+    jp.co.future.uroborosql: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    custom-css: /swagger-dark.css
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+

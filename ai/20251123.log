@@ -1,0 +1,87 @@
+# セッションログ - 2025-11-23
+
+## 作業内容
+
+### Prettier/ESLint設定の追加
+
+**目的：** moc-app2プロジェクトのフロントエンドにPrettierとESLintを設定し、保存時（Ctrl+S）に自動フォーマットとリントが実行されるようにする
+
+**実施内容：**
+
+1. **Prettierプラグインのインストール**
+   - `prettier-plugin-vue@1.1.6`をインストール（`--legacy-peer-deps`オプション使用）
+
+2. **Prettier設定ファイルの作成・更新**
+   - `frontend/.prettierrc`を作成
+   - `singleAttributePerLine: true`を設定（Vue要素の属性を各行に分ける）
+   - その他の設定：
+     - `semi: true`
+     - `trailingComma: "es5"`
+     - `singleQuote: true`
+     - `printWidth: 100`
+     - `tabWidth: 2`
+     - `useTabs: false`
+     - `vueIndentScriptAndStyle: false`
+     - `htmlWhitespaceSensitivity: "css"`
+
+3. **ESLint設定の確認**
+   - `frontend/.eslintrc.cjs`が既に存在し、`plugin:prettier/recommended`が設定済み
+   - Prettier設定との競合を避けるため、`.eslintrc.cjs`から重複するPrettier設定を削除
+
+4. **VSCode設定ファイルの作成**
+   - `moc-app2/.vscode/settings.json`を作成
+   - 保存時の自動フォーマットとESLint自動修正を有効化
+   - Vueファイル、TypeScript、JavaScript、JSON、MarkdownにPrettierを適用
+
+5. **ワークスペース設定ファイルの更新**
+   - `App/dev/cursor-workspace.code-workspace`を更新
+   - マルチルートワークスペース用にPrettierとESLintの設定を追加
+   - `App`フォルダにフォルダ固有の設定を追加（`prettier.configPath`）
+
+## 問題と解決
+
+### 問題1: 保存時にPrettierが動作しない
+
+**原因：** Cursorのワークスペースファイル（`.code-workspace`）にPrettierの設定がなかった。マルチルートワークスペースの場合、ワークスペースファイルの`settings`セクションが優先される
+
+**解決策：** ワークスペースファイルの`settings`セクションにPrettierとESLintの設定を追加
+
+### 問題2: singleAttributePerLineが動作しない
+
+**状況：** `prettier-plugin-vue@1.1.6`を使用していたが、`singleAttributePerLine: true`が正しく動作していなかった
+
+**確認結果：** Prettierコマンドラインでは正しく動作することを確認（属性が各行に分かれる）
+
+**最終解決：** ユーザーが「Vue 3 Support - All In One」拡張機能の「Auto Format Vue」を有効にしたところ、フォーマットが正しく動作するようになった
+
+## 学んだこと
+
+1. **マルチルートワークスペースでの設定優先順位**
+   - ワークスペースファイル（`.code-workspace`）の`settings`が優先される
+   - フォルダ固有の設定は、各フォルダの`settings`プロパティで指定可能
+
+2. **Prettierと拡張機能の競合**
+   - 複数のフォーマッター拡張機能がインストールされている場合、優先順位を明示的に指定する必要がある
+   - `[vue]`の`editor.defaultFormatter`でPrettierを指定することで、Prettierが優先される
+
+3. **prettier-plugin-vueの動作**
+   - `singleAttributePerLine: true`はPrettierコマンドラインでは正しく動作する
+   - VSCode拡張機能との連携で問題が発生する可能性がある
+
+## 次回への引き継ぎ
+
+- PrettierとESLintの設定は完了
+- 保存時の自動フォーマットとリントは動作するようになった
+- 「Vue 3 Support - All In One」拡張機能の「Auto Format Vue」を有効にする必要がある可能性
+
+## 作成・更新したファイル
+
+1. `moc-app2/frontend/.prettierrc` - Prettier設定
+2. `moc-app2/.vscode/settings.json` - VSCode設定
+3. `App/dev/cursor-workspace.code-workspace` - ワークスペース設定（更新）
+
+## 注意事項
+
+- `prettier-plugin-vue@1.1.6`は`prettier@2.8.8`に依存しているが、プロジェクトでは`prettier@3.6.2`を使用している
+- バージョンの不一致が問題を引き起こす可能性があるが、現時点では動作している
+

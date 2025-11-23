@@ -1,0 +1,15 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "../../../../Tools/auto-save/src/**/*"],
+  "exclude": ["src/**/__tests__/*", "../../../../Tools/auto-save/src/**/__tests__/*"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tools/auto-save": ["../../../../Tools/auto-save/src"]
+    },
+    "types": ["vite/client", "node"],
+    "verbatimModuleSyntax": false,
+    "jsx": "preserve"
+  }
+}

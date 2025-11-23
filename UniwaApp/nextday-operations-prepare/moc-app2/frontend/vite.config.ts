@@ -1,0 +1,35 @@
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
+import path from 'path';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@tools/auto-save': path.resolve(__dirname, '../../../../Tools/auto-save/src'),
+      '@tools/reactive-manager': path.resolve(__dirname, '../../../../Tools/reactive-manager/src'),
+    },
+  },
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+  },
+});
