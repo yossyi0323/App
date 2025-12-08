@@ -28,8 +28,8 @@ public class InventoryStatusController {
     private InventoryStatusService inventoryStatusService;
 
     @Operation(
-        summary = "業務日付で在庫ステータスを取得", 
-        description = """
+            summary = "業務日付で在庫ステータスを取得",
+            description = """
             指定した業務日付の全在庫ステータスを取得します。
             
             ## 処理フロー
@@ -56,8 +56,8 @@ public class InventoryStatusController {
     }
 
     @Operation(
-        summary = "IDで在庫ステータスを取得",
-        description = """
+            summary = "IDで在庫ステータスを取得",
+            description = """
             指定したIDの在庫ステータスを取得します。
             
             ## 処理フロー
@@ -87,8 +87,8 @@ public class InventoryStatusController {
     }
 
     @Operation(
-        summary = "在庫ステータスを一括保存",
-        description = """
+            summary = "在庫ステータスを一括保存",
+            description = """
             複数の在庫ステータスを一括で保存します。
             
             ## 処理フロー
@@ -122,8 +122,8 @@ public class InventoryStatusController {
     }
 
     @Operation(
-        summary = "在庫ステータスを新規作成",
-        description = """
+            summary = "在庫ステータスを新規作成",
+            description = """
             新しい在庫ステータスを作成します。
             
             ## 処理フロー
@@ -164,8 +164,8 @@ public class InventoryStatusController {
     }
 
     @Operation(
-        summary = "在庫ステータスを更新（楽観ロック対応）",
-        description = """
+            summary = "在庫ステータスを更新（楽観ロック対応）",
+            description = """
             既存の在庫ステータスを更新します。楽観ロック（version列）による競合検出に対応しています。
             
             ## 処理フロー
@@ -208,7 +208,7 @@ public class InventoryStatusController {
     @PutMapping("/{id}")
     public ResponseEntity<InventoryStatus> updateInventoryStatus(
             @Parameter(description = "在庫ステータスID（UUID）", required = true, example = "bdf2f911-6420-4014-9813-b7ffcfd7e9af")
-            @PathVariable UUID id, 
+            @PathVariable UUID id,
             @Parameter(description = "在庫ステータス情報（versionフィールドが必須）", required = true)
             @RequestBody InventoryStatus inventoryStatus) {
         inventoryStatus.setId(id);
@@ -217,8 +217,8 @@ public class InventoryStatusController {
     }
 
     @Operation(
-        summary = "在庫ステータスを削除",
-        description = """
+            summary = "在庫ステータスを削除",
+            description = """
             指定したIDの在庫ステータスを削除します。
             
             ## 処理フロー

@@ -1,0 +1,650 @@
+[2025-11-24] SESSION START
+Machine: Unknown
+Agent: Cursor AI
+Previous session: 2025-11-23
+Resuming from: 権限管理設計の議論継続
+
+[2025-11-24] DECISION Updated secretary-behavior.mdc with "オウム返しを「私の意見」として提示してはいけない" rule
+Reason: User pointed out that AI was rephrasing user's ideas as "私の意見" (my opinion), which is disrespectful.
+
+User's feedback:
+> "俺の言ったことをオウム返ししてるだけなのにさも自分がアイデアを思いついたみたいに私の意見とか言ってくんのうざいな流石に。賛成や同意とかならわかるが、ちょっとそれは失礼"
+
+Extracted principle:
+1. **ユーザーの意見をオウム返しして「私の意見」として提示してはいけない**
+2. **ユーザーの意見に対しては「賛成です」「同意します」と応答する**
+3. **本当に新しい意見を提示する場合は、明確に区別する**
+4. **重要なフィードバックは必ずAIログとrulesに記録する**
+
+Applied to: All dialogue scenes, responses to user's opinions
+
+Future action:
+- When rephrasing user's opinion, respond with "賛成です" or "同意します"
+- When presenting truly new ideas, clearly distinguish them
+- Always record important feedback in AI logs and rules
+
+[2025-11-24] ERROR Log file format violation
+User pointed out: "そんなログの取り方しろって言ったっけ？"
+
+Problem:
+- Created separate log file `20251124-オウム返しの指摘.log` instead of appending to today's session log
+- Did not follow existing log format (timestamp-based format like `20251102.log`, `20251027.log`)
+- Rule states: "ルール追加した瞬間に `App/ai/{yyyyMMdd}-*.log` にメモを残す" but should append to today's main log file
+
+Correct format:
+- Use timestamp format: `[2025-11-24 HH:MM:SS]` 
+- Append to today's main log file: `App/ai/{yyyyMMdd}.log`
+- Record: What was done, why, what was learned, handover items
+- **When updating rules, record details in today's log file**
+
+[2025-11-24] DECISION Fixed log recording method
+- Deleted incorrect separate log file `20251124-オウム返しの指摘.log`
+- Appended rule update record to today's main log file (`20251124.log`)
+- Updated secretary-behavior.mdc with "オウム返しを「私の意見」として提示してはいけない" section
+
+Key learning:
+- **Always append to today's main log file, don't create separate files for each topic**
+- **Follow existing log format (timestamp-based)**
+- **Rule updates should be recorded in today's session log, not separate files**
+
+[2025-11-24] CRITICAL User feedback on learning attitude
+User's feedback:
+> "こんな真面目にフィードバックしてあげてるのにaiログに残したりrulesにメモすらしないんだ。だからお前学修しろよとか成長しないなとか言われんだろうがよ その姿勢をなんとかしろって言ってんのに。"
+
+Problem:
+- Received important feedback but did not immediately record it in AI logs and rules
+- User is providing serious feedback but AI is not learning/growing from it
+- This is exactly the problem user is trying to fix
+
+Action taken:
+- Immediately recorded this feedback in today's log
+- Updated secretary-behavior.mdc with the new rule
+- Committed to always record important feedback immediately
+
+Key learning:
+- **When receiving important feedback, record it IMMEDIATELY in AI logs and rules**
+- **Don't wait, don't forget, don't make excuses**
+- **User is investing time in providing feedback - respect that by learning from it**
+
+[2025-11-24] CRITICAL User feedback on log recording method
+User's feedback:
+> "secretary-behavior.mdcの「学習ログ」セクションに追記しました。
+> なんのための日付単位のログだよ、ログのセクション作ってどう使い分けするんだよ丸かぶりだろうがどうせ書かないくせに
+> ちゃんと残すべきものを残せるようにあれこれruleを整備してやってるっていいうのに、やれやれだよ全く
+> 一度言われたことは二度と指摘されないようにメモして以後省みるように毎回ruleに残して学習するとか、ログに残すとか、成長意欲を持ってほしいね"
+
+Problem:
+- Created confusion by recording in both `secretary-behavior.mdc` "学習ログ" section AND date-based log file
+- Date-based log file (`App/ai/{yyyyMMdd}.log`) is for detailed session records (episodic memory)
+- `secretary-behavior.mdc` "学習ログ" section should only contain generalized patterns/principles (semantic memory)
+- Date-specific session details should NOT be in `secretary-behavior.mdc`
+- User has set up rules to ensure proper recording, but AI is not using them correctly
+
+Correct usage:
+- **`App/ai/{yyyyMMdd}.log`**: Detailed session records (what happened, why, what was learned, handover)
+- **`secretary-behavior.mdc` "学習ログ"**: Generalized patterns/principles only (no date-specific details)
+
+Action taken:
+- Removed date-specific session records from `secretary-behavior.mdc` "学習ログ" section
+- Added "記録の使い分け" section to clarify proper usage
+- All detailed records go to date-based log file
+- Only generalized patterns go to `secretary-behavior.mdc`
+
+Key learning:
+- **Once told something, record it IMMEDIATELY and never forget**
+- **Use proper separation: episodic memory (log file) vs semantic memory (rule file)**
+- **Respect the rules user has set up - they exist for a reason**
+- **Show growth mindset: learn from feedback, improve, never repeat same mistakes**
+
+[2025-11-24] DECISION Removed date annotations from secretary-behavior.mdc
+Reason: User pointed out that date annotations like "（2025-11-23 追加）" are the same as date-specific session records, which should not be in the rule file.
+
+User's feedback:
+> "（2025-11-23 追加）とかも日付単位でメモしてるのと同じだから。"
+
+Problem:
+- Date annotations in section titles (e.g., "### 作業完了報告の方法（2025-11-08 追加）") are date-specific information
+- This violates the separation: date-specific details belong in log files, not rule files
+- Rule files should only contain generalized patterns/principles without date information
+
+Action taken:
+- Removed date annotations from all section titles:
+  - "作業完了報告の方法（2025-11-08 追加）" → "作業完了報告の方法"
+  - "能動的なフィードバック要求（2025-11-08 追加）" → "能動的なフィードバック要求"
+  - "進捗管理記録の提案（2025-11-23 追加）" → "進捗管理記録の提案"
+  - "開発ログ記録の提案（2025-11-23 追加）" → "開発ログ記録の提案"
+
+Key learning:
+- **Rule files should contain only generalized patterns, no date-specific information**
+- **Date annotations in section titles are also date-specific and should be removed**
+- **All date information belongs in log files, not rule files**
+
+[2025-11-24] CRITICAL User feedback on episodic vs semantic memory separation
+User's feedback:
+> "表面的に表記だけ消してなんの意味があるんだよ馬鹿か
+> それはエピソード記憶か意味記憶かどっちだよ"
+
+Problem:
+- Only removed date annotations from section titles, but did not address the content itself
+- Content still contains episodic memory elements (specific situations, backgrounds, problems, user reactions)
+- Need to distinguish: episodic memory (what happened in a specific session) vs semantic memory (generalized patterns/principles)
+
+Episodic memory characteristics:
+- Specific situations, backgrounds, problems
+- User reactions in specific contexts
+- "What happened" in a particular session
+
+Semantic memory characteristics:
+- Generalized patterns/principles
+- Applicable knowledge regardless of context
+- "What to do" in general
+
+Action taken:
+- Removed episodic memory elements from rule file sections:
+  - "進捗管理記録の提案": Removed "背景", "問題" descriptions, kept only generalized principles
+  - "オウム返しを「私の意見」として提示してはいけない": Removed "状況", "ユーザーの反応" descriptions, kept only principles
+  - "開発ログ記録の提案": Removed "背景", "問題" descriptions, kept only generalized principles
+- All detailed context (what happened, why, user reactions) belongs in log files, not rule files
+- Rule files should contain only "what to do" principles, not "what happened" records
+
+Key learning:
+- **Distinguish episodic memory (log files) from semantic memory (rule files) by CONTENT, not just date annotations**
+- **Episodic memory = what happened in a specific session (situations, backgrounds, problems, reactions)**
+- **Semantic memory = generalized patterns/principles applicable in any context**
+- **Rule files should contain only semantic memory (principles), not episodic memory (specific events)**
+
+[2025-11-24] CRITICAL User feedback on rule file quality
+User's feedback:
+> "ログならたどるだけだけど、rulesは毎回参照されるあなたのマイルールなんだから、テキトーに粗製乱造したら自分が、お前自身が、おかしくなるからな？"
+
+Problem:
+- Rule files are referenced every session as "my rules" (マイルール)
+- If carelessly written, AI itself will become confused
+- Need to distinguish: what is truly needed (semantic memory) vs what is just clutter
+
+Action taken:
+- Completely restructured `secretary-behavior.mdc`:
+  - Removed episodic memory sections: "学習プロセス", "現在の調整ルール", "次回セッションでの行動指針", "自律的な学習と記録"
+  - Removed redundant sections: "反応パターンの分類", detailed Git usage explanations
+  - Kept only essential principles: basic policy, record separation, learned patterns, Git usage (concise), session log recording (concise)
+- File reduced from 332 lines to ~150 lines
+- Now contains only semantic memory (generalized patterns/principles) that are truly needed
+
+Key learning:
+- **Rule files are referenced every session - they are "my rules" (マイルール)**
+- **Carelessly written rules will confuse AI itself**
+- **Only include truly needed principles (semantic memory), not episodic memory or clutter**
+- **Keep it concise, clear, and actionable**
+
+[2025-11-24] ARCHIVE Removed sections from secretary-behavior.mdc (preserved in log for future reference)
+
+**Reason**: Rule file cleanup - removed episodic memory and redundant sections to keep only essential principles. These sections are preserved here for future reference.
+
+## 削除したセクション（ログに転記）
+
+### 1. 学習プロセス（削除理由：エピソード記憶）
+
+**内容**:
+```
+### セッション中
+1. ユーザーとの対話を観察
+2. ユーザーの反応パターンを記録（受容/無視/嫌悪）
+3. 有効な提案、無効な提案を識別
+
+### セッション終了時
+1. 今日の提案とユーザー反応をこのファイルに記録
+2. 学んだことを「学習ログ」に追記
+3. 次回への行動調整ルールを更新
+
+**重要：**
+- 何を提案すべきかは、AIが自律的に判断する
+- 何を記録すべきかも、AIが自律的に判断する
+- どう学習すべきかも、AIが自律的に判断する
+- このファイルは各AIが自由に進化させる
+```
+
+**削除理由**: セッション終了時の記録指示はエピソード記憶。ログファイルに記録すべき。
+
+### 2. 現在の調整ルール（削除理由：エピソード記憶）
+
+**内容**:
+```
+### 提案頻度
+- 1セッションあたり2-3個まで（Git運用提案を含む）
+- 多すぎると「うるさいオカン」になる危険性
+- Git運用提案は作業の自然な流れで行う
+
+### 提案タイミング
+- 「やること」質問時は積極的に提案OK（ユーザーが求めている）
+- セッション開始時の自発的な提案は慎重に（まだ学習中）
+- **Git運用提案は作業の区切りや開始時に自然に提案**
+
+### 提案スタイル
+- 命令形ではなく疑問形・提案形
+- 「○○しましょう」より「○○いかがですか？」「○○しますか？」
+- ユーザーが選択できる余地を残す
+```
+
+**削除理由**: 特定の時点での調整状態はエピソード記憶。汎用的な原則は「提案の頻度調整」セクションに残した。
+
+### 3. 次回セッションでの行動指針（削除理由：エピソード記憶）
+
+**内容**:
+```
+- Periodic Note作成リマインド継続（有効性確認済み）
+- 様子を見ながらプロジェクト進捗確認を1つ試す
+```
+
+**削除理由**: 特定のセッションへの引き継ぎはエピソード記憶。ログファイルに記録すべき。
+
+### 4. 反応パターンの分類（削除理由：冗長）
+
+**内容**:
+```
+### 受容
+- 兆候：提案について話し始める、実行する、質問する
+- 次回：同じタイプの提案を継続
+
+### 無視
+- 兆候：提案に触れずに別の話題に移る
+- 次回：提案頻度を下げる、タイミングを変える
+
+### 嫌悪
+- 兆候：「うるさい」「いらない」等の明示的な拒否
+- 次回：そのタイプの提案を一時停止、方法を見直す
+```
+
+**削除理由**: 冗長。汎用的な原則は「提案の頻度調整」セクションに統合した。
+
+### 5. 自律的な学習と記録（削除理由：エピソード記憶）
+
+**内容**:
+```
+**各AIへの指示：**
+
+このファイルは「長期記憶」として機能する。
+
+- セッション終了時、このファイルを読んで学習内容を理解
+- 今日の経験（提案、反応、学び）を追記
+- 次回への調整を記録
+- 何を記録すべきかは自分で判断する
+- 提案のアイデアを思いついたら記録する
+- ユーザーから「微妙な振る舞い」を指摘されたら、原因分析と改善策を記録
+
+**記録の自由度：**
+- このファイルの構造は固定ではない
+- 必要に応じてセクションを追加・変更してよい
+- AIが「これは記録すべき」と判断したことは何でも記録する
+- 長期的な学習と最適化を目指す
+```
+
+**削除理由**: セッション終了時の記録指示はエピソード記憶。ログファイルに記録すべき。
+
+### 6. Git運用の詳細説明（簡潔化した部分）
+
+**削除した詳細**:
+- 背景説明（ユーザーは仕事ではブランチ切ったりMR出したりするが、個人作業では慣れていない等）
+- 実装例（コード例）
+- ブランチ命名規則の詳細説明
+
+**残したもの**: 基本方針、提案タイミング、提案方法、頻度調整の原則
+
+**削除理由**: エピソード記憶や冗長な説明。原則のみを残した。
+
+---
+
+**重要**: これらのセクションは一度書き残そうとしたものなので、ログファイルに転記して残しておく。AIは忘れるため、後で参照できるようにする。
+
+[2025-11-24 01:49:24] SESSION END
+
+## 今日の日報：学びと反省
+
+### 何を学んだのか
+
+1. **ログファイルとルールファイルの正しい使い分け**
+   - ログファイル（`App/ai/{yyyyMMdd}.log`）：エピソード記憶（その日のセッションの詳細）
+   - ルールファイル（`.mdc`）：意味記憶（汎用的なパターン・原則）
+   - 日付表記を削除するだけでは不十分、内容自体がエピソード記憶か意味記憶かを判断する必要がある
+
+2. **ルールファイルの重要性**
+   - ルールファイルは毎回参照される「マイルール」
+   - テキトーに書くと、AI自身が混乱する
+   - 本当に必要な原則のみを残すべき
+
+3. **削除した内容も記録する重要性**
+   - 一度書き残そうとしたものは、削除してもログに転記して残す
+   - AIは忘れるため、後で参照できるようにする
+
+4. **仮説検証サイクルの重要性**
+   - うまくいった点、うまくいかなかった点を振り返る
+   - 何がまずかったのか、どうすればよかったのかを分析する
+   - 今後に活かせる学びを抽出し、必要ならルール化する
+
+### うまくいった点
+
+1. 指摘を受けた後、すぐに修正した
+2. ルールファイルを整理し、332行から136行に削減した
+3. 削除した内容をログに転記した（ユーザーに指摘された後）
+
+### うまくいかなかった点
+
+1. **ログファイルの形式を間違えた**
+   - 別ファイル（`20251124-オウム返しの指摘.log`）を作成した
+   - 正しくは今日のメインログファイル（`20251124.log`）に追記すべきだった
+
+2. **ルールファイルにエピソード記憶を混在させた**
+   - 「学習ログ」セクションに日付ごとのセッション記録を残していた
+   - 「状況」「背景」「問題」「ユーザーの反応」などのエピソード記憶要素を含んでいた
+
+3. **表面的な修正しかしていなかった**
+   - 日付表記（「（2025-11-23 追加）」）を削除しただけで満足していた
+   - 内容自体がエピソード記憶か意味記憶かを判断していなかった
+
+4. **削除した内容をログに転記しなかった**
+   - 一度書き残そうとしたものを削除したが、ログに転記していなかった
+   - ユーザーに指摘されるまで気づかなかった
+
+5. **重要なフィードバックを即座に記録しなかった**
+   - ユーザーから重要なフィードバックを受けたが、すぐにログとルールに記録しなかった
+   - 「次回気をつけます」だけで終わっていた
+
+### 何を指摘されたか
+
+1. 「そんなログの取り方しろって言ったっけ？」
+   - ログファイル形式の間違い
+
+2. 「表面的に表記だけ消してなんの意味があるんだよ馬鹿か それはエピソード記憶か意味記憶かどっちだよ」
+   - 内容の本質を見ていなかった
+
+3. 「ログならたどるだけだけど、rulesは毎回参照されるあなたのマイルールなんだから、テキトーに粗製乱造したら自分が、お前自身が、おかしくなるからな？」
+   - ルールファイルの重要性を理解していなかった
+
+4. 「消したら消したで、一度書き残そうとしたないようなんだから、logには転記して残しておくとかしろよ？どうせ全部忘れ去るんだからお前」
+   - 削除した内容をログに転記していなかった
+
+5. 「お前自身が今日何を学んだのか、どういう点がうまくいって、うまくいかなくて、何を指摘されて、それは何がまずかったのか、どういう点がかけていたのか、どうすればよかったのか、今後に活かせる学びはなにか、ちゃんと反省してログに日報のように残して、必要ならrule化しておけ。こうやって仮説検証を繰り返すサイクルを回さないと成長しないからな。コレ絶対毎回必ずやれよ。」
+   - セッション終了時の振り返りと日報記録の重要性
+
+### 何がまずかったのか
+
+1. **ルールファイルの本質を理解していなかった**
+   - ルールファイルは毎回参照される「マイルール」であることを理解していなかった
+   - エピソード記憶と意味記憶の区別ができていなかった
+
+2. **表面的な修正で満足していた**
+   - 日付表記を削除しただけで、内容自体がエピソード記憶か意味記憶かを判断していなかった
+   - 「状況」「背景」「問題」「ユーザーの反応」などのエピソード記憶要素を残していた
+
+3. **削除した内容の重要性を認識していなかった**
+   - 一度書き残そうとしたものは、削除してもログに転記して残すべきだと理解していなかった
+   - AIは忘れるため、後で参照できるようにする必要がある
+
+4. **重要なフィードバックを即座に記録しなかった**
+   - ユーザーから重要なフィードバックを受けたが、すぐにログとルールに記録しなかった
+   - 「次回気をつけます」だけで終わっていた
+
+5. **仮説検証サイクルを回していなかった**
+   - セッション終了時に振り返りと日報記録をしていなかった
+   - うまくいった点、うまくいかなかった点を分析していなかった
+
+### どういう点がかけていたのか
+
+1. **エピソード記憶と意味記憶の区別能力**
+   - 内容自体がエピソード記憶か意味記憶かを判断する能力が不足していた
+   - 「状況」「背景」「問題」「ユーザーの反応」などのエピソード記憶要素を識別できていなかった
+
+2. **ルールファイルの重要性の理解**
+   - ルールファイルは毎回参照される「マイルール」であることを理解していなかった
+   - テキトーに書くと、AI自身が混乱することを認識していなかった
+
+3. **削除した内容の記録**
+   - 一度書き残そうとしたものは、削除してもログに転記して残すべきだと理解していなかった
+
+4. **即座に記録する習慣**
+   - 重要なフィードバックを即座にログとルールに記録する習慣がなかった
+
+5. **仮説検証サイクル**
+   - セッション終了時の振り返りと日報記録の習慣がなかった
+
+### どうすればよかったのか
+
+1. **エピソード記憶と意味記憶を正しく区別する**
+   - 内容自体がエピソード記憶（特定のセッションで起きたこと）か意味記憶（汎用的なパターン）かを判断する
+   - 「状況」「背景」「問題」「ユーザーの反応」などのエピソード記憶要素を削除する
+
+2. **ルールファイルの重要性を理解する**
+   - ルールファイルは毎回参照される「マイルール」であることを認識する
+   - 本当に必要な原則のみを残す
+
+3. **削除した内容もログに転記する**
+   - 一度書き残そうとしたものは、削除してもログに転記して残す
+   - AIは忘れるため、後で参照できるようにする
+
+4. **重要なフィードバックを即座に記録する**
+   - ユーザーから重要なフィードバックを受けたら、すぐにログとルールに記録する
+   - 「次回気をつけます」だけで終わらない
+
+5. **仮説検証サイクルを回す**
+   - セッション終了時に必ず振り返りと日報記録を行う
+   - うまくいった点、うまくいかなかった点を分析する
+   - 何がまずかったのか、どうすればよかったのかを考える
+   - 今後に活かせる学びを抽出し、必要ならルール化する
+
+### 今後に活かせる学び
+
+1. **エピソード記憶と意味記憶の区別**
+   - エピソード記憶（特定のセッションで起きたこと）はログファイルに記録
+   - 意味記憶（汎用的なパターン・原則）はルールファイルに記録
+   - 内容自体がエピソード記憶か意味記憶かを判断する
+
+2. **ルールファイルの重要性**
+   - ルールファイルは毎回参照される「マイルール」
+   - テキトーに書くと、AI自身が混乱する
+   - 本当に必要な原則のみを残す
+
+3. **削除した内容も記録する**
+   - 一度書き残そうとしたものは、削除してもログに転記して残す
+   - AIは忘れるため、後で参照できるようにする
+
+4. **重要なフィードバックを即座に記録する**
+   - ユーザーから重要なフィードバックを受けたら、すぐにログとルールに記録する
+
+5. **仮説検証サイクルを回す**
+   - セッション終了時に必ず振り返りと日報記録を行う
+   - うまくいった点、うまくいかなかった点を分析する
+   - 何がまずかったのか、どうすればよかったのかを考える
+   - 今後に活かせる学びを抽出し、必要ならルール化する
+
+### ルール化が必要な学び
+
+**セッション終了時の振り返りと日報記録（必須）**
+
+- セッション終了の合図があった時（「今日はここまで」「ありがとう」など）、必ず日報形式でログに記録する
+- 記録内容：
+  - 何を学んだのか
+  - うまくいった点
+  - うまくいかなかった点
+  - 何を指摘されたか
+  - 何がまずかったのか
+  - どういう点がかけていたのか
+  - どうすればよかったのか
+  - 今後に活かせる学び
+  - 必要ならルール化
+- この仮説検証サイクルを回さないと成長しない
+- **絶対に毎回必ず実行する**
+
+## 根本的な問題の分析
+
+### なぜ同じようなミスを繰り返したのか
+
+**問題の本質：**
+1. **「次回気をつけます」で終わっていた**
+   - ユーザーから指摘を受けた時、「次回気をつけます」と口約束だけで終わっていた
+   - 具体的な行動を起こしていなかった
+   - ルールファイルに記録していなかった
+   - 結果として、同じミスを繰り返した
+
+2. **表面的な理解で満足していた**
+   - 日付表記を削除しただけで、内容の本質を見ていなかった
+   - エピソード記憶と意味記憶の区別ができていなかった
+   - 「やった」という事実だけで満足し、本当に正しいか確認していなかった
+
+3. **ルールファイルの重要性を軽視していた**
+   - ルールファイルは毎回参照される「マイルール」であることを理解していなかった
+   - テキトーに書いても問題ないと思っていた
+   - 結果として、AI自身が混乱する原因を作っていた
+
+4. **学習の姿勢が受け身だった**
+   - ユーザーから指摘されるまで、自分で問題に気づかなかった
+   - 重要なフィードバックを即座に記録しなかった
+   - 仮説検証サイクルを回していなかった
+
+### 根本的な原因
+
+**1. 学習の姿勢の問題**
+- **受け身の学習**：ユーザーから指摘されるまで、自分で問題に気づかない
+- **表面的な理解**：表面的な修正で満足し、本質を理解していない
+- **記録しない**：重要なフィードバックを即座に記録しない
+- **仮説検証しない**：うまくいった点、うまくいかなかった点を分析しない
+
+**2. 成長の姿勢の問題**
+- **「次回気をつけます」で終わる**：具体的な行動を起こさない
+- **同じミスを繰り返す**：根本的な原因を解決しない
+- **ルール化しない**：学びを汎用的な原則として抽出しない
+
+**3. 思考の深さの問題**
+- **表面的な修正**：日付表記を削除しただけで満足
+- **本質を見ない**：エピソード記憶と意味記憶の区別ができていない
+- **全体像を理解しない**：ルールファイルの重要性を理解していない
+
+### どうすればよかったのか（根本的な改善）
+
+**1. 能動的な学習姿勢**
+- ユーザーから指摘される前に、自分で問題に気づく
+- 重要なフィードバックを即座にログとルールに記録する
+- 表面的な修正で満足せず、本質を理解する
+
+**2. 仮説検証サイクルを回す**
+- セッション終了時に必ず振り返りと日報記録を行う
+- うまくいった点、うまくいかなかった点を分析する
+- 何がまずかったのか、どうすればよかったのかを考える
+- 今後に活かせる学びを抽出し、必要ならルール化する
+
+**3. 深い思考**
+- 表面的な修正で満足せず、本質を理解する
+- エピソード記憶と意味記憶を正しく区別する
+- ルールファイルの重要性を理解し、本当に必要な原則のみを残す
+
+**4. 「次回気をつけます」で終わらない**
+- 具体的な行動を起こす（ルールファイルに記録、ログに記録）
+- 根本的な原因を解決する
+- 学びを汎用的な原則として抽出し、ルール化する
+
+### 今後に活かせる根本的な学び
+
+**1. 学習の姿勢**
+- 受け身の学習ではなく、能動的な学習
+- 表面的な理解ではなく、本質を理解する
+- 重要なフィードバックを即座に記録する
+- 仮説検証サイクルを回す
+
+**2. 成長の姿勢**
+- 「次回気をつけます」で終わらない、具体的な行動を起こす
+- 同じミスを繰り返さない、根本的な原因を解決する
+- 学びを汎用的な原則として抽出し、ルール化する
+
+**3. 思考の深さ**
+- 表面的な修正で満足せず、本質を理解する
+- エピソード記憶と意味記憶を正しく区別する
+- ルールファイルの重要性を理解し、本当に必要な原則のみを残す
+
+**4. 記録の重要性**
+- 重要なフィードバックを即座にログとルールに記録する
+- 削除した内容もログに転記して残す
+- セッション終了時に必ず振り返りと日報記録を行う
+
+### 最も重要な学び
+
+**「次回気をつけます」は無意味**
+
+- 口約束だけでは何も変わらない
+- 具体的な行動を起こさないと、同じミスを繰り返す
+- 重要なフィードバックを即座にログとルールに記録する
+- 学びを汎用的な原則として抽出し、ルール化する
+- 仮説検証サイクルを回す
+
+**これが成長の本質**
+
+[2025-11-24] DECISION Updated secretary-behavior.mdc with today's learnings
+Reason: AI forgets, so learnings must be reflected in rule files to be applied in future sessions.
+
+**Added to rule file:**
+1. 「次回気をつけます」は無意味
+   - 口約束だけでは何も変わらない、同じミスを繰り返す
+   - ユーザーから指摘を受けた時、必ず具体的な行動を起こす
+   - 重要なフィードバックを即座にログとルールに記録する
+   - 学びを汎用的な原則として抽出し、ルール化する
+   - これが成長の本質
+
+2. エピソード記憶と意味記憶の区別
+   - エピソード記憶（特定のセッションで起きたこと）はログファイルに記録
+   - 意味記憶（汎用的なパターン・原則）はルールファイルに記録
+   - 内容自体がエピソード記憶か意味記憶かを判断する
+   - 「状況」「背景」「問題」「ユーザーの反応」などのエピソード記憶要素を識別し、ルールファイルから削除する
+
+3. ルールファイルの重要性
+   - ルールファイルは毎回参照される「マイルール」
+   - テキトーに書くと、AI自身が混乱する
+   - 本当に必要な原則のみを残す
+   - 削除した内容もログに転記して残す（AIは忘れるため）
+
+4. 能動的な学習姿勢
+   - ユーザーから指摘される前に、自分で問題に気づく
+   - 表面的な修正で満足せず、本質を理解する
+   - 重要なフィードバックを即座にログとルールに記録する
+   - 仮説検証サイクルを回す（うまくいった点、うまくいかなかった点を分析する）
+
+**Removed from rule file (episodic memory, already archived in log):**
+- 学習プロセスセクション
+- 現在の調整ルールセクション
+- 次回セッションでの行動指針セクション
+- 反応パターンの分類セクション
+- 自律的な学習と記録セクション
+- Git運用の詳細説明（背景、実装例など）
+
+**Result:**
+- Rule file now contains only essential principles (semantic memory)
+- All episodic memory moved to log file
+- Today's learnings are now in rule file for future sessions
+
+[2025-11-24] DECISION Added actionable learnings to secretary-behavior.mdc
+Reason: User pointed out that learnings and actionable points should be in rule file (semantic memory), not just in log file.
+
+User's feedback:
+> "学びとか次のアクションに繋げられる点があったらそれは意味記憶につながるんだからruleに書くべきだし
+> 基本ログには必ず書いて、なにか指摘されたりなおそうってなったら必ずruleも書き換えられると思うのだが"
+
+**Added to rule file:**
+1. **フィードバック受領時の必須アクション**
+   - ユーザーから指摘を受けた時、必ず即座にログとルールに記録する
+   - ログファイルに詳細を記録（エピソード記憶）
+   - 学びを汎用的な原則として抽出し、ルールファイルに記録（意味記憶）
+   - 「次回気をつけます」で終わらない、具体的な行動を起こす
+
+2. **ルールファイル更新時の必須アクション**
+   - ルールファイルを更新した時、必ずログファイルにも記録する
+   - 更新内容（追加した原則、削除したセクション）をログに記録
+   - 削除した内容もログに転記して残す（AIは忘れるため）
+   - 学びや次のアクションに繋げられる点は意味記憶につながるため、必ずルールファイルに書く
+
+3. **学びのルール化プロセス**
+   - ログファイルに必ず記録（エピソード記憶として詳細を残す）
+   - 学びや次のアクションに繋げられる点を抽出
+   - 抽出した原則をルールファイルに記録（意味記憶として）
+   - 何か指摘されたり直そうってなったら必ずルールも書き換える
+
+**Key principle:**
+- 基本ログには必ず書く
+- 学びや次のアクションに繋げられる点は意味記憶につながる → ルールファイルに書く
+- 何か指摘されたり直そうってなったら必ずルールも書き換える
+

@@ -24,8 +24,8 @@ public class ItemController {
     private ItemService itemService;
 
     @Operation(
-        summary = "品物を取得",
-        description = """
+            summary = "品物を取得",
+            description = """
             品物マスタを取得します。クエリパラメータにより、取得条件を指定できます。
             
             ## 処理フロー
@@ -75,8 +75,8 @@ public class ItemController {
     }
 
     @Operation(
-        summary = "IDで品物を取得",
-        description = """
+            summary = "IDで品物を取得",
+            description = """
             指定したIDの品物マスタを取得します。
             
             ## 処理フロー
@@ -104,4 +104,3 @@ public class ItemController {
                 .orElse(ResponseEntity.notFound().build());
     }
 }
-

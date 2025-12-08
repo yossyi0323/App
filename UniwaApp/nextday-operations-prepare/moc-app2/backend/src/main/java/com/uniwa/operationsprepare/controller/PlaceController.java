@@ -23,8 +23,8 @@ public class PlaceController {
     private PlaceService placeService;
 
     @Operation(
-        summary = "全場所を取得",
-        description = """
+            summary = "全場所を取得",
+            description = """
             全ての場所マスタを取得します。
             
             ## 処理フロー
@@ -52,8 +52,8 @@ public class PlaceController {
     }
 
     @Operation(
-        summary = "タイプで場所を取得",
-        description = """
+            summary = "タイプで場所を取得",
+            description = """
             指定したタイプの場所マスタを取得します。
             
             ## 処理フロー
@@ -83,8 +83,8 @@ public class PlaceController {
     }
 
     @Operation(
-        summary = "補充元を取得",
-        description = """
+            summary = "補充元を取得",
+            description = """
             補充元（タイプ="02"）の場所マスタを取得します。
             
             ## 処理フロー
@@ -107,8 +107,8 @@ public class PlaceController {
     }
 
     @Operation(
-        summary = "補充先を取得",
-        description = """
+            summary = "補充先を取得",
+            description = """
             補充先（タイプ="01"）の場所マスタを取得します。
             
             ## 処理フロー
@@ -130,5 +130,3 @@ public class PlaceController {
         return ResponseEntity.ok(places);
     }
 }
-
-
