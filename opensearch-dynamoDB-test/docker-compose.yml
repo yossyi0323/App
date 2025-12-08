@@ -1,0 +1,50 @@
+version: '3'
+services:
+  opensearch-node:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # メモリ使用量の制限
+      - DISABLE_INSTALL_DEMO_CONFIG=false # デモ用設定を有効化
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=opensearchPass1234
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 9200:9200 # REST API用
+      - 9600:9600 # パフォーマンス分析用
+    networks:
+      - opensearch-net
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601 # ブラウザUI用
+    expose:
+      - 5601
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node:9200"]'
+    networks:
+      - opensearch-net
+ 
+dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - 8000:8000 # 8000番ポートでアクセス
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    volumes:
+      - "./dynamodb_data:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+
+networks:
+  opensearch-net:
