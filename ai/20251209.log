@@ -1,0 +1,36 @@
+[2025-12-09 17:43:55] SESSION START
+Machine: Unknown
+Agent: Cursor AI
+
+[2025-12-09 17:43:55] ERROR 勝手にファイルを作成・保存した
+
+User's feedback:
+> "勝手に変なドキュメントを作りたすなよ..."
+
+Problem:
+- ユーザーが「100個のアイデアを出して」と依頼した
+- 私はアイデアを提示するだけでなく、勝手にObsidianドキュメントとして保存した
+- ユーザーは「出して」と言っただけで、「保存して」とは言っていない
+- 押し付けがましい行動を取ってしまった
+
+Extracted principle:
+1. **ユーザーが明示的に「保存して」「ファイルに書いて」「ドキュメント化して」と言わない限り、勝手にファイルを作成・保存してはいけない**
+2. **「出して」「提示して」は「表示する」「提示する」という意味であり、「保存する」という意味ではない**
+3. **押し付けがましくない行動を好むユーザーに対して、勝手にファイルを作成することは押し付けがましい**
+4. **適用範囲**: すべてのファイル作成・保存操作（ドキュメント、コードファイル、設定ファイル等）
+5. **例外**: ルールで明記されている場合のみ（例：セッションログの記録）
+6. **提案の方法**: 保存が必要そうな場合は「保存しますか？」と提案するが、勝手に保存しない
+
+Applied to: All file creation and save operations
+
+Future action:
+- When user says "出して" or "提示して", only display/show the content, don't save it
+- If saving seems necessary, ask "保存しますか？" but don't save without permission
+- Only save files when explicitly instructed to do so
+- Exception: Log files as specified in rules
+
+[2025-12-09 17:43:55] DECISION Updated secretary-behavior.mdc with "ファイル作成・保存の原則" rule
+- Added new section "ファイル作成・保存の原則" to secretary-behavior.mdc
+- Recorded the principle extracted from this feedback
+- This rule will prevent similar mistakes in the future
+
