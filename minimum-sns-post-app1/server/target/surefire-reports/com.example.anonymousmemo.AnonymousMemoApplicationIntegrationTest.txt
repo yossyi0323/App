@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.example.anonymousmemo.AnonymousMemoApplicationIntegrationTest
--------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.408 s - in com.example.anonymousmemo.AnonymousMemoApplicationIntegrationTest
