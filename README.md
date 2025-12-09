@@ -121,7 +121,6 @@ App/
 ### 参考資料
 - [Future株式会社 アーキテクチャガイドライン](https://future-architect.github.io/arch-guidelines/)
 - [Next.js公式ドキュメント](https://nextjs.org/docs)
-- [Supabase公式ドキュメント](https://supabase.com/docs)
 
 ## 🤝 コントリビューション
 
