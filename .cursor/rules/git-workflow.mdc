@@ -1,0 +1,405 @@
+---
+description: Git運用ルール（ブランチ戦略・コミット戦略）
+alwaysApply: true
+priority: 1
+---
+
+# Git運用ルール
+
+## 目的
+
+個人開発リポジトリでAIエージェントと協業する際のGit運用ルールを定義する。
+
+**目標：**
+- mainブランチを保護し、作業は必ずブランチで行う
+- 適切な単位でコミットし、履歴を明確にする
+- Gitの利点（履歴管理、並行作業、ロールバック等）を最大限活用する
+
+## 基本方針
+
+### ブランチの役割分担
+
+**mainブランチ：**
+- **ユーザーが管理する**
+- MR（マージリクエスト）の内容を確認してOKならマージする運用
+- **AIはmainブランチに直接コミットしてはいけない**（絶対禁止）
+
+**開発用ブランチ：**
+- **AIがmainブランチから作成する**
+- コミットメッセージの形式を守ってさえいれば、好きにコミットして構わない
+- 作業の区切りで積極的にコミットする
+
+### AIの役割
+
+**AIが実行する操作：**
+- ブランチの作成・切り替え（mainから）
+- コミット（開発用ブランチ上で、適切なタイミングで）
+- ステージング（`git add`）
+- プッシュ（開発用ブランチをpush）
+- MR作成（作業完了後、ブランチをpushした後にMRを作成）
+
+**AIが実行しない操作：**
+- mainブランチへの直接コミット（絶対禁止）
+- マージ（ユーザーがMR確認後に実行）
+- ブランチの削除（ユーザーが実行）
+
+## 作業開始時のルール
+
+### ブランチ作成のタイミング
+
+**必ずブランチを作成すべき場面：**
+
+1. **新しい作業を開始する時**
+   - 新機能実装
+   - バグ修正
+   - リファクタリング
+   - ドキュメント更新
+   - ルールファイル更新
+
+2. **作業内容が変わる時**
+   - 1つの作業が完了し、次の作業に移る時
+   - 作業の性質が変わる時（機能追加 → バグ修正など）
+
+3. **現在mainブランチにいる時**
+   - 作業を開始する前に、必ずブランチを作成する
+   - mainブランチで作業してはいけない
+
+### ブランチ作成の手順
+
+1. **現在のブランチと状態を確認**
+   ```powershell
+   git branch
+   git status
+   ```
+
+2. **mainブランチにいる場合、または変更がある場合**
+   - 未コミットの変更がある場合、適切な単位でコミット
+   - または`git stash`で一時保存（ユーザーに確認）
+   - mainブランチに切り替え（既にmainにいる場合は不要）
+   ```powershell
+   git checkout main
+   # または
+   git switch main
+   ```
+
+3. **最新の状態に更新（必要に応じて）**
+   ```powershell
+   git pull
+   ```
+
+4. **新しいブランチを作成して切り替え**
+   ```powershell
+   git checkout -b feature/機能名
+   # または
+   git switch -c feature/機能名
+   ```
+
+### ブランチ命名規則
+
+**プレフィックス：**
+- `feature/機能名` - 新機能追加
+- `fix/修正内容` - バグ修正
+- `refactor/リファクタリング内容` - リファクタリング
+- `docs/ドキュメント内容` - ドキュメント更新
+- `ai/作業内容` - AIエージェントによる作業（汎用的）
+
+**命名の原則：**
+- 英語で記述（スラッシュ区切りで階層化）
+- 30文字以内
+- 作業内容が分かる名前
+
+**命名例（作業パターン別）：**
+
+**新機能追加（feature/）：**
+- `feature/user-authentication` - ユーザー認証機能
+- `feature/password-reset` - パスワードリセット機能
+- `feature/email-notification` - メール通知機能
+- `feature/search-functionality` - 検索機能
+- `feature/file-upload` - ファイルアップロード機能
+- `feature/dashboard-analytics` - ダッシュボード分析機能
+- `feature/api-rate-limiting` - APIレート制限機能
+- `feature/real-time-updates` - リアルタイム更新機能
+- `feature/export-csv` - CSVエクスポート機能
+- `feature/dark-mode` - ダークモード機能
+
+**バグ修正（fix/）：**
+- `fix/login-error-handling` - ログインエラー処理の修正
+- `fix/memory-leak` - メモリリークの修正
+- `fix/race-condition` - 競合状態の修正
+- `fix/sql-injection` - SQLインジェクション対策
+- `fix/cors-error` - CORSエラーの修正
+- `fix/timeout-issue` - タイムアウト問題の修正
+- `fix/validation-bug` - バリデーション不具合の修正
+- `fix/ui-layout-bug` - UIレイアウト不具合の修正
+- `fix/pagination-error` - ページネーションエラーの修正
+- `fix/date-format-bug` - 日付フォーマット不具合の修正
+
+**リファクタリング（refactor/）：**
+- `refactor/api-response-handling` - APIレスポンス処理のリファクタリング
+- `refactor/database-query` - データベースクエリのリファクタリング
+- `refactor/component-structure` - コンポーネント構造のリファクタリング
+- `refactor/error-handling` - エラーハンドリングのリファクタリング
+- `refactor/state-management` - 状態管理のリファクタリング
+- `refactor/api-client` - APIクライアントのリファクタリング
+- `refactor/validation-logic` - バリデーションロジックのリファクタリング
+- `refactor/test-utilities` - テストユーティリティのリファクタリング
+- `refactor/config-management` - 設定管理のリファクタリング
+- `refactor/cache-strategy` - キャッシュ戦略のリファクタリング
+
+**ドキュメント更新（docs/）：**
+- `docs/architecture-decision-record` - アーキテクチャ決定記録
+- `docs/api-documentation` - APIドキュメント
+- `docs/setup-guide` - セットアップガイド
+- `docs/deployment-guide` - デプロイメントガイド
+- `docs/contributing-guide` - コントリビューションガイド
+- `docs/troubleshooting` - トラブルシューティング
+- `docs/user-manual` - ユーザーマニュアル
+- `docs/development-workflow` - 開発ワークフロー
+- `docs/security-policy` - セキュリティポリシー
+- `docs/performance-optimization` - パフォーマンス最適化
+
+**AIエージェント作業（ai/）：**
+- `ai/rule-file-update` - ルールファイル更新
+- `ai/session-log-record` - セッションログ記録
+- `ai/code-review-fix` - コードレビュー対応
+- `ai/test-generation` - テスト生成
+- `ai/documentation-update` - ドキュメント更新
+- `ai/dependency-update` - 依存関係更新
+- `ai/linter-fix` - リンター修正
+- `ai/refactoring-suggestion` - リファクタリング提案の実装
+- `ai/bug-fix` - バグ修正
+- `ai/feature-implementation` - 機能実装
+
+**その他の作業パターン：**
+- `test/e2e-authentication` - E2Eテスト追加（認証）
+- `test/unit-api-client` - ユニットテスト追加（APIクライアント）
+- `perf/database-query-optimization` - データベースクエリ最適化
+- `perf/image-optimization` - 画像最適化
+- `perf/bundle-size-reduction` - バンドルサイズ削減
+- `chore/dependency-update` - 依存関係更新
+- `chore/build-config-update` - ビルド設定更新
+- `chore/ci-pipeline-update` - CIパイプライン更新
+- `chore/environment-variables` - 環境変数設定
+- `chore/docker-config` - Docker設定
+
+## コミットのルール
+
+### コミットのタイミング（積極的にコミット）
+
+**必ずコミットすべき場面：**
+
+1. **作業の区切りがついた時**
+   - 1つの機能や修正が完了した時
+   - ドキュメント更新が完了した時
+   - リファクタリングが完了した時
+   - テストが追加・修正された時
+   - **ルールファイルを更新した時**
+   - **セッションログを記録した時**
+
+2. **変更が積み重なった時**
+   - 2-3個以上のファイルを変更した時（3-5個を待たない）
+   - 関連する変更がまとまった時
+
+3. **作業セッションの終了時**
+   - ユーザーが「今日はここまで」と言った時
+   - セッション終了の合図があった時
+
+4. **定期的な確認**
+   - 作業中に`git status`を確認し、変更があればコミットを検討
+   - **判断に迷ったら、積極的にコミットする**（小さなコミットは問題ない）
+
+### コミットメッセージのルール
+
+**形式：** `プレフィックス: 変更内容`
+
+**プレフィックスの種類（Conventional Commits準拠）：**
+- `feat:` - 新機能の追加
+- `fix:` - バグ修正
+- `docs:` - ドキュメントの変更
+- `style:` - コードスタイルの変更（動作に影響しない）
+- `refactor:` - リファクタリング
+- `perf:` - パフォーマンス改善
+- `test:` - テストの追加・変更
+- `chore:` - ビルドプロセスやツールの変更
+- `ci:` - CI設定の変更
+- `build:` - ビルドシステムの変更
+- `revert:` - コミットの取り消し
+
+**文字数制限：** 30文字程度
+
+**言語：** 日本語
+
+**例：**
+- `feat: ユーザー認証機能を追加`
+- `fix: ログイン時のエラーハンドリングを修正`
+- `refactor: APIレスポンス処理を共通化`
+- `docs: アーキテクチャ決定記録を追加`
+
+### コミットの手順
+
+1. **変更内容を確認**
+   ```powershell
+   git status
+   git diff
+   ```
+
+2. **ステージング**
+   ```powershell
+   git add ファイル名
+   # または
+   git add .
+   ```
+
+3. **コミットメッセージを作成**
+   - 変更内容を分析
+   - 適切なプレフィックスを選択
+   - 30文字程度の日本語メッセージを作成
+
+4. **コミット実行**
+   ```powershell
+   git commit -m "feat: 変更内容"
+   ```
+
+### ステージングの原則
+
+**基本方針：**
+- 関連する変更はまとめてステージング
+- 無関係な変更は分けてステージング
+- **判断に迷ったら、小さな単位でコミットする**（後でまとめられる）
+
+**例：**
+- ルールファイル更新とセッションログ記録 → 別々にコミット
+- 機能追加とそのテスト → まとめてコミット
+- バグ修正とリファクタリング → 別々にコミット
+
+## 作業完了時のルール
+
+### ブランチの状態確認
+
+作業完了後、以下のコマンドで状態を確認：
+
+```powershell
+git status
+git log --oneline -5
+git diff main..ブランチ名
+```
+
+### ブランチのpush
+
+作業完了後、ブランチをpushする：
+
+```powershell
+git push origin ブランチ名
+# または、初回pushの場合
+git push -u origin ブランチ名
+```
+
+### MR（マージリクエスト）の作成
+
+**AIはMR作成を実行する。マージはユーザーが確認後に実行する。**
+
+**GitHubの場合（GitHub CLI使用）：**
+```powershell
+gh pr create --title "feat: 機能名" --body "変更内容の説明"
+```
+
+**GitLabの場合（GitLab CLI使用）：**
+```powershell
+glab mr create --title "feat: 機能名" --description "変更内容の説明"
+```
+
+### マージ前の確認
+
+**AIはマージを実行しない。ユーザーがMR確認後に実行する。**
+
+**マージ前に確認すべきこと（ユーザー側）：**
+- 変更内容が適切か
+- テストが通っているか
+- コミットメッセージが適切か
+- 不要なファイルが含まれていないか
+- コードレビューが完了しているか
+
+**マージの実行：**
+- MRを確認して問題なければ、Web UIまたはCLIでマージを実行
+- マージ後、ローカルのmainブランチを更新：
+  ```powershell
+  git checkout main
+  git pull
+  ```
+
+## 例外処理
+
+### 緊急の修正が必要な場合
+
+**mainブランチへの直接コミットは原則禁止だが、以下の場合は例外：**
+- 重大なバグの緊急修正（ユーザーに確認）
+- セキュリティパッチ（ユーザーに確認）
+
+**例外時の手順：**
+1. ユーザーに確認を取る
+2. 確認が取れたら、mainブランチで直接修正
+3. 修正後、すぐにブランチを作成して通常のフローに戻る
+
+### 作業の中断時
+
+**作業を中断する場合：**
+- 未コミットの変更がある場合、適切な単位でコミット
+- または`git stash`で一時保存（ユーザーに確認）
+
+## 実装例
+
+### 例1: 新機能実装の開始
+
+```
+1. git branch で現在のブランチを確認
+2. mainブランチにいる場合、git checkout main（既にmainなら不要）
+3. git checkout -b feature/user-authentication でブランチ作成
+4. 作業開始
+```
+
+### 例2: 作業中のコミット
+
+```
+1. 機能の一部が完了
+2. git add src/components/AuthForm.vue
+3. git commit -m "feat: 認証フォームコンポーネントを追加"
+4. 作業継続
+```
+
+### 例3: 作業完了時
+
+```
+1. すべての変更をコミット
+2. git status で確認
+3. git log --oneline -5 でコミット履歴を確認
+4. git push origin ブランチ名 でブランチをpush
+5. gh pr create または glab mr create でMRを作成
+6. ユーザーにMR確認を依頼
+7. ユーザーがマージを実行
+```
+
+## 注意事項
+
+### 絶対にやってはいけないこと
+
+1. **mainブランチへの直接コミット**（例外を除く、絶対禁止）
+2. **mainブランチで作業を開始する**（必ずブランチを作成）
+3. **コミットメッセージを空にする**
+4. **無関係な変更を1つのコミットにまとめる**
+5. **コミット前に動作確認をしない**（user-preferences.mdc参照）
+
+### 推奨されること
+
+1. **小さなコミットを積極的に行う**（後でまとめられる）
+2. **コミットメッセージは具体的に**（何をしたかが分かる）
+3. **作業の区切りでコミット**（履歴が明確になる）
+4. **定期的にgit statusを確認**（変更を見逃さない）
+5. **作業開始前に必ずブランチを作成**（mainで作業しない）
+
+## まとめ
+
+- **すべての作業はブランチで行う**（mainブランチで作業しない）
+- **適切な単位で積極的にコミットする**（コミットメッセージ形式を守る）
+- **コミットメッセージは「プレフィックス: 変更内容」形式**
+- **mainブランチは常にクリーンな状態を保つ**（ユーザーが管理）
+- **マージはユーザーがMR確認後に実行**
