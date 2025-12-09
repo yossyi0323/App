@@ -8,7 +8,7 @@
 App/
 ├── UniwaApp/                 # 飲食店向けアプリケーション
 ├── Tools/                    # 共通ツール・ライブラリ
-├── experiments/              # 一時的な実験用のアプリケーション
+├── Experiments/              # 一時的な実験用のアプリケーション
 │   ├── drizzle-test/         # Drizzle ORM検証プロジェクト
 │   ├── minimum-sns-post-app1/ # 匿名投稿SNSアプリ（Vue.js + Java）
 │   ├── minimum-sns-post-app2/ # 匿名投稿SNSアプリ（Rust）
@@ -27,10 +27,10 @@ App/
 - 今後も育てていく予定のない一時的なプロジェクト
 
 **現在のプロジェクト:**
-- [`experiments/drizzle-test/`](./experiments/drizzle-test/) - Drizzle ORM検証プロジェクト
-- [`experiments/minimum-sns-post-app1/`](./experiments/minimum-sns-post-app1/) - 匿名投稿SNSアプリ（Vue.js + Java Spring Boot + PostgreSQL）
-- [`experiments/minimum-sns-post-app2/`](./experiments/minimum-sns-post-app2/) - 匿名投稿SNSアプリ（Rust）
-- [`experiments/opensearch-dynamoDB-test/`](./experiments/opensearch-dynamoDB-test/) - OpenSearch + DynamoDB検証
+- [`Experiments/drizzle-test/`](./Experiments/drizzle-test/) - Drizzle ORM検証プロジェクト
+- [`Experiments/minimum-sns-post-app1/`](./Experiments/minimum-sns-post-app1/) - 匿名投稿SNSアプリ（Vue.js + Java Spring Boot + PostgreSQL）
+- [`Experiments/minimum-sns-post-app2/`](./Experiments/minimum-sns-post-app2/) - 匿名投稿SNSアプリ（Rust）
+- [`Experiments/opensearch-dynamoDB-test/`](./Experiments/opensearch-dynamoDB-test/) - OpenSearch + DynamoDB検証
 
 ### UniwaApp：飲食店向けアプリケーション
 実際の飲食店業務を効率化するためのアプリケーション群です。
@@ -114,7 +114,7 @@ App/
 
 - [UniwaApp/operations-prepare ドキュメント](./UniwaApp/operations-prepare/docs/)
 - [Tools README](./Tools/README.md)
-- [experiments/minimum-sns-post-app1 README](./experiments/minimum-sns-post-app1/README.md)
+- [Experiments/minimum-sns-post-app1 README](./Experiments/minimum-sns-post-app1/README.md)
 
 ## 🎓 学習リソース
 
