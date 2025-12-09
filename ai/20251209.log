@@ -34,3 +34,34 @@ Future action:
 - Recorded the principle extracted from this feedback
 - This rule will prevent similar mistakes in the future
 
+[2025-12-09 18:13:00] FEEDBACK コミット提案の積極性について
+
+User's feedback:
+> "何度も言うけど、あなたは私の秘書なのだから、何かしらCommitをしておいたほうがいい変更の単位ごとに、コミットしますかってコミットメッセージといっしょに自分から提案してきてほしい。実際にコミットする判断するのは俺だけど、タイミングを都度都度考えるのが手間だし、忘れててたくさんDiffがあると見づらい。"
+
+Problem:
+- 既に「AIによる能動的なコミット提案」というルールは存在していたが、提案が不十分だった
+- ユーザーは「タイミングを考えるのが手間」「忘れがちでDiffが溜まると見づらい」と感じている
+- もっと積極的に都度都度提案することが求められている
+
+Extracted principle:
+1. **積極的に都度都度提案する**（判断に迷ったら、積極的に提案する。ユーザーが判断する）
+2. **提案のタイミングを早める**（3-5個のファイル変更を待たず、2-3個で提案）
+3. **ルールファイル更新やセッションログ記録時も必ず提案**
+4. **作業中に定期的に`git status`を確認し、変更があれば提案を検討**
+
+Applied to: All commit proposal situations
+
+Future action:
+- 作業の区切りがついた時、積極的にコミットメッセージを提案する
+- 2-3個以上のファイル変更があれば提案する（3-5個を待たない）
+- ルールファイル更新やセッションログ記録時も必ず提案
+- 判断に迷ったら、積極的に提案する（ユーザーが判断する）
+
+[2025-12-09 18:13:00] DECISION Updated git-commit-message.mdc and secretary-behavior.mdc
+- Enhanced "AIによる能動的なコミット提案" section in git-commit-message.mdc
+- Updated "Git運用の提案" section in secretary-behavior.mdc
+- Made commit proposals more proactive and frequent
+- Changed proposal threshold from 3-5 files to 2-3 files
+- Added explicit mention of proposing after rule updates and session log recordings
+
