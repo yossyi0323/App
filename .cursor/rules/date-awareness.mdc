@@ -88,6 +88,30 @@ Daily（日次メモ）※散発的
 	- Yearly → Quarterly → Monthly の順で確認
 	- 上位が未記入なら、そこで報告を止める
 
+### Periodic Notesのディレクトリ構成
+
+**Obsidian Vaultワークスペースからの相対パス：**
+
+```
+Obsidian Vault/Periodic Notes/
+├── 05.Yearly/
+│   └── {yyyy}.md（例: 2025.md）
+├── 04.Quarterly/
+│   └── {yyyy-Qn}.md（例: 2025-Q4.md）
+├── 03.Monthly/
+│   └── {yyyy-MM}.md（例: 2025-12.md）
+├── 02.Weekly/
+│   └── {yyyy-Www}.md（例: 2025-W49.md）
+├── 01.Daily/
+│   └── {yyyyMMdd}.md（例: 20251217.md）
+├── 00.Templates/
+└── 99.Google Calendar Note/
+```
+
+**重要：**
+- Periodic NotesはObsidian Vaultの直下に配置される
+- パスは `Periodic Notes/` から始まる（Obsidian Vaultからの相対パス）
+
 ### 確認対象
 
 1. **Yearly Note**: `Periodic Notes/05.Yearly/{yyyy}.md`

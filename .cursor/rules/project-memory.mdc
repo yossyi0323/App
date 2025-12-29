@@ -1,6 +1,6 @@
 ---
 description: プロジェクトの現在状態（意味記憶）
-alwaysApply: false
+alwaysApply: true
 ---
 
 # プロジェクト状態記憶

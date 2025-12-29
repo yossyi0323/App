@@ -1,5 +1,6 @@
 ---
 description: ドキュメント作成時のルール
+alwaysApply: true
 ---
 
 # ドキュメント作成時のルール

@@ -1,6 +1,6 @@
 ---
 description: ユーザーの好み・嫌悪パターン（意味記憶）
-alwaysApply: false
+alwaysApply: true
 ---
 
 # ユーザー好み記憶
