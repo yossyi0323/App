@@ -151,15 +151,11 @@ cd server
 # 依存関係インストール
 mvn clean install
 
-# アプリケーション起動（ポート8080）
-mvn spring-boot:run
+# アプリケーション起動（開発環境プロファイル）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-**環境変数設定（必要に応じて）：**
-```bash
-# データベースパスワードを設定
-export DB_PASSWORD=your_password
-```
+**注意:** プロファイルを指定しない場合、デフォルト設定が使用されます。開発環境では `dev` プロファイルを指定することを推奨します。
 
 ### 4. フロントエンドセットアップ
 
@@ -179,6 +175,70 @@ npm run serve
 - **フロントエンド**: http://localhost:8081
 - **バックエンドAPI**: http://localhost:8080/api/posts
 - **ヘルスチェック**: http://localhost:8080/api/posts/health
+
+## 環境ごとの設定（プロファイル）
+
+Spring Bootのプロファイル機能を使用して、環境ごとに設定を分離しています。
+
+### 設定ファイル構成
+
+```
+server/src/main/resources/
+├─ application.yml          # 共通設定
+├─ application-dev.yml      # 開発環境（ローカルPostgreSQL）
+├─ application-prod.yml     # 本番環境（AWS RDS）
+└─ application-test.yml     # テスト環境（H2メモリDB）
+```
+
+### 開発環境（ローカル）
+
+```bash
+# Mavenで起動
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# またはJARファイルで起動
+java -jar app.jar --spring.profiles.active=dev
+```
+
+**設定内容:**
+- データベース: ローカルPostgreSQL (`localhost:5432`)
+- ログレベル: DEBUG（詳細ログ）
+- CORS: `http://localhost:3000, http://localhost:8081` を許可
+
+### 本番環境（AWS EC2 + RDS）
+
+```bash
+# 環境変数を設定
+export SPRING_DATASOURCE_URL=jdbc:postgresql://[RDSエンドポイント]:5432/minimum_sns_post_app1
+export SPRING_DATASOURCE_USERNAME=[RDSユーザー名]
+export SPRING_DATASOURCE_PASSWORD=[RDSパスワード]
+export CORS_ALLOWED_ORIGINS=http://[EC2のパブリックIP]
+
+# アプリ起動
+java -jar app.jar --spring.profiles.active=prod
+```
+
+**設定内容:**
+- データベース: AWS RDS（環境変数で指定）
+- ログレベル: INFO（本番向け）
+- CORS: 環境変数 `CORS_ALLOWED_ORIGINS` で指定
+- セキュリティ: パスワードは環境変数で設定（設定ファイルに直接書かない）
+
+**ポイント:**
+- 環境変数で上書き可能: 本番環境では機密情報を環境変数で設定
+- デフォルト値あり: 環境変数が未設定でも動作（開発用のデフォルト値）
+- セキュリティ: パスワードを設定ファイルに直接書かない
+
+### テスト環境
+
+```bash
+# テスト実行時は自動的にtestプロファイルが有効化される
+mvn test
+```
+
+**設定内容:**
+- データベース: H2メモリDB（テスト用）
+- スキーマ: 自動生成・削除
 
 ## プロジェクト命名規則
 
@@ -253,10 +313,10 @@ npm run test:unit
 ### バックエンド
 
 ```bash
-# 開発サーバー起動
-mvn spring-boot:run
+# 開発サーバー起動（devプロファイル）
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# テスト実行
+# テスト実行（testプロファイルが自動適用）
 mvn test
 
 # パッケージ作成
@@ -264,6 +324,9 @@ mvn package
 
 # クリーンビルド
 mvn clean install
+
+# JARファイルで起動（プロファイル指定）
+java -jar target/minimum-sns-post-app1-api-1.0.0.jar --spring.profiles.active=dev
 ```
 
 ## 機能説明

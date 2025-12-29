@@ -1,7 +1,11 @@
 import axios from 'axios'
 
 // APIのベースURL設定
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080'
+// 本番環境では相対パス（空文字列）を使用し、Apacheのプロキシ経由でアクセス
+// 開発環境では明示的に指定されたURL、またはデフォルトでlocalhost:8080を使用
+const API_BASE_URL = process.env.VUE_APP_API_URL !== undefined 
+  ? process.env.VUE_APP_API_URL 
+  : (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8080')
 
 // Axiosインスタンス作成
 const apiClient = axios.create({
