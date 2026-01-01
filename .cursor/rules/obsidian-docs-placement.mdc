@@ -9,7 +9,7 @@ alwaysApply: true
 App配下の個人開発プロジェクトに関するmdドキュメントは、以下の場所に配置する：
 
 ```
-C:\Users\YOSHITO\Documents\Obsidian Vault\Notes\Private\2. work\エンジニア\App\
+C:\Users\YOSHITO\Documents\Obsidian Vault\Notes\Private\2 Work\エンジニア\App\
 ```
 
 その他、会話の中で何らかの文章を作成し保存する場面があれば、現在のObsidianのディレクトリ構成を確認したうえで、いくつか配置場所の候補を提案し、ユーザーに選択させること。
@@ -17,7 +17,7 @@ C:\Users\YOSHITO\Documents\Obsidian Vault\Notes\Private\2. work\エンジニア\
 
 ## ディレクトリ構造
 ```
-Notes/Private/2. work/エンジニア/個人開発/App/
+Notes/Private/2 Work/エンジニア/個人開発/App/
 ├── UniwaApp/
 ├── minimum-sns-post-app1/
 └── Tools/
