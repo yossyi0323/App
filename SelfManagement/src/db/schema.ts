@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, uuid, pgEnum, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, uuid, pgEnum, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -42,34 +42,79 @@ export const timeBlockTypeEnum = pgEnum('time_block_type', ['plan', 'actual']);
 
 export const timeBlocks = pgTable('time_blocks', {
     id: uuid('id').defaultRandom().primaryKey(),
-    taskId: uuid('task_id').references(() => tasks.id),
+    title: text('title'), // Optional title for the block itself (e.g., "Shinkansen Travel")
     startAt: timestamp('start_at').notNull(),
     endAt: timestamp('end_at').notNull(),
     type: timeBlockTypeEnum('type').notNull(), // 'plan' or 'actual'
     notes: text('notes'),
 });
 
+// Join Table for Many-to-Many: Tasks <-> Time Blocks
+export const taskToTimeBlocks = pgTable('task_to_time_blocks', {
+    id: serial('id').primaryKey(),
+    taskId: uuid('task_id').notNull().references(() => tasks.id),
+    timeBlockId: uuid('time_block_id').notNull().references(() => timeBlocks.id),
+});
+
+export const comments = pgTable('comments', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    taskId: uuid('task_id').references(() => tasks.id),
+    timeBlockId: uuid('time_block_id').references(() => timeBlocks.id),
+    senderId: text('sender_id').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const notifications = pgTable('notifications', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: text('user_id').notNull(),
+    type: text('type', { enum: ['mention', 'assignment', 'comment'] }).notNull(),
+    content: text('content').notNull(),
+    sourceId: text('source_id'), // ID of the referenced object
+    isRead: boolean('is_read').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Task Relations
-export const tasksRelations = relations(tasks, ({ one, many }) => ({
+export const taskRelations = relations(tasks, ({ many, one }) => ({
     parent: one(tasks, {
         fields: [tasks.parentId],
         references: [tasks.id],
-        relationName: 'parent_child',
+        relationName: 'hierarchy',
     }),
-    children: many(tasks, {
-        relationName: 'parent_child',
-    }),
-    // For dependencies (adjacency list for graph edges)
-    dependencies: many(taskDependencies, { relationName: 'predecessors' }),
-    dependents: many(taskDependencies, { relationName: 'successors' }),
-    // Time Blocks
-    timeBlocks: many(timeBlocks),
+    children: many(tasks, { relationName: 'hierarchy' }),
+    dependencies: many(taskDependencies, { relationName: 'task_dependencies' }),
+    dependents: many(taskDependencies, { relationName: 'task_dependents' }),
+    // New: Link to join table
+    taskToTimeBlocks: many(taskToTimeBlocks),
+    comments: many(comments),
 }));
 
-export const timeBlocksRelations = relations(timeBlocks, ({ one }) => ({
+export const timeBlockRelations = relations(timeBlocks, ({ many }) => ({
+    // New: Link to join table
+    taskToTimeBlocks: many(taskToTimeBlocks),
+    comments: many(comments),
+}));
+
+export const commentRelations = relations(comments, ({ one }) => ({
     task: one(tasks, {
-        fields: [timeBlocks.taskId],
+        fields: [comments.taskId],
         references: [tasks.id],
+    }),
+    timeBlock: one(timeBlocks, {
+        fields: [comments.timeBlockId],
+        references: [timeBlocks.id],
+    }),
+}));
+
+export const taskToTimeBlocksRelations = relations(taskToTimeBlocks, ({ one }) => ({
+    task: one(tasks, {
+        fields: [taskToTimeBlocks.taskId],
+        references: [tasks.id],
+    }),
+    timeBlock: one(timeBlocks, {
+        fields: [taskToTimeBlocks.timeBlockId],
+        references: [timeBlocks.id],
     }),
 }));
 
@@ -84,11 +129,11 @@ export const taskDependenciesRelations = relations(taskDependencies, ({ one }) =
     predecessor: one(tasks, {
         fields: [taskDependencies.predecessorId],
         references: [tasks.id],
-        relationName: 'successors', // Creates link from predecessor to this dependency
+        relationName: 'task_dependents',
     }),
     successor: one(tasks, {
         fields: [taskDependencies.successorId],
         references: [tasks.id],
-        relationName: 'predecessors', // Creates link from successor to this dependency
+        relationName: 'task_dependencies',
     }),
 }));

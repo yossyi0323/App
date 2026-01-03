@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import { db } from '../src/db';
-import { tasks, timeBlocks } from '../src/db/schema';
+import { tasks, timeBlocks, taskToTimeBlocks } from '../src/db/schema';
 import { addDays, startOfWeek, setHours, setMinutes } from 'date-fns';
 
 async function main() {
@@ -32,21 +32,31 @@ async function main() {
     const startOfWk = startOfWeek(today, { weekStartsOn: 1 });
 
     // Plan: Monday 10:00 - 12:00
-    await db.insert(timeBlocks).values({
-        taskId: task.id,
+    const [planBlock] = await db.insert(timeBlocks).values({
         type: 'plan',
         startAt: setMinutes(setHours(addDays(startOfWk, 0), 10), 0),
         endAt: setMinutes(setHours(addDays(startOfWk, 0), 12), 0),
         notes: 'Initial Review'
+    }).returning();
+
+    // Link task to plan block
+    await db.insert(taskToTimeBlocks).values({
+        taskId: task.id,
+        timeBlockId: planBlock.id
     });
 
     // Actual: Monday 10:15 - 12:30 (Took longer)
-    await db.insert(timeBlocks).values({
-        taskId: task.id,
+    const [actualBlock] = await db.insert(timeBlocks).values({
         type: 'actual',
         startAt: setMinutes(setHours(addDays(startOfWk, 0), 10), 15),
         endAt: setMinutes(setHours(addDays(startOfWk, 0), 12), 30),
         notes: 'Found bug in login'
+    }).returning();
+
+    // Link task to actual block
+    await db.insert(taskToTimeBlocks).values({
+        taskId: task.id,
+        timeBlockId: actualBlock.id
     });
 
     console.log('Seeding completed.');

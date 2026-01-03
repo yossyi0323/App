@@ -1,4 +1,3 @@
-import { Task } from '@/db/schema'; // Assuming type infer
 
 export function generateMarkdown(tasks: any[]): string {
     const buildTree = (taskList: any[]) => {
