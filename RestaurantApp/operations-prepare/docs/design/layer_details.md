@@ -282,8 +282,8 @@ public interface InventoryConfirmationMapper {
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.uniwaapp.nextdayops.mapper.InventoryConfirmationMapper">
-    <resultMap id="inventoryConfirmationResultMap" type="com.uniwaapp.nextdayops.entity.InventoryConfirmation">
+<mapper namespace="com.restaurantapp.nextdayops.mapper.InventoryConfirmationMapper">
+    <resultMap id="inventoryConfirmationResultMap" type="com.restaurantapp.nextdayops.entity.InventoryConfirmation">
         <id property="id" column="id"/>
         <result property="businessDate" column="business_date" typeHandler="org.apache.ibatis.type.DateTypeHandler"/>
         <result property="itemId" column="item_id"/>
