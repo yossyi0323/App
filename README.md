@@ -6,7 +6,7 @@
 
 ```
 App/
-├── UniwaApp/                 # 飲食店向けアプリケーション
+├── RestaurantApp/                 # 飲食店向けアプリケーション
 ├── Tools/                    # 共通ツール・ライブラリ
 ├── Experiments/              # 一時的な実験用のアプリケーション
 │   ├── drizzle-test/         # Drizzle ORM検証プロジェクト
@@ -49,7 +49,7 @@ App/
 - [`Experiments/minimum-sns-post-app2/`](./Experiments/minimum-sns-post-app2/) - 匿名投稿SNSアプリ（Rust）
 - [`Experiments/opensearch-dynamoDB-test/`](./Experiments/opensearch-dynamoDB-test/) - OpenSearch + DynamoDB検証
 
-### 2.4. UniwaApp：飲食店向けアプリケーション
+### 2.4. RestaurantApp：飲食店向けアプリケーション
 実際の飲食店業務を効率化するためのアプリケーション群です。
 
 **特徴:**
@@ -58,7 +58,7 @@ App/
 - 大規模システム設計の学習機会
 
 **現在のプロジェクト:**
-- [`UniwaApp/operations-prepare/`](./UniwaApp/operations-prepare/) - 営業準備支援アプリ（Next.js + TypeScript + Supabase）
+- [`RestaurantApp/operations-prepare/`](./RestaurantApp/operations-prepare/) - 営業準備支援アプリ（Next.js + TypeScript + Supabase）
 
 ## 3. アーキテクチャ方針
 
@@ -100,7 +100,7 @@ App/
 
 各プロジェクトの詳細な情報は、それぞれのディレクトリ内のREADMEを参照してください：
 
-- [UniwaApp/operations-prepare ドキュメント](./UniwaApp/operations-prepare/docs/)
+- [RestaurantApp/operations-prepare ドキュメント](./RestaurantApp/operations-prepare/docs/)
 - [Tools README](./Tools/README.md)
 - [Experiments/minimum-sns-post-app1 README](./Experiments/minimum-sns-post-app1/README.md)
 

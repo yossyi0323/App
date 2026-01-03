@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.uniwa</groupId>
+    <groupId>com.restaurant</groupId>
     <artifactId>operations-prepare-moc</artifactId>
     <version>1.0.0</version>
     <name>operations-prepare-moc</name>

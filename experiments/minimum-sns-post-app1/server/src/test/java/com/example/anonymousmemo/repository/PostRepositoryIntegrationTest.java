@@ -26,16 +26,14 @@ class PostRepositoryIntegrationTest {
     private PostRepository postRepository;
 
     private Post post1;
-    private Post post2;
-    private Post post3;
 
     @BeforeEach
     void setUp() {
         // テストデータを準備（Repositoryを使用して@PrePersistを正しく実行）
         post1 = postRepository.save(new Post("最初の投稿"));
-        post2 = postRepository.save(new Post("2番目の投稿"));
-        post3 = postRepository.save(new Post("3番目の投稿"));
-        
+        postRepository.save(new Post("2番目の投稿"));
+        postRepository.save(new Post("3番目の投稿"));
+
         entityManager.flush();
     }
 
@@ -186,11 +184,11 @@ class PostRepositoryIntegrationTest {
 
         // Then
         assertThat(result).hasSize(5); // 元の3つ + 新しい2つ
-        
+
         // 保存された投稿が含まれていることを確認
         assertThat(result).extracting(Post::getContent)
                 .contains("同時投稿1", "同時投稿2");
-        
+
         // createdAtが設定されていることを確認
         assertThat(savedPost1.getCreatedAt()).isNotNull();
         assertThat(savedPost2.getCreatedAt()).isNotNull();

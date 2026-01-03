@@ -3,7 +3,7 @@
 ## 1. 全体構成
 
 ```
-src/main/java/com/uniwaapp/nextdayops/
+src/main/java/com/RestaurantApp/nextdayops/
 ├── controller/        # リクエスト/レスポンスの制御
 ├── service/          # ビジネスロジック
 ├── repository/       # JPAリポジトリインターフェース

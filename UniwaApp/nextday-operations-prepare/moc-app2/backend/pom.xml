@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.uniwa</groupId>
+    <groupId>com.restaurant</groupId>
     <artifactId>operations-prepare-moc2</artifactId>
     <version>1.0.0</version>
     <description>営業準備業務モックアプリケーション（技術スタック更新版）</description>

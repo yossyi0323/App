@@ -147,7 +147,7 @@ Created 3 memory files:
 2. **user-preferences.mdc** - Semantic memory: User's nature and preferences
    - Communication style (concrete language, no emoji, tab indents)
    - Decision-making patterns (practicality, autonomy, rule-based)
-   - Q4 focus items (reading, cooking, UniwaApp, reflection)
+   - Q4 focus items (reading, cooking, RestaurantApp, reflection)
    - Expectations for secretary behavior
 
 3. **secretary-behavior.mdc** - Learning memory: Behavior optimization

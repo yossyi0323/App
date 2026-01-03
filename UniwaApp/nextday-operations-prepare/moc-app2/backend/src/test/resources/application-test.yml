@@ -14,7 +14,7 @@ uroborosql:
 
 logging:
   level:
-    com.uniwa.operationsprepare: DEBUG
+    com.restaurant.operationsprepare: DEBUG
     org.springframework.web: DEBUG
     jp.co.future.uroborosql: DEBUG
 

@@ -1,4 +1,4 @@
-# Gemini Gem プロンプト: UniwaApp operations-prepare アプリケーション再構築
+# Gemini Gem プロンプト: RestaurantApp operations-prepare アプリケーション再構築
 
 ## プロジェクト概要
 
