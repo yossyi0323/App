@@ -1,0 +1,22 @@
+{
+    "folders": [
+        {
+            "name": "App",
+            "path": ".."
+        },
+        {
+            "name": "Obsidian Vault",
+            "path": "../../Obsidian Vault"
+        },
+        {
+            "name": ".gemini",
+            "path": "C:/Users/YOSHI/.gemini"
+        }
+    ],
+    "settings": {
+        "rust-analyzer.linkedProjects": [
+            "../minimum-sns-post-app2/server/Cargo.toml"
+        ],
+        "task.allowAutomaticTasks": "off"
+    }
+}
