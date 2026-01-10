@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: local-first-postgres
+    ports:
+      - "65000:5432"
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app_db
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d app_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  electric:
+    image: electricsql/electric:latest
+    container_name: local-first-electric
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@postgres:5432/app_db"
+      ELECTRIC_SERVICE_ID: "default"
+      ELECTRIC_WRITE_TO_PG_MODE: "logical_replication"
+      ELECTRIC_INSECURE: "true"
+      PG_PROXY_PORT: "65432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgrest:
+    image: postgrest/postgrest:latest
+    container_name: local-first-postgrest
+    ports:
+      - "3001:3000"
+    environment:
+      PGRST_DB_URI: "postgres://postgres:password@postgres:5432/app_db"
+      PGRST_DB_SCHEMA: "public"
+      PGRST_DB_ANON_ROLE: "postgres" # Insecure: using postgres superuser for anon access for demo
+    depends_on:
+      postgres:
+        condition: service_healthy
