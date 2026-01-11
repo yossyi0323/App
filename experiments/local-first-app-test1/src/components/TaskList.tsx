@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, Wifi } from "lucide-react";
-import { db } from "@/lib/db";
+import { db, postgrest, myClientId } from "@/lib/db";
 
 interface Task {
     id: string;
     title: string;
     completed: boolean;
+    client_id?: string;
     created_at: string;
 }
 
@@ -30,10 +31,6 @@ export function TaskList() {
 
             try {
                 setIsSyncing(true);
-
-                // Sync tasks table
-                // Use absolute URL pointing to current origin to satisfy URL constructor
-                // but still go through Vite proxy
                 const syncUrl = `${window.location.origin}/v1/shape?table=tasks`;
                 console.log("Starting sync with URL:", syncUrl);
 
@@ -65,32 +62,36 @@ export function TaskList() {
 
     const addTask = async () => {
         if (!newTask.trim()) return;
+        console.log("Adding task:", newTask);
 
         try {
-            // Optimistic update (write to local DB immediately)
             const id = crypto.randomUUID();
-            await db.query("INSERT INTO tasks (id, title) VALUES ($1, $2)", [id, newTask]);
+            console.log("Generated ID:", id);
+
+            // Optimistic update
+            console.log("Performing optimistic update...");
+            await db.query(
+                "INSERT INTO tasks (id, title, client_id) VALUES ($1, $2, $3)",
+                [id, newTask, myClientId]
+            );
+            console.log("Optimistic update successful");
             setNewTask("");
 
-            // Upstream sync (write to PostgREST)
-            // Use window.location.hostname to support remote access if needed, or hardcode localhost
-            const apiHost = window.location.hostname;
-            const response = await fetch(`http://${apiHost}:3001/tasks`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation", // Ask PostgREST to return the created record
-                },
-                body: JSON.stringify({
+            // Upstream sync via PostgREST-js
+            console.log("Syncing upstream via PostgREST-js...");
+            const { error } = await postgrest
+                .from('tasks')
+                .insert({
                     id: id,
                     title: newTask,
-                    completed: false
-                }),
-            });
+                    completed: false,
+                    client_id: myClientId
+                });
 
-            if (!response.ok) {
-                console.error("Failed to sync task upstream:", await response.text());
-                // Handle rollback or retry queue here in a real app
+            if (error) {
+                console.error("Failed to sync task upstream:", error);
+            } else {
+                console.log("Upstream sync successful");
             }
         } catch (err) {
             console.error("Error adding task:", err);
@@ -105,20 +106,14 @@ export function TaskList() {
                 id,
             ]);
 
-            // Upstream sync
-            const apiHost = window.location.hostname;
-            const response = await fetch(`http://${apiHost}:3001/tasks?id=eq.${id}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    completed: !completed,
-                }),
-            });
+            // Upstream sync via PostgREST-js
+            const { error } = await postgrest
+                .from('tasks')
+                .update({ completed: !completed })
+                .eq('id', id);
 
-            if (!response.ok) {
-                console.error("Failed to sync toggle upstream:", await response.text());
+            if (error) {
+                console.error("Failed to sync toggle upstream:", error);
             }
         } catch (err) {
             console.error("Error toggling task:", err);
@@ -130,14 +125,14 @@ export function TaskList() {
             // Optimistic update
             await db.query("DELETE FROM tasks WHERE id = $1", [id]);
 
-            // Upstream sync
-            const apiHost = window.location.hostname;
-            const response = await fetch(`http://${apiHost}:3001/tasks?id=eq.${id}`, {
-                method: "DELETE",
-            });
+            // Upstream sync via PostgREST-js
+            const { error } = await postgrest
+                .from('tasks')
+                .delete()
+                .eq('id', id);
 
-            if (!response.ok) {
-                console.error("Failed to sync delete upstream:", await response.text());
+            if (error) {
+                console.error("Failed to sync delete upstream:", error);
             }
         } catch (err) {
             console.error("Error deleting task:", err);
