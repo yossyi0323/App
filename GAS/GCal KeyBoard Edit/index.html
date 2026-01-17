@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #09090b; color: #fafafa; font-family: ui-sans-serif, system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .cell-selected { outline: 2px solid #3b82f6; outline-offset: -2px; background-color: #18181b; color: white !important; }
+    .editing-input { background: #27272a; border: none; color: white; width: 100%; outline: none; padding: 2px 4px; border-radius: 4px; font-size: 14px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+    #board { flex: 1; min-height: 0; }
+    .btn-action { transition: all 0.2s; cursor: pointer; }
+    .btn-action:hover { background-color: #27272a; color: white; }
+  </style>
+</head>
+<body class="p-6">
+  <div class="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4 shrink-0">
+    <div>
+      <h1 class="text-xl font-bold tracking-tighter text-white">GCal KeyBoard Edit</h1>
+      <p class="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE | R:REFRESH | ENTER:SAVE</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="https://script.google.com/u/0/home/projects/1wC7aXLi_rVdvxAiXm09W0WRLFynPPHTA0QJyRJSZl6RRaMpD_s_PdAd4/edit" 
+         target="_blank" 
+         class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800 flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        EDIT CODE
+      </a>
+      
+      <button onclick="refresh()" class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800">REFRESH (R)</button>
+      <div id="status" class="text-[10px] font-mono text-zinc-600 bg-zinc-950 px-2 py-1 rounded border border-zinc-900">READY</div>
+    </div>
+  </div>
+
+  <div id="loading" class="text-zinc-500 text-center py-20 font-mono text-sm animate-pulse">CONNECTING_TO_CALENDAR...</div>
+  <div id="board" class="grid grid-cols-3 gap-4 h-full overflow-hidden"></div>
+
+  <script>
+    let columns = [];
+    let activeCol = 1; let activeRow = 0; let activeCell = 0; 
+    let isEditing = false;
+    let undoStack = null;
+    let debounceTimers = {}; 
+    const STEP = 15;
+
+    function refresh() {
+      setStatus('REFRESHING...');
+      document.getElementById('board').style.opacity = '0.5';
+      google.script.run.withSuccessHandler(data => {
+        columns = data.map(col => ({
+          ...col,
+          items: col.items.map(item => ({ ...item, start: new Date(item.start), end: new Date(item.end) }))
+        }));
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('board').style.opacity = '1';
+        
+        // 初回のみ当日を選択
+        if (columns[1] && columns[1].items.length > 0) {
+          activeCol = 1; activeRow = 0; activeCell = 0;
+        }
+        
+        render();
+        setStatus('READY');
+      }).getEvents();
+    }
+
+    function render() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      columns.forEach((col, cIdx) => {
+        const dateObj = new Date(col.date);
+        const dateStr = dateObj.toLocaleDateString('ja-JP', { weekday: 'short', day: 'numeric' });
+        const colDiv = document.createElement('div');
+        colDiv.className = `flex flex-col border border-zinc-800 rounded-2xl p-4 bg-zinc-900/20 h-full overflow-hidden ${cIdx === activeCol ? 'ring-1 ring-zinc-700 bg-zinc-900/40' : 'opacity-40'}`;
+        colDiv.innerHTML = `<h2 class="text-[10px] font-black text-zinc-500 mb-4 uppercase tracking-widest shrink-0">${dateStr}</h2>`;
+        
+        const scrollArea = document.createElement('div');
+        scrollArea.className = "space-y-2 overflow-y-auto flex-1 pr-1";
+        
+        col.items.forEach((item, rIdx) => {
+          const isSelected = (cIdx === activeCol && rIdx === activeRow);
+          const itemDiv = document.createElement('div');
+          itemDiv.className = `border border-zinc-800 rounded-xl bg-zinc-950 p-3 transition-all ${isSelected ? 'border-zinc-500 shadow-lg shadow-black' : ''}`;
+          
+          const tCls = (isSelected && activeCell === 0) ? 'cell-selected' : '';
+          const sCls = (isSelected && activeCell === 1) ? 'cell-selected' : 'text-zinc-500';
+          const eCls = (isSelected && activeCell === 2) ? 'cell-selected' : 'text-zinc-500';
+
+          itemDiv.innerHTML = `
+            <div id="item-${cIdx}-${rIdx}-title" class="px-2 py-1 rounded mb-2 truncate font-semibold text-zinc-200 ${tCls}">${item.title || '(Untitled)'}</div>
+            <div class="flex items-center gap-2 text-[10px] font-mono px-1">
+              <div class="px-2 py-0.5 rounded ${sCls}">${item.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              <span class="opacity-20 text-zinc-500">→</span>
+              <div class="px-2 py-0.5 rounded ${eCls}">${item.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+            </div>
+          `;
+          scrollArea.appendChild(itemDiv);
+          
+          // 修正：スクロール位置の制御を安定化
+          if (isSelected) {
+            // instantにすることでガタつきを抑止
+            setTimeout(() => {
+              itemDiv.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+            }, 0);
+          }
+        });
+        colDiv.appendChild(scrollArea);
+        board.appendChild(colDiv);
+      });
+    }
+
+    function moveTab(dir) {
+      activeCell += dir;
+      const col = columns[activeCol];
+      if (activeCell > 2) {
+        if (activeRow < col.items.length - 1) { activeRow++; activeCell = 0; }
+        else if (activeCol < 2) { activeCol++; activeRow = 0; activeCell = 0; }
+        else { activeCell = 2; }
+      } else if (activeCell < 0) {
+        if (activeRow > 0) { activeRow--; activeCell = 2; }
+        else if (activeCol > 0) { activeCol--; activeRow = Math.max(0, columns[activeCol].items.length - 1); activeCell = 2; }
+        else { activeCell = 0; }
+      }
+      render();
+    }
+
+    // 修正：Tabキーのデフォルト動作を強力に阻止
+    window.addEventListener('keydown', (e) => {
+      // 編集中の場合はTab入力を許可（または別途制御）
+      if (isEditing) return;
+      
+      if (e.key === 'Tab') { 
+        e.preventDefault(); // これによりバナーへのフォーカス移動を阻止
+        moveTab(e.shiftKey ? -1 : 1); 
+        return; 
+      }
+
+      if (columns.length === 0) return;
+      const col = columns[activeCol];
+      const item = col.items[activeRow];
+
+      if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); return; }
+
+      switch(e.key) {
+        case 'r': refresh(); break;
+        case 'ArrowRight': 
+          activeCol = Math.min(2, activeCol + 1); 
+          activeRow = Math.min(activeRow, Math.max(0, columns[activeCol].items.length - 1));
+          render(); break;
+        case 'ArrowLeft': 
+          activeCol = Math.max(0, activeCol - 1); 
+          activeRow = Math.min(activeRow, Math.max(0, columns[activeCol].items.length - 1));
+          render(); break;
+        case 'ArrowDown':
+          e.preventDefault();
+          if (activeCell === 0) { activeRow = Math.min(col.items.length - 1, activeRow + 1); render(); }
+          else if (item) adjust(item, 1);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (activeCell === 0) { activeRow = Math.max(0, activeRow - 1); render(); }
+          else if (item) adjust(item, -1);
+          break;
+        case 'j': if(item) adjust(item, 1); break;
+        case 'k': if(item) adjust(item, -1); break;
+        case 'i': if(item && activeCell === 0) { e.preventDefault(); startEdit(item); } break;
+        case 'c': case 'n': e.preventDefault(); create(); break;
+        case 'd': del(); break;
+        case 'Enter': 
+          if(item) { e.preventDefault(); if(activeCell === 0) startEdit(item); else save(item); } 
+          break;
+      }
+    }, true); // trueにしてキャプチャリングフェーズで捕捉
+
+    /**
+     * タイトル編集を開始する操作
+     * 変更点：Tabキー押下時に編集を確定し、開始時刻（activeCell = 1）へ移動する処理を追加
+     */
+    function startEdit(item) {
+      isEditing = true;
+      const el = document.getElementById(`item-${activeCol}-${activeRow}-title`);
+      if (!el) return;
+      const input = document.createElement('input');
+      input.value = item.title;
+      input.className = "editing-input";
+      el.innerHTML = ''; el.appendChild(input);
+      input.focus();
+      input.select();
+      
+      input.onblur = () => { 
+        if(!isEditing) return;
+        item.title = input.value; 
+        isEditing = false; 
+        render(); 
+        save(item); 
+      };
+
+      input.onkeydown = (e) => { 
+        if(e.key === 'Enter') { 
+          e.preventDefault(); 
+          input.blur(); 
+        }
+        // Tabキーで確定して次の要素（開始時刻）へ移動
+        if(e.key === 'Tab') {
+          e.preventDefault();
+          item.title = input.value; 
+          isEditing = false;
+          save(item);
+          moveTab(e.shiftKey ? -1 : 1); // 次のセル（時刻）へ移動
+        }
+        if(e.key === 'Escape') { 
+          isEditing = false; 
+          render(); 
+        }
+        e.stopPropagation(); 
+      };
+    }
+
+    function create() {
+      const base = new Date(columns[activeCol].date); base.setHours(10,0,0,0);
+      const newItem = { id: null, title: "", start: base, end: new Date(base.getTime() + 3600000) };
+      columns[activeCol].items.push(newItem);
+      activeRow = columns[activeCol].items.length - 1;
+      activeCell = 0; 
+      render();
+      setTimeout(() => startEdit(newItem), 10);
+    }
+
+    function del() {
+      const items = columns[activeCol].items;
+      if (!items[activeRow]) return;
+      undoStack = { item: JSON.parse(JSON.stringify(items[activeRow])), col: activeCol, row: activeRow };
+      undoStack.item.start = new Date(undoStack.item.start);
+      undoStack.item.end = new Date(undoStack.item.end);
+      if (items[activeRow].id) {
+        setStatus('DELETING...');
+        google.script.run.withSuccessHandler(() => setStatus('DELETED')).deleteEvent(items[activeRow].id);
+      }
+      items.splice(activeRow, 1);
+      activeRow = Math.max(0, activeRow - 1);
+      render();
+    }
+
+    function undo() {
+      if (!undoStack) return;
+      columns[undoStack.col].items.splice(undoStack.row, 0, undoStack.item);
+      const restored = columns[undoStack.col].items[undoStack.row];
+      activeCol = undoStack.col; activeRow = undoStack.row;
+      save(restored);
+      undoStack = null;
+      render();
+    }
+
+    function adjust(item, dir) {
+      const d = dir * STEP * 60000;
+      if (activeCell === 1) item.start = new Date(item.start.getTime() + d);
+      else if (activeCell === 2) item.end = new Date(item.end.getTime() + d);
+      else { item.start = new Date(item.start.getTime() + d); item.end = new Date(item.end.getTime() + d); }
+      render();
+      debounceSave(item);
+    }
+
+    function debounceSave(item) {
+      setStatus('WAITING...');
+      const timerKey = item.id || `temp-${activeCol}-${activeRow}`;
+      if (debounceTimers[timerKey]) clearTimeout(debounceTimers[timerKey]);
+      debounceTimers[timerKey] = setTimeout(() => { save(item); delete debounceTimers[timerKey]; }, 700);
+    }
+
+    function save(item) {
+      setStatus('SYNCING...');
+      const payload = { ...item, start: item.start.toISOString(), end: item.end.toISOString() };
+      google.script.run.withSuccessHandler(id => { item.id = id; setStatus('READY'); }).upsertEvent(payload);
+    }
+
+    function setStatus(msg) {
+      const s = document.getElementById('status');
+      if(s) s.innerText = msg;
+    }
+
+    refresh();
+  </script>
+</body>
+</html>
