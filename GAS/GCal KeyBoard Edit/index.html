@@ -1,47 +1,101 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <base target="_top">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #09090b; color: #fafafa; font-family: ui-sans-serif, system-ui, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-    .cell-selected { outline: 2px solid #3b82f6; outline-offset: -2px; background-color: #18181b; color: white !important; }
-    .editing-input { background: #27272a; border: none; color: white; width: 100%; outline: none; padding: 2px 4px; border-radius: 4px; font-size: 14px; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-    #board { flex: 1; min-height: 0; }
-    .btn-action { transition: all 0.2s; cursor: pointer; }
-    .btn-action:hover { background-color: #27272a; color: white; }
+    body {
+      background-color: #09090b;
+      color: #fafafa;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .cell-selected {
+      outline: 2px solid #3b82f6;
+      outline-offset: -2px;
+      background-color: #18181b;
+      color: white !important;
+    }
+
+    .editing-input {
+      background: #27272a;
+      border: none;
+      color: white;
+      width: 100%;
+      outline: none;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 10px;
+    }
+
+    #board {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .btn-action {
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-action:hover {
+      background-color: #27272a;
+      color: white;
+    }
   </style>
 </head>
+
 <body class="p-6">
   <div class="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4 shrink-0">
     <div>
       <h1 class="text-xl font-bold tracking-tighter text-white">GCal KeyBoard Edit</h1>
-      <p class="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE | R:REFRESH | ENTER:SAVE</p>
+      <p class="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE
+        | R:REFRESH | ENTER:SAVE</p>
     </div>
     <div class="flex items-center gap-2">
-      <a href="https://script.google.com/u/0/home/projects/1wC7aXLi_rVdvxAiXm09W0WRLFynPPHTA0QJyRJSZl6RRaMpD_s_PdAd4/edit" 
-         target="_blank" 
-         class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800 flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <a href="https://script.google.com/u/0/home/projects/1wC7aXLi_rVdvxAiXm09W0WRLFynPPHTA0QJyRJSZl6RRaMpD_s_PdAd4/edit"
+        target="_blank"
+        class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800 flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
         EDIT CODE
       </a>
-      
-      <button onclick="refresh()" class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800">REFRESH (R)</button>
-      <div id="status" class="text-[10px] font-mono text-zinc-600 bg-zinc-950 px-2 py-1 rounded border border-zinc-900">READY</div>
+
+      <button onclick="refresh()"
+        class="btn-action text-[10px] font-mono text-zinc-400 bg-zinc-900 px-3 py-1 rounded border border-zinc-800">REFRESH
+        (R)</button>
+      <div id="status" class="text-[10px] font-mono text-zinc-600 bg-zinc-950 px-2 py-1 rounded border border-zinc-900">
+        READY</div>
     </div>
   </div>
 
-  <div id="loading" class="text-zinc-500 text-center py-20 font-mono text-sm animate-pulse">CONNECTING_TO_CALENDAR...</div>
+  <div id="loading" class="text-zinc-500 text-center py-20 font-mono text-sm animate-pulse">CONNECTING_TO_CALENDAR...
+  </div>
   <div id="board" class="grid grid-cols-3 gap-4 h-full overflow-hidden"></div>
 
   <script>
     let columns = [];
-    let activeCol = 1; let activeRow = 0; let activeCell = 0; 
+    let activeCol = 1; let activeRow = 0; let activeCell = 0;
     let isEditing = false;
     let undoStack = null;
-    let debounceTimers = {}; 
+    let debounceTimers = {};
     const STEP = 15;
 
     function refresh() {
@@ -54,12 +108,12 @@
         }));
         document.getElementById('loading').style.display = 'none';
         document.getElementById('board').style.opacity = '1';
-        
+
         // 初回のみ当日を選択
         if (columns[1] && columns[1].items.length > 0) {
           activeCol = 1; activeRow = 0; activeCell = 0;
         }
-        
+
         render();
         setStatus('READY');
       }).getEvents();
@@ -74,29 +128,31 @@
         const colDiv = document.createElement('div');
         colDiv.className = `flex flex-col border border-zinc-800 rounded-2xl p-4 bg-zinc-900/20 h-full overflow-hidden ${cIdx === activeCol ? 'ring-1 ring-zinc-700 bg-zinc-900/40' : 'opacity-40'}`;
         colDiv.innerHTML = `<h2 class="text-[10px] font-black text-zinc-500 mb-4 uppercase tracking-widest shrink-0">${dateStr}</h2>`;
-        
+
         const scrollArea = document.createElement('div');
         scrollArea.className = "space-y-2 overflow-y-auto flex-1 pr-1";
-        
+
         col.items.forEach((item, rIdx) => {
           const isSelected = (cIdx === activeCol && rIdx === activeRow);
           const itemDiv = document.createElement('div');
           itemDiv.className = `border border-zinc-800 rounded-xl bg-zinc-950 p-3 transition-all ${isSelected ? 'border-zinc-500 shadow-lg shadow-black' : ''}`;
-          
+
           const tCls = (isSelected && activeCell === 0) ? 'cell-selected' : '';
-          const sCls = (isSelected && activeCell === 1) ? 'cell-selected' : 'text-zinc-500';
-          const eCls = (isSelected && activeCell === 2) ? 'cell-selected' : 'text-zinc-500';
+          const sCls = (isSelected && activeCell === 1) ? 'cell-selected' : 'text-zinc-200';
+          const eCls = (isSelected && activeCell === 2) ? 'cell-selected' : 'text-zinc-200';
 
           itemDiv.innerHTML = `
-            <div id="item-${cIdx}-${rIdx}-title" class="px-2 py-1 rounded mb-2 truncate font-semibold text-zinc-200 ${tCls}">${item.title || '(Untitled)'}</div>
-            <div class="flex items-center gap-2 text-[10px] font-mono px-1">
-              <div class="px-2 py-0.5 rounded ${sCls}">${item.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-              <span class="opacity-20 text-zinc-500">→</span>
-              <div class="px-2 py-0.5 rounded ${eCls}">${item.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+            <div class="flex items-center justify-between gap-2">
+              <div id="item-${cIdx}-${rIdx}-title" class="px-2 py-1 rounded truncate font-semibold text-zinc-200 flex-1 ${tCls}">${item.title || '(Untitled)'}</div>
+              <div class="flex items-center gap-1 text-[13px] font-mono shrink-0">
+                <div class="px-1.5 py-0.5 rounded ${sCls}">${formatDateTime(item.start)}</div>
+                <span class="opacity-20 text-zinc-300">→</span>
+                <div class="px-1.5 py-0.5 rounded ${eCls}">${formatDateTime(item.end)}</div>
+              </div>
             </div>
           `;
           scrollArea.appendChild(itemDiv);
-          
+
           // 修正：スクロール位置の制御を安定化
           if (isSelected) {
             // instantにすることでガタつきを抑止
@@ -108,6 +164,15 @@
         colDiv.appendChild(scrollArea);
         board.appendChild(colDiv);
       });
+    }
+
+    function formatDateTime(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      return `${y}/${m}/${d} ${hh}:${mm}`;
     }
 
     function moveTab(dir) {
@@ -129,11 +194,11 @@
     window.addEventListener('keydown', (e) => {
       // 編集中の場合はTab入力を許可（または別途制御）
       if (isEditing) return;
-      
-      if (e.key === 'Tab') { 
+
+      if (e.key === 'Tab') {
         e.preventDefault(); // これによりバナーへのフォーカス移動を阻止
-        moveTab(e.shiftKey ? -1 : 1); 
-        return; 
+        moveTab(e.shiftKey ? -1 : 1);
+        return;
       }
 
       if (columns.length === 0) return;
@@ -142,14 +207,14 @@
 
       if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); return; }
 
-      switch(e.key) {
+      switch (e.key) {
         case 'r': refresh(); break;
-        case 'ArrowRight': 
-          activeCol = Math.min(2, activeCol + 1); 
+        case 'ArrowRight':
+          activeCol = Math.min(2, activeCol + 1);
           activeRow = Math.min(activeRow, Math.max(0, columns[activeCol].items.length - 1));
           render(); break;
-        case 'ArrowLeft': 
-          activeCol = Math.max(0, activeCol - 1); 
+        case 'ArrowLeft':
+          activeCol = Math.max(0, activeCol - 1);
           activeRow = Math.min(activeRow, Math.max(0, columns[activeCol].items.length - 1));
           render(); break;
         case 'ArrowDown':
@@ -162,13 +227,13 @@
           if (activeCell === 0) { activeRow = Math.max(0, activeRow - 1); render(); }
           else if (item) adjust(item, -1);
           break;
-        case 'j': if(item) adjust(item, 1); break;
-        case 'k': if(item) adjust(item, -1); break;
-        case 'i': if(item && activeCell === 0) { e.preventDefault(); startEdit(item); } break;
+        case 'j': if (item) adjust(item, 1); break;
+        case 'k': if (item) adjust(item, -1); break;
+        case 'i': if (item && activeCell === 0) { e.preventDefault(); startEdit(item); } break;
         case 'c': case 'n': e.preventDefault(); create(); break;
         case 'd': del(); break;
-        case 'Enter': 
-          if(item) { e.preventDefault(); if(activeCell === 0) startEdit(item); else save(item); } 
+        case 'Enter':
+          if (item) { e.preventDefault(); if (activeCell === 0) startEdit(item); else save(item); }
           break;
       }
     }, true); // trueにしてキャプチャリングフェーズで捕捉
@@ -187,42 +252,42 @@
       el.innerHTML = ''; el.appendChild(input);
       input.focus();
       input.select();
-      
-      input.onblur = () => { 
-        if(!isEditing) return;
-        item.title = input.value; 
-        isEditing = false; 
-        render(); 
-        save(item); 
+
+      input.onblur = () => {
+        if (!isEditing) return;
+        item.title = input.value;
+        isEditing = false;
+        render();
+        save(item);
       };
 
-      input.onkeydown = (e) => { 
-        if(e.key === 'Enter') { 
-          e.preventDefault(); 
-          input.blur(); 
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          input.blur();
         }
         // Tabキーで確定して次の要素（開始時刻）へ移動
-        if(e.key === 'Tab') {
+        if (e.key === 'Tab') {
           e.preventDefault();
-          item.title = input.value; 
+          item.title = input.value;
           isEditing = false;
           save(item);
           moveTab(e.shiftKey ? -1 : 1); // 次のセル（時刻）へ移動
         }
-        if(e.key === 'Escape') { 
-          isEditing = false; 
-          render(); 
+        if (e.key === 'Escape') {
+          isEditing = false;
+          render();
         }
-        e.stopPropagation(); 
+        e.stopPropagation();
       };
     }
 
     function create() {
-      const base = new Date(columns[activeCol].date); base.setHours(10,0,0,0);
+      const base = new Date(columns[activeCol].date); base.setHours(10, 0, 0, 0);
       const newItem = { id: null, title: "", start: base, end: new Date(base.getTime() + 3600000) };
       columns[activeCol].items.push(newItem);
       activeRow = columns[activeCol].items.length - 1;
-      activeCell = 0; 
+      activeCell = 0;
       render();
       setTimeout(() => startEdit(newItem), 10);
     }
@@ -276,10 +341,11 @@
 
     function setStatus(msg) {
       const s = document.getElementById('status');
-      if(s) s.innerText = msg;
+      if (s) s.innerText = msg;
     }
 
     refresh();
   </script>
 </body>
+
 </html>
