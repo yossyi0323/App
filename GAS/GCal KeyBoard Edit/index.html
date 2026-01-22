@@ -15,6 +15,14 @@
       overflow: hidden;
     }
 
+    .help-text {
+      font-size: 10px;
+      color: #71717a;
+      font-family: ui-monospace, monospace;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
     .cell-selected {
       outline: 2px solid #3b82f6;
       outline-offset: -2px;
@@ -63,8 +71,7 @@
   <div class="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4 shrink-0">
     <div>
       <h1 class="text-xl font-bold tracking-tighter text-white">GCal KeyBoard Edit</h1>
-      <p class="text-[10px] text-zinc-500 font-mono mt-1 uppercase">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE
-        | R:REFRESH | ENTER:SAVE</p>
+      <p class="help-text">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE | R:REFRESH | T:NOW</p>
     </div>
     <div class="flex items-center gap-2">
       <a href="https://script.google.com/u/0/home/projects/1wC7aXLi_rVdvxAiXm09W0WRLFynPPHTA0QJyRJSZl6RRaMpD_s_PdAd4/edit"
@@ -145,9 +152,9 @@
             <div class="flex items-center justify-between gap-2">
               <div id="item-${cIdx}-${rIdx}-title" class="px-2 py-1 rounded truncate font-semibold text-zinc-200 flex-1 ${tCls}">${item.title || '(Untitled)'}</div>
               <div class="flex items-center gap-1 text-[13px] font-mono shrink-0">
-                <div class="px-1.5 py-0.5 rounded ${sCls}">${formatDateTime(item.start)}</div>
+                <div id="item-${cIdx}-${rIdx}-start" class="px-1.5 py-0.5 rounded ${sCls}">${formatDateTime(item.start)}</div>
                 <span class="opacity-20 text-zinc-300">→</span>
-                <div class="px-1.5 py-0.5 rounded ${eCls}">${formatDateTime(item.end)}</div>
+                <div id="item-${cIdx}-${rIdx}-end" class="px-1.5 py-0.5 rounded ${eCls}">${formatDateTime(item.end)}</div>
               </div>
             </div>
           `;
@@ -229,57 +236,171 @@
           break;
         case 'j': if (item) adjust(item, 1); break;
         case 'k': if (item) adjust(item, -1); break;
-        case 'i': if (item && activeCell === 0) { e.preventDefault(); startEdit(item); } break;
+        case 't':
+          if (item && (activeCell === 1 || activeCell === 2)) {
+            const now = getRoundedNow();
+            if (activeCell === 1) item.start = now;
+            else item.end = now;
+            render();
+            save(item);
+          }
+          break;
+        case 'i': if (item) { e.preventDefault(); startEdit(item); } break;
         case 'c': case 'n': e.preventDefault(); create(); break;
         case 'd': del(); break;
         case 'Enter':
-          if (item) { e.preventDefault(); if (activeCell === 0) startEdit(item); else save(item); }
+          if (item) { e.preventDefault(); startEdit(item); }
           break;
       }
     }, true); // trueにしてキャプチャリングフェーズで捕捉
 
     /**
-     * タイトル編集を開始する操作
-     * 変更点：Tabキー押下時に編集を確定し、開始時刻（activeCell = 1）へ移動する処理を追加
+     * 編集を開始する
+     * activeCellに応じて タイトル / 開始時間 / 終了時間 を編集
      */
     function startEdit(item) {
       isEditing = true;
-      const el = document.getElementById(`item-${activeCol}-${activeRow}-title`);
+      let elId = '';
+      let initialValue = '';
+
+      if (activeCell === 0) {
+        elId = `item-${activeCol}-${activeRow}-title`;
+        initialValue = item.title;
+      } else if (activeCell === 1) {
+        elId = `item-${activeCol}-${activeRow}-start`;
+        initialValue = formatDateTime(item.start);
+      } else if (activeCell === 2) {
+        elId = `item-${activeCol}-${activeRow}-end`;
+        initialValue = formatDateTime(item.end);
+      }
+
+      const el = document.getElementById(elId);
       if (!el) return;
+
       const input = document.createElement('input');
-      input.value = item.title;
+      input.value = initialValue;
       input.className = "editing-input";
-      el.innerHTML = ''; el.appendChild(input);
+      // 時刻編集の場合は幅を少し調整してもいいが、一旦CSS任せ
+
+      el.innerHTML = '';
+      el.appendChild(input);
       input.focus();
       input.select();
 
-      input.onblur = () => {
+      const finishEdit = () => {
         if (!isEditing) return;
-        item.title = input.value;
+
+        let success = true;
+        if (activeCell === 0) {
+          item.title = input.value;
+        } else {
+          try {
+            // 時刻パース
+            const originalDate = activeCell === 1 ? item.start : item.end;
+            const newDate = parseDateTime(input.value, originalDate);
+            if (activeCell === 1) item.start = newDate;
+            else item.end = newDate;
+          } catch (e) {
+            console.error(e);
+            success = false;
+            // エラー時は元の値を戻すなどの処理が必要だが、今回は簡易的にリセットされる
+          }
+        }
+
         isEditing = false;
-        render();
-        save(item);
+        render(); // 再描画でinputが消え、新しい値が表示される
+        if (success) save(item);
+      };
+
+      input.onblur = () => {
+        // blur時の確定を防ぎたい場合（誤操作防止）はここを調整するが、
+        // 基本的にはフォーカス外れたら保存でよい
+        finishEdit();
       };
 
       input.onkeydown = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          input.blur();
+          input.blur(); // これがonblurを呼び出し、finishEditが走る
         }
-        // Tabキーで確定して次の要素（開始時刻）へ移動
+        // Tabキーで確定して次の要素へ移動
         if (e.key === 'Tab') {
           e.preventDefault();
-          item.title = input.value;
+          // onblurが発火する前に処理してしまうか、あるいはフラグ管理するか。
+          // シンプルにここでfinishEdit相当を行い、moveTabする
+
+          // input.blur()を呼ぶとonblurと競合するので、
+          // 手動で値を反映してisEditingをfalseにする
+          let success = true;
+          if (activeCell === 0) item.title = input.value;
+          else {
+            try {
+              const originalDate = activeCell === 1 ? item.start : item.end;
+              const newDate = parseDateTime(input.value, originalDate);
+              if (activeCell === 1) item.start = newDate;
+              else item.end = newDate;
+            } catch (e) { success = false; }
+          }
           isEditing = false;
-          save(item);
-          moveTab(e.shiftKey ? -1 : 1); // 次のセル（時刻）へ移動
+          if (success) save(item);
+
+          moveTab(e.shiftKey ? -1 : 1);
+          // renderはmoveTab内で呼ばれるが、activeCellが変わった後の状態になる
+          // ここではrender不要（moveTabが呼ぶ）だが、save呼び出しタイミングに注意
         }
         if (e.key === 'Escape') {
           isEditing = false;
-          render();
+          render(); // 元に戻る
         }
         e.stopPropagation();
       };
+    }
+
+    /**
+     * 文字列からDateオブジェクトを生成する
+     * 対応フォーマット:
+     * - HHmm (例: 1430 -> 当日14:30)
+     * - HH:mm (例: 14:30 -> 当日14:30)
+     * - M/D HH:mm (例: 1/22 15:00 -> 本年1/22 15:00)
+     * - YYYY/MM/DD HH:mm (例: 2026/01/22 15:00)
+     */
+    function parseDateTime(str, baseDate) {
+      str = str.trim();
+
+      // 数字のみ4桁 (HHmm)
+      if (/^\d{4}$/.test(str)) {
+        const hh = parseInt(str.substring(0, 2));
+        const mm = parseInt(str.substring(2, 4));
+        const d = new Date(baseDate);
+        d.setHours(hh, mm, 0, 0);
+        return d;
+      }
+
+      // HH:mm
+      if (/^\d{1,2}:\d{2}$/.test(str)) {
+        const [hh, mm] = str.split(':').map(Number);
+        const d = new Date(baseDate);
+        d.setHours(hh, mm, 0, 0);
+        return d;
+      }
+
+      // それ以外はDate.parseに任せるが、補完が必要
+      // 今年の日付として解釈させるなどのロジック
+      // 単純に new Date(str) してみる
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        // "1/22" などを入れると過去(2001年とか)になったりするので注意が必要だが、
+        // Chrome環境だと "1/22 10:00" -> "20xx/01/22 10:00" と現在年補完が効くことが多い。
+        // ただ、明示的に年が入っていない場合は今年の年をセットするなどの安全策をとる。
+
+        // 年が指定されていないと判断される場合（1900年代や2001年になる場合）
+        if (d.getFullYear() < 2000) {
+          d.setFullYear(new Date().getFullYear());
+        }
+        return d;
+      }
+
+      throw new Error("Invalid Date Format");
     }
 
     function create() {
@@ -324,6 +445,16 @@
       else { item.start = new Date(item.start.getTime() + d); item.end = new Date(item.end.getTime() + d); }
       render();
       debounceSave(item);
+    }
+
+    function getRoundedNow() {
+      const now = new Date();
+      const minutes = now.getMinutes();
+      const roundedMinutes = Math.round(minutes / 15) * 15;
+      now.setMinutes(roundedMinutes);
+      now.setSeconds(0);
+      now.setMilliseconds(0);
+      return now;
     }
 
     function debounceSave(item) {
