@@ -404,7 +404,10 @@
     }
 
     function create() {
-      const base = new Date(columns[activeCol].date); base.setHours(10, 0, 0, 0);
+      const base = new Date(columns[activeCol].date);
+      const now = getRoundedNow();
+      base.setHours(now.getHours(), now.getMinutes(), 0, 0);
+
       const newItem = { id: null, title: "", start: base, end: new Date(base.getTime() + 3600000) };
       columns[activeCol].items.push(newItem);
       activeRow = columns[activeCol].items.length - 1;
