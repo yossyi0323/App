@@ -4,7 +4,7 @@
  */
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('Yui Calendar Pro')
+    .setTitle('GCal Keyboard Edit')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
