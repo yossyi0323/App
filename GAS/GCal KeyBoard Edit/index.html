@@ -41,6 +41,26 @@
       font-size: 14px;
     }
 
+    /* 追加: ジャンプ用入力欄のスタイル */
+    #jump-input {
+      background: #18181b;
+      border: 1px solid #3f3f46;
+      color: white;
+      outline: none;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      width: 140px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    #jump-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
     ::-webkit-scrollbar {
       width: 4px;
     }
@@ -68,11 +88,17 @@
 </head>
 
 <body class="p-6">
-  <div class="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4 shrink-0">
+  <div class="flex justify-between items-end mb-6 border-b border-zinc-800 pb-4 shrink-0 relative">
     <div>
       <h1 class="text-xl font-bold tracking-tighter text-white">GCal KeyBoard Edit</h1>
       <p class="help-text">Arrow: NAV/ADJUST | Tab: MOVE | C:CREATE | D:DELETE | R:REFRESH | T:NOW</p>
+      <p class="help-text text-zinc-500">[:PREV | ]:NEXT | G:JUMP | Alt+T:TODAY</p>
     </div>
+
+    <div class="absolute left-1/2 bottom-4 -translate-x-1/2 z-50">
+      <input id="jump-input" type="text" placeholder="YYYY/MM/DD" tabindex="-1">
+    </div>
+
     <div class="flex items-center gap-2">
       <a href="https://script.google.com/u/0/home/projects/1wC7aXLi_rVdvxAiXm09W0WRLFynPPHTA0QJyRJSZl6RRaMpD_s_PdAd4/edit"
         target="_blank"
@@ -105,9 +131,14 @@
     let debounceTimers = {};
     const STEP = 15;
 
+    // 追加: 基準日変数
+    let currentBaseDate = new Date();
+
     function refresh() {
       setStatus('REFRESHING...');
       document.getElementById('board').style.opacity = '0.5';
+
+      // 修正: 引数に日付を渡す
       google.script.run.withSuccessHandler(data => {
         columns = data.map(col => ({
           ...col,
@@ -116,14 +147,27 @@
         document.getElementById('loading').style.display = 'none';
         document.getElementById('board').style.opacity = '1';
 
-        // 初回のみ当日を選択
-        if (columns[1] && columns[1].items.length > 0) {
-          activeCol = 1; activeRow = 0; activeCell = 0;
+        // 基準日(中央カラム)を選択し、可能な限りカーソル位置を維持
+        if (columns[1]) {
+          activeCol = 1;
+          activeRow = Math.min(activeRow, Math.max(0, columns[1].items.length - 1));
+          if (activeRow < 0) activeRow = 0;
         }
 
+        updateJumpInputDisplay(); // インプット欄更新
         render();
         setStatus('READY');
-      }).getEvents();
+      }).getEvents(currentBaseDate.toISOString());
+    }
+
+    // 追加: インプット欄の日付更新
+    function updateJumpInputDisplay() {
+      const d = currentBaseDate;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const el = document.getElementById('jump-input');
+      if (el) el.value = `${y}/${m}/${day}`;
     }
 
     function render() {
@@ -197,10 +241,38 @@
       render();
     }
 
+    // 追加: ジャンプ用入力欄のイベント設定
+    const jumpInput = document.getElementById('jump-input');
+    jumpInput.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') {
+        const val = jumpInput.value;
+        if (val) {
+          try {
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+              if (d.getFullYear() < 2000) d.setFullYear(new Date().getFullYear());
+              currentBaseDate = d;
+              refresh();
+            }
+          } catch (err) { console.error(err); }
+        }
+        jumpInput.blur();
+        document.body.focus();
+      }
+      if (e.key === 'Escape') {
+        updateJumpInputDisplay(); // 元に戻す
+        jumpInput.blur();
+        document.body.focus();
+      }
+    });
+
     // 修正：Tabキーのデフォルト動作を強力に阻止
     window.addEventListener('keydown', (e) => {
       // 編集中の場合はTab入力を許可（または別途制御）
       if (isEditing) return;
+      // ジャンプ入力中は無視
+      if (document.activeElement === jumpInput) return;
 
       if (e.key === 'Tab') {
         e.preventDefault(); // これによりバナーへのフォーカス移動を阻止
@@ -216,6 +288,23 @@
 
       switch (e.key) {
         case 'r': refresh(); break;
+
+        // --- 追加: 日付操作 ---
+        case '[':
+          currentBaseDate.setDate(currentBaseDate.getDate() - 1);
+          refresh();
+          break;
+        case ']':
+          currentBaseDate.setDate(currentBaseDate.getDate() + 1);
+          refresh();
+          break;
+        case 'G': case 'g':
+          e.preventDefault();
+          jumpInput.focus();
+          jumpInput.select();
+          break;
+        // ---------------------
+
         case 'ArrowRight':
           activeCol = Math.min(2, activeCol + 1);
           activeRow = Math.min(activeRow, Math.max(0, columns[activeCol].items.length - 1));
@@ -237,7 +326,12 @@
         case 'j': if (item) adjust(item, 1); break;
         case 'k': if (item) adjust(item, -1); break;
         case 't':
-          if (item && (activeCell === 1 || activeCell === 2)) {
+          // 変更: Alt+Tで今日、T単体で現在時刻
+          if (e.altKey) {
+            e.preventDefault();
+            currentBaseDate = new Date();
+            refresh();
+          } else if (item && (activeCell === 1 || activeCell === 2)) {
             const now = getRoundedNow();
             if (activeCell === 1) item.start = now;
             else item.end = now;
@@ -343,7 +437,6 @@
           }
           isEditing = false;
           if (success) save(item);
-
           moveTab(e.shiftKey ? -1 : 1);
           // renderはmoveTab内で呼ばれるが、activeCellが変わった後の状態になる
           // ここではrender不要（moveTabが呼ぶ）だが、save呼び出しタイミングに注意
