@@ -1,0 +1,915 @@
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Calendar as CalendarIcon, 
+  Clock, 
+  CheckCircle2, 
+  Menu,
+  Settings,
+  User,
+  X,
+  Save,
+  Trash2,
+  FileText,
+  Eye,
+  PenLine
+} from 'lucide-react';
+
+// --- 型定義 ---
+
+interface PlanDoEvent {
+  id: number;
+  title: string;
+  description?: string;
+  
+  // Plan情報
+  hasPlan: boolean;
+  planStart: Date;
+  planEnd: Date;
+  
+  // Do情報
+  hasDo: boolean;
+  doStart: Date;
+  doEnd: Date;
+}
+
+interface DragState {
+    type: 'move' | 'resize' | 'create'; // createを追加
+    target: 'plan' | 'do';
+    eventId: number; // createの場合は一時ID
+    initialY: number;
+    initialStart: Date;
+    initialEnd: Date;
+}
+
+// --- ヘルパー関数 ---
+
+const getDaysToShow = (startDate: Date, days: number) => {
+    const dates = [];
+    for (let i = 0; i < days; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        dates.push(date);
+    }
+    return dates;
+};
+
+const formatDate = (date: Date) => {
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  return `${date.getMonth() + 1}/${date.getDate()} (${days[date.getDay()]})`;
+};
+
+const isSameDate = (d1: Date, d2: Date) => {
+    // データ整合性ガード: Date型でなければ変換を試みる、またはfalseを返す
+    if (!(d1 instanceof Date) || !(d2 instanceof Date)) {
+        try {
+            const date1 = new Date(d1);
+            const date2 = new Date(d2);
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        } catch (e) {
+            return false;
+        }
+    }
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+};
+
+const formatTime = (date: Date) => {
+    // 文字列で来てもDateに変換して処理するガード
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '00:00';
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+};
+
+const roundToNearest15Minutes = (date: Date) => {
+    const minutes = date.getMinutes();
+    const roundedMinutes = Math.round(minutes / 15) * 15;
+    const newDate = new Date(date);
+    newDate.setMinutes(roundedMinutes);
+    newDate.setSeconds(0);
+    newDate.setMilliseconds(0);
+    return newDate;
+};
+
+// 簡易Markdownレンダラー（モック用）
+const SimpleMarkdownPreview = ({ text }: { text: string }) => {
+    if (!text) return <div className="text-zinc-500 text-sm italic">No content provided.</div>;
+    
+    return (
+        <div className="prose prose-invert prose-sm max-w-none text-zinc-300">
+            {text.split('\n').map((line, i) => {
+                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mb-2 text-zinc-100">{line.slice(2)}</h1>;
+                if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-bold mb-2 text-zinc-100">{line.slice(3)}</h2>;
+                if (line.startsWith('- ')) return <li key={i} className="ml-4 list-disc">{line.slice(2)}</li>;
+                if (line.trim() === '') return <br key={i} />;
+                return <p key={i} className="mb-1">{line}</p>;
+            })}
+        </div>
+    );
+};
+
+// --- コンポーネント ---
+
+// 右サイドパネル（Drawer）
+const EventSidePanel = ({ 
+    event, 
+    isOpen, 
+    onClose, 
+    onSave, 
+    onDelete 
+}: { 
+    event: PlanDoEvent | null, 
+    isOpen: boolean, 
+    onClose: () => void, 
+    onSave: (e: PlanDoEvent) => void,
+    onDelete: (id: number) => void
+}) => {
+    const [formData, setFormData] = useState<PlanDoEvent | null>(null);
+    const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
+
+    useEffect(() => {
+        if (event) {
+            // 修正: JSON.stringify/parseを使わず、明示的に新しいオブジェクトを作成してDate型を維持する
+            setFormData({
+                ...event,
+                planStart: new Date(event.planStart),
+                planEnd: new Date(event.planEnd),
+                doStart: new Date(event.doStart),
+                doEnd: new Date(event.doEnd),
+            });
+        }
+    }, [event]);
+
+    if (!isOpen || !formData) return null;
+
+    const handleChange = (field: keyof PlanDoEvent, value: any) => {
+        setFormData(prev => prev ? { ...prev, [field]: value } : null);
+    };
+
+    const handleTimeChange = (target: 'plan' | 'do', type: 'start' | 'end', value: string) => {
+        setFormData(prev => {
+            if(!prev) return null;
+            const [hours, minutes] = value.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return prev;
+            
+            let propName: keyof PlanDoEvent;
+            if (target === 'plan') {
+                propName = type === 'start' ? 'planStart' : 'planEnd';
+            } else {
+                propName = type === 'start' ? 'doStart' : 'doEnd';
+            }
+
+            const currentVal = new Date(prev[propName] as Date);
+            currentVal.setHours(hours);
+            currentVal.setMinutes(minutes);
+            
+            return { ...prev, [propName]: currentVal };
+        });
+    };
+
+    return (
+        <div className="absolute top-0 right-0 h-full w-[400px] bg-zinc-950 border-l border-zinc-800 shadow-2xl z-40 flex flex-col transform transition-transform duration-300 ease-in-out">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+                <div className="flex items-center gap-2 text-zinc-400">
+                    <FileText size={18} />
+                    <span className="text-sm font-semibold">Event Details</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => onDelete(formData.id)} className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-950/20 rounded-md transition-colors" title="削除">
+                        <Trash2 size={18} />
+                    </button>
+                    <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-zinc-50 hover:bg-zinc-800 rounded-md transition-colors" title="閉じる">
+                        <X size={20} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                
+                {/* 1. タイトル */}
+                <div className="space-y-2">
+                    <input 
+                        type="text" 
+                        value={formData.title}
+                        onChange={(e) => handleChange('title', e.target.value)}
+                        className="w-full bg-transparent border-none text-2xl font-bold text-zinc-50 placeholder:text-zinc-600 focus:ring-0 px-0"
+                        placeholder="タイトルを入力"
+                        autoFocus={formData.title === ''} // タイトルが空（新規作成時）ならフォーカス
+                    />
+                </div>
+
+                {/* 2. 時間設定 (Plan & Do) */}
+                <div className="grid grid-cols-2 gap-4">
+                    {/* Plan Column */}
+                    <div className="space-y-3 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <button 
+                                onClick={() => handleChange('hasPlan', !formData.hasPlan)}
+                                className={`w-3 h-3 rounded-sm border ${formData.hasPlan ? 'bg-zinc-500 border-zinc-500' : 'border-zinc-700'}`}
+                            />
+                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Plan (予定)</span>
+                        </div>
+                        <div className={`space-y-2 transition-opacity ${formData.hasPlan ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] text-zinc-500 font-medium">開始</label>
+                                <input 
+                                    type="time" 
+                                    value={formatTime(formData.planStart)}
+                                    onChange={(e) => handleTimeChange('plan', 'start', e.target.value)}
+                                    className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 w-20 text-center font-mono"
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] text-zinc-500 font-medium">終了</label>
+                                <input 
+                                    type="time" 
+                                    value={formatTime(formData.planEnd)}
+                                    onChange={(e) => handleTimeChange('plan', 'end', e.target.value)}
+                                    className="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 w-20 text-center font-mono"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Do Column */}
+                    <div className="space-y-3 p-3 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <div className="flex items-center gap-2 mb-2">
+                            <button 
+                                onClick={() => handleChange('hasDo', !formData.hasDo)}
+                                className={`w-3 h-3 rounded-sm border ${formData.hasDo ? 'bg-zinc-200 border-zinc-200' : 'border-zinc-700'}`}
+                            />
+                            <span className="text-xs font-bold text-zinc-100 uppercase tracking-wider">Do (実績)</span>
+                        </div>
+                        <div className={`space-y-2 transition-opacity ${formData.hasDo ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] text-zinc-500 font-medium">開始</label>
+                                <input 
+                                    type="time" 
+                                    value={formatTime(formData.doStart)}
+                                    onChange={(e) => handleTimeChange('do', 'start', e.target.value)}
+                                    className="bg-zinc-950 border border-zinc-700 text-zinc-100 rounded px-2 py-1 text-xs focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 w-20 text-center font-mono"
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] text-zinc-500 font-medium">終了</label>
+                                <input 
+                                    type="time" 
+                                    value={formatTime(formData.doEnd)}
+                                    onChange={(e) => handleTimeChange('do', 'end', e.target.value)}
+                                    className="bg-zinc-950 border border-zinc-700 text-zinc-100 rounded px-2 py-1 text-xs focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 w-20 text-center font-mono"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. メモ (Markdown) */}
+                <div className="flex flex-col h-full min-h-[200px]">
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Note (Markdown)</label>
+                        <div className="flex bg-zinc-900 rounded-md p-0.5 border border-zinc-800">
+                            <button 
+                                onClick={() => setActiveTab('write')}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all ${
+                                    activeTab === 'write' ? 'bg-zinc-800 text-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                                }`}
+                            >
+                                <PenLine size={12} /> Write
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('preview')}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-all ${
+                                    activeTab === 'preview' ? 'bg-zinc-800 text-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                                }`}
+                            >
+                                <Eye size={12} /> Preview
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 relative rounded-lg border border-zinc-800 bg-zinc-900/30 overflow-hidden group focus-within:ring-1 focus-within:ring-zinc-700 transition-all">
+                        {activeTab === 'write' ? (
+                            <textarea 
+                                value={formData.description || ''}
+                                onChange={(e) => handleChange('description', e.target.value)}
+                                className="w-full h-full bg-transparent border-none text-zinc-300 p-3 text-sm font-mono resize-none focus:ring-0 placeholder:text-zinc-700 leading-relaxed"
+                                placeholder="# 今日の振り返り&#13;&#10;- 良かった点&#13;&#10;- 改善点"
+                            />
+                        ) : (
+                            <div className="w-full h-full p-3 overflow-y-auto">
+                                <SimpleMarkdownPreview text={formData.description || ''} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-zinc-800 bg-zinc-950">
+                <button 
+                    onClick={() => onSave(formData)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-zinc-950 bg-zinc-50 hover:bg-white rounded-lg shadow-lg shadow-white/5 transition-all active:scale-[0.98]"
+                >
+                    <Save size={16} />
+                    内容を保存して閉じる
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Plan Box
+const PlanBox = ({ event, height, onMouseDown, onResizeStart }: { 
+    event: PlanDoEvent, 
+    height: number, 
+    onMouseDown: (e: React.MouseEvent) => void,
+    onResizeStart: (e: React.MouseEvent) => void
+}) => {
+    return (
+        <div 
+            className="group/card relative flex w-full h-full overflow-hidden text-xs leading-tight rounded-sm border border-zinc-700 bg-zinc-900/80 cursor-pointer hover:border-zinc-500 hover:bg-zinc-800 transition-all select-none z-10 shadow-sm"
+            onMouseDown={onMouseDown}
+        >
+            <div className="w-full flex flex-col p-1.5 text-zinc-300">
+                <div className="font-bold mb-0.5 truncate pointer-events-none text-zinc-200 text-[11px]">
+                    {event.title || '(No Title)'}
+                </div>
+            </div>
+             {/* Resize Handle */}
+            <div 
+                className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize flex items-center justify-center opacity-0 group-hover/card:opacity-100 hover:bg-zinc-700 transition-all z-20"
+                onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e); }}
+            >
+                <div className="w-4 h-0.5 rounded-full bg-zinc-500"></div>
+            </div>
+        </div>
+    );
+};
+
+// Do Box
+const DoBox = ({ event, height, onMouseDown, onResizeStart }: { 
+    event: PlanDoEvent, 
+    height: number, 
+    onMouseDown: (e: React.MouseEvent) => void,
+    onResizeStart: (e: React.MouseEvent) => void
+}) => {
+    return (
+        <div 
+            className="group/card relative flex w-full h-full overflow-hidden text-xs leading-tight rounded-sm bg-zinc-950 border border-zinc-700 cursor-pointer hover:border-zinc-500 hover:bg-zinc-900 transition-all shadow-md select-none z-10"
+            onMouseDown={onMouseDown}
+        >
+            <div className="w-full flex flex-col p-1.5 text-zinc-200">
+                <div className="font-bold mb-0.5 truncate pointer-events-none text-[11px]">
+                    {event.title || '(No Title)'}
+                </div>
+            </div>
+            {/* Resize Handle */}
+            <div 
+                className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize flex items-center justify-center opacity-0 group-hover/card:opacity-100 hover:bg-zinc-800 transition-all z-20"
+                onMouseDown={(e) => { e.stopPropagation(); onResizeStart(e); }}
+            >
+                <div className="w-4 h-0.5 rounded-full bg-zinc-600"></div>
+            </div>
+        </div>
+    );
+};
+
+// カレンダーメインビュー (3日表示)
+const MultiDayCalendar = ({ 
+    startDate, 
+    events, 
+    onDateChange,
+    onEventUpdate,
+    onEventClick,
+    onEventCreate
+}: { 
+    startDate: Date, 
+    events: PlanDoEvent[], 
+    onDateChange: (d: Date) => void,
+    onEventUpdate: (e: PlanDoEvent) => void,
+    onEventClick: (e: PlanDoEvent) => void,
+    onEventCreate: (e: PlanDoEvent) => void
+}) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dragState, setDragState] = useState<DragState | null>(null);
+    const [tempEvents, setTempEvents] = useState<PlanDoEvent[]>(events);
+    
+    const DAYS_TO_SHOW = 3;
+    const datesToShow = useMemo(() => getDaysToShow(startDate, DAYS_TO_SHOW), [startDate]);
+
+    const HOUR_HEIGHT = 80; 
+    const SNAP_MINUTES = 15;
+    const PIXELS_PER_MINUTE = HOUR_HEIGHT / 60;
+
+    // Events更新時、ドラッグ中でなければTempも更新
+    useEffect(() => {
+        if (!dragState) {
+            setTempEvents(events);
+        }
+    }, [events, dragState]);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = 560; // 8:00
+        }
+    }, []);
+
+    // --- Create Handler ---
+    const handleGridMouseDown = (e: React.MouseEvent, date: Date) => {
+        // イベントカード上のクリックでなければ（バブリングチェックは親で行うか、イベントハンドラを分ける）
+        if (e.target !== e.currentTarget) return; // 子要素（既存イベントなど）なら無視
+        
+        // 1. 時間の計算
+        const rect = e.currentTarget.getBoundingClientRect();
+        const offsetY = e.nativeEvent.offsetY;
+        const minutes = (offsetY / HOUR_HEIGHT) * 60;
+        const start = new Date(date);
+        start.setHours(0, minutes, 0, 0);
+        const roundedStart = roundToNearest15Minutes(start);
+        
+        // デフォルトで30分の長さに
+        const end = new Date(roundedStart.getTime() + 30 * 60000);
+
+        // 2. Plan/Doの判定 (横幅の半分より右ならDo)
+        const offsetX = e.nativeEvent.offsetX;
+        const width = rect.width;
+        const isPlan = offsetX < width / 2;
+        const target = isPlan ? 'plan' : 'do';
+
+        // 3. 一時イベント作成
+        const newEventId = Math.random(); // 一時ID
+        const newEvent: PlanDoEvent = {
+            id: newEventId,
+            title: '',
+            hasPlan: isPlan,
+            planStart: roundedStart,
+            planEnd: end,
+            hasDo: !isPlan,
+            doStart: roundedStart,
+            doEnd: end,
+        };
+
+        // 4. DragState開始
+        setDragState({
+            type: 'create',
+            target,
+            eventId: newEventId,
+            initialY: e.clientY, // 画面全体でのY
+            initialStart: roundedStart,
+            initialEnd: end,
+        });
+
+        // TempEventsに追加して表示させる
+        setTempEvents(prev => [...prev, newEvent]);
+    };
+
+    const handleMouseDown = (e: React.MouseEvent, event: PlanDoEvent, type: 'move' | 'resize', target: 'plan' | 'do') => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        setDragState({
+            type,
+            target,
+            eventId: event.id,
+            initialY: e.clientY,
+            initialStart: target === 'plan' ? new Date(event.planStart) : new Date(event.doStart),
+            initialEnd: target === 'plan' ? new Date(event.planEnd) : new Date(event.doEnd)
+        });
+    };
+
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+        if (!dragState) return;
+
+        const deltaY = e.clientY - dragState.initialY;
+        const deltaMinutes = Math.round((deltaY / PIXELS_PER_MINUTE) / SNAP_MINUTES) * SNAP_MINUTES;
+
+        setTempEvents(prevEvents => prevEvents.map(ev => {
+            if (ev.id !== dragState.eventId) return ev;
+
+            const newStart = new Date(dragState.initialStart);
+            const newEnd = new Date(dragState.initialEnd);
+            
+            // 既存値の保持
+            const currentPlanStart = new Date(ev.planStart);
+            const currentPlanEnd = new Date(ev.planEnd);
+            const currentDoStart = new Date(ev.doStart);
+            const currentDoEnd = new Date(ev.doEnd);
+
+            if (dragState.type === 'move') {
+                newStart.setMinutes(newStart.getMinutes() + deltaMinutes);
+                newEnd.setMinutes(newEnd.getMinutes() + deltaMinutes);
+            } else {
+                // Resize & Create (Createも実質Resize動作)
+                newEnd.setMinutes(newEnd.getMinutes() + deltaMinutes);
+                // 最小時間15分
+                if (newEnd.getTime() - newStart.getTime() < 15 * 60 * 1000) {
+                     newEnd.setTime(newStart.getTime() + 15 * 60 * 1000);
+                }
+            }
+
+            if (dragState.target === 'plan') {
+                return { ...ev, planStart: newStart, planEnd: newEnd, doStart: currentDoStart, doEnd: currentDoEnd };
+            } else {
+                return { ...ev, planStart: currentPlanStart, planEnd: currentPlanEnd, doStart: newStart, doEnd: newEnd };
+            }
+        }));
+
+    }, [dragState, PIXELS_PER_MINUTE]);
+
+    const handleMouseUp = useCallback(() => {
+        if (dragState) {
+            const changedEvent = tempEvents.find(e => e.id === dragState.eventId);
+            if (changedEvent) {
+                if (dragState.type === 'create') {
+                    onEventCreate(changedEvent);
+                } else {
+                    const isChanged = dragState.target === 'plan' 
+                        ? (changedEvent.planStart.getTime() !== dragState.initialStart.getTime() || changedEvent.planEnd.getTime() !== dragState.initialEnd.getTime())
+                        : (changedEvent.doStart.getTime() !== dragState.initialStart.getTime() || changedEvent.doEnd.getTime() !== dragState.initialEnd.getTime());
+
+                    if (isChanged) {
+                        onEventUpdate(changedEvent);
+                    } else if (dragState.type === 'move') {
+                        onEventClick(changedEvent);
+                    }
+                }
+            }
+            setDragState(null);
+        }
+    }, [dragState, tempEvents, onEventUpdate, onEventClick, onEventCreate]);
+
+    useEffect(() => {
+        if (dragState) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        } else {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [dragState, handleMouseMove, handleMouseUp]);
+
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const [now, setNow] = useState(new Date());
+    useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000);
+        return () => clearInterval(timer);
+    }, []);
+    const getCurrentTimeTop = () => (now.getHours() * HOUR_HEIGHT) + (now.getMinutes() / 60 * HOUR_HEIGHT);
+
+    return (
+        <div className="flex flex-col h-full bg-zinc-950 rounded-xl border border-zinc-800 shadow-xl overflow-hidden select-none text-zinc-200">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950 z-10">
+                <div className="flex items-center gap-6">
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
+                        <span>{datesToShow[0].getFullYear()}年 {datesToShow[0].getMonth() + 1}月</span>
+                    </h2>
+                    <div className="flex items-center rounded-lg border border-zinc-800 bg-zinc-900 shadow-sm p-0.5">
+                        <button onClick={() => {const d = new Date(startDate); d.setDate(d.getDate()-3); onDateChange(d)}} className="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 transition-all">
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button onClick={() => onDateChange(new Date())} className="px-4 py-1.5 text-sm font-semibold hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-all border-x border-zinc-800/50 mx-1">
+                            今日
+                        </button>
+                        <button onClick={() => {const d = new Date(startDate); d.setDate(d.getDate()+3); onDateChange(d)}} className="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 transition-all">
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Grid Header (Days) */}
+            <div className="flex border-b border-zinc-800 bg-zinc-950 z-10 pl-16">
+                {datesToShow.map((date, index) => (
+                    <div key={index} className="flex-1 flex flex-col items-center justify-center py-3 border-l border-zinc-800">
+                        <span className={`text-sm font-bold ${isSameDate(date, now) ? 'text-zinc-50' : 'text-zinc-400'}`}>
+                            {formatDate(date)}
+                        </span>
+                        <div className="flex w-full mt-2 px-4 gap-2">
+                             <div className="flex-1 text-[10px] text-center text-zinc-500 font-bold bg-zinc-900/50 rounded py-0.5">PLAN</div>
+                             <div className="flex-1 text-[10px] text-center text-zinc-500 font-bold bg-zinc-900/50 rounded py-0.5">DO</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Calendar Grid */}
+            <div ref={containerRef} className={`flex-1 overflow-y-auto relative scroll-smooth bg-zinc-950 ${dragState ? 'cursor-grabbing' : ''}`}>
+                <div className="relative" style={{ height: hours.length * HOUR_HEIGHT }}>
+                    
+                    {/* Time Scale & Grid Lines */}
+                    {hours.map((hour) => (
+                        <div key={hour} className="absolute w-full border-b border-zinc-800/60 flex group" style={{ top: hour * HOUR_HEIGHT, height: HOUR_HEIGHT }}>
+                            {/* Time Label */}
+                            <div className="w-16 flex-shrink-0 text-right pr-4 text-xs font-semibold text-zinc-600 relative -top-2.5 bg-transparent group-hover:text-zinc-400 transition-colors">
+                                {hour}:00
+                            </div>
+                            
+                            {/* Day Columns */}
+                            <div className="flex-1 flex">
+                                {datesToShow.map((_, index) => (
+                                    <div key={index} className="flex-1 border-l border-zinc-800/60 relative flex">
+                                        {/* Plan Column Background */}
+                                        <div className="w-1/2 h-full border-r border-zinc-800/40 bg-zinc-900/20"></div>
+                                        {/* Do Column Background */}
+                                        <div className="w-1/2 h-full"></div>
+                                        <div className="absolute top-1/2 w-full border-t border-zinc-800/30 pointer-events-none"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Events Layer */}
+                    <div className="absolute top-0 left-16 right-0 bottom-0 flex pointer-events-none">
+                        {datesToShow.map((date, dateIndex) => (
+                            // onMouseDownで背景クリックを検知
+                            <div 
+                                key={dateIndex} 
+                                className="flex-1 relative h-full pointer-events-auto border-l border-transparent cursor-cell"
+                                onMouseDown={(e) => handleGridMouseDown(e, date)}
+                            >
+                                {tempEvents.filter(e => isSameDate(e.planStart, date) || isSameDate(e.doStart, date)).map((event) => {
+                                    // Plan Position
+                                    const planStartM = event.planStart.getHours() * 60 + event.planStart.getMinutes();
+                                    const planDuration = Math.max(15, (event.planEnd.getHours() * 60 + event.planEnd.getMinutes()) - planStartM);
+                                    const planTop = (planStartM / 60) * HOUR_HEIGHT;
+                                    const planHeight = (planDuration / 60) * HOUR_HEIGHT;
+
+                                    // Do Position
+                                    const doStartM = event.doStart.getHours() * 60 + event.doStart.getMinutes();
+                                    const doDuration = Math.max(15, (event.doEnd.getHours() * 60 + event.doEnd.getMinutes()) - doStartM);
+                                    const doTop = (doStartM / 60) * HOUR_HEIGHT;
+                                    const doHeight = (doDuration / 60) * HOUR_HEIGHT;
+
+                                    const isDraggingPlan = dragState?.eventId === event.id && dragState.target === 'plan';
+                                    const isDraggingDo = dragState?.eventId === event.id && dragState.target === 'do';
+
+                                    // 日付またぎの簡易判定（今回は単日表示前提）
+                                    const showPlan = event.hasPlan && isSameDate(event.planStart, date);
+                                    const showDo = event.hasDo && isSameDate(event.doStart, date);
+
+                                    return (
+                                        <React.Fragment key={event.id}>
+                                            {showPlan && (
+                                                <div
+                                                    className={`absolute w-[47%] left-[1.5%] px-0.5 transition-all ${
+                                                        isDraggingPlan ? 'z-50 opacity-90 scale-[1.02] shadow-xl' : 'z-10 hover:z-20'
+                                                    }`}
+                                                    style={{ 
+                                                        top: `${planTop}px`, 
+                                                        height: `${planHeight}px`,
+                                                        transition: isDraggingPlan ? 'none' : 'all 0.1s ease-out'
+                                                    }}
+                                                >
+                                                    <PlanBox 
+                                                        event={event} 
+                                                        height={planHeight}
+                                                        onMouseDown={(e) => handleMouseDown(e, event, 'move', 'plan')}
+                                                        onResizeStart={(e) => handleMouseDown(e, event, 'resize', 'plan')}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {showDo && (
+                                                <div
+                                                    className={`absolute w-[47%] left-[51.5%] px-0.5 transition-all ${
+                                                        isDraggingDo ? 'z-50 opacity-90 scale-[1.02] shadow-xl' : 'z-10 hover:z-20'
+                                                    }`}
+                                                    style={{ 
+                                                        top: `${doTop}px`, 
+                                                        height: `${doHeight}px`,
+                                                        transition: isDraggingDo ? 'none' : 'all 0.1s ease-out'
+                                                    }}
+                                                >
+                                                    <DoBox 
+                                                        event={event} 
+                                                        height={doHeight}
+                                                        onMouseDown={(e) => handleMouseDown(e, event, 'move', 'do')}
+                                                        onResizeStart={(e) => handleMouseDown(e, event, 'resize', 'do')}
+                                                    />
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                                
+                                {/* Current Time Indicator (Per Day) */}
+                                {isSameDate(now, date) && (
+                                    <div 
+                                        className="absolute left-0 right-0 flex items-center pointer-events-none z-20"
+                                        style={{ top: getCurrentTimeTop() }}
+                                    >
+                                        <div className="absolute -left-1.5 w-2.5 h-2.5 rounded-full bg-white ring-4 ring-zinc-950 shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+                                        <div className="h-[2px] w-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"></div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- メインアプリケーション ---
+
+export default function App() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState<PlanDoEvent[]>([]);
+  
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<PlanDoEvent | null>(null);
+
+  useEffect(() => {
+    const baseDate = new Date();
+    const y = baseDate.getFullYear();
+    const m = baseDate.getMonth();
+    const d = baseDate.getDate();
+
+    const initialEvents: PlanDoEvent[] = [
+      {
+        id: 1,
+        title: '朝会 / メールチェック',
+        description: '# 振り返り\n- [x] メール返信\n- [ ] サーバーログ確認\n\n予定より長引いた。',
+        hasPlan: true,
+        planStart: new Date(y, m, d, 9, 0),
+        planEnd: new Date(y, m, d, 10, 0),
+        hasDo: true,
+        doStart: new Date(y, m, d, 9, 0),
+        doEnd: new Date(y, m, d, 10, 30),
+      },
+      {
+        id: 2,
+        title: 'API設計 (Go)',
+        description: 'Ginでのインターフェース定義書作成。予定通り完了。',
+        hasPlan: true,
+        planStart: new Date(y, m, d, 10, 30),
+        planEnd: new Date(y, m, d, 12, 30),
+        hasDo: true,
+        doStart: new Date(y, m, d, 10, 30),
+        doEnd: new Date(y, m, d, 12, 30),
+      },
+      {
+        id: 3,
+        title: '突発MTG: 要件定義',
+        description: 'クライアントからの緊急連絡対応。',
+        hasPlan: false,
+        planStart: new Date(y, m, d, 13, 0),
+        planEnd: new Date(y, m, d, 14, 0),
+        hasDo: true,
+        doStart: new Date(y, m, d, 13, 0),
+        doEnd: new Date(y, m, d, 14, 0),
+      },
+      // 昨日のデータ（比較用）
+      {
+        id: 4,
+        title: 'フロントエンド実装',
+        description: '着手できず。',
+        hasPlan: true,
+        planStart: new Date(y, m, d-1, 14, 0),
+        planEnd: new Date(y, m, d-1, 17, 0),
+        hasDo: false,
+        doStart: new Date(y, m, d-1, 14, 0),
+        doEnd: new Date(y, m, d-1, 17, 0),
+      }
+    ];
+    setEvents(initialEvents);
+  }, []);
+
+  const handleEventUpdate = (updatedEvent: PlanDoEvent) => {
+      setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+      
+      if (isPanelOpen && editingEvent && editingEvent.id === updatedEvent.id) {
+          setEditingEvent(updatedEvent);
+      }
+  };
+
+  const handleEventClick = (event: PlanDoEvent) => {
+      setEditingEvent(event);
+      setIsPanelOpen(true);
+  };
+
+  const handleEventCreate = (newEvent: PlanDoEvent) => {
+      // 実際のアプリではここでバックエンドに保存して正式なIDを取得する
+      setEvents(prev => [...prev, newEvent]);
+      // 作成直後に編集パネルを開く
+      setEditingEvent(newEvent);
+      setIsPanelOpen(true);
+  };
+
+  const handleSave = (savedEvent: PlanDoEvent) => {
+      setEvents(prev => prev.map(e => e.id === savedEvent.id ? savedEvent : e));
+      setIsPanelOpen(false);
+      setEditingEvent(null);
+  };
+
+  const handleDelete = (id: number) => {
+      setEvents(prev => prev.filter(e => e.id !== id));
+      setIsPanelOpen(false);
+      setEditingEvent(null);
+  };
+
+  return (
+    <div className="flex h-screen bg-zinc-950 font-sans text-zinc-200 selection:bg-zinc-700 overflow-hidden">
+      
+      {/* サイドバー */}
+      <aside className="w-64 border-r border-zinc-800 bg-zinc-950 hidden md:flex flex-col z-30 shrink-0">
+        <div className="p-6 border-b border-zinc-800 flex items-center gap-3">
+            <div className="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center text-zinc-900 font-bold shadow-md shadow-white/5">
+                P
+            </div>
+            <span className="font-bold text-lg tracking-tight text-zinc-100">PlanDoCal</span>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-1">
+            <div className="px-3 py-2 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                Workspace
+            </div>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-md bg-zinc-900 text-zinc-100 border border-zinc-800 transition-all">
+                <CalendarIcon size={18} />
+                <span>マイカレンダー</span>
+            </button>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 transition-colors">
+                <Clock size={18} />
+                <span>タイムログ</span>
+            </button>
+        </nav>
+
+        <div className="p-4 border-t border-zinc-800">
+             <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-900 cursor-pointer transition-colors">
+                <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 border border-zinc-800">
+                    <User size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-zinc-200 truncate">後藤 喜斗</p>
+                    <p className="text-xs text-zinc-500 truncate font-medium">goto@example.com</p>
+                </div>
+                <Settings size={16} className="text-zinc-500 hover:text-zinc-300 transition-colors" />
+            </div>
+        </div>
+      </aside>
+
+      {/* メインコンテンツ */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
+        <header className="h-16 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-6 md:hidden z-30 shrink-0">
+            <span className="font-bold text-lg text-zinc-100">PlanDoCal</span>
+            <button className="p-2 text-zinc-400 rounded-md hover:bg-zinc-900 hover:text-zinc-200">
+                <Menu size={20} />
+            </button>
+        </header>
+
+        <div className="flex-1 p-0 overflow-hidden flex flex-col relative z-0">
+            <MultiDayCalendar 
+                startDate={currentDate} 
+                events={events}
+                onDateChange={setCurrentDate}
+                onEventUpdate={handleEventUpdate}
+                onEventClick={handleEventClick}
+                onEventCreate={handleEventCreate}
+            />
+            
+            {/* 右サイドパネル (Drawer) */}
+            {isPanelOpen && (
+                <EventSidePanel 
+                    event={editingEvent}
+                    isOpen={isPanelOpen}
+                    onClose={() => { setIsPanelOpen(false); setEditingEvent(null); }}
+                    onSave={handleSave}
+                    onDelete={handleDelete}
+                />
+            )}
+        </div>
+      </main>
+
+      <style>{`
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #52525b; /* zinc-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #71717a; /* zinc-500 */
+        }
+      `}</style>
+    </div>
+  );
+}

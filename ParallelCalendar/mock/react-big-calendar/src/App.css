@@ -1,0 +1,181 @@
+/* 
+  Shadcn-like Premium Dark Theme 
+  Palette: Zinc (approximate hex values)
+  - 950: #09090b (Background)
+  - 900: #18181b (Card/Input)
+  - 800: #27272a (Border)
+  - 700: #3f3f46 (Hover)
+  - 500: #71717a (Muted)
+  - 400: #a1a1aa (Subtext)
+  - 100: #f4f4f5 (Text)
+*/
+
+:root {
+  --bg-color: #09090b;
+  /* zinc-950 */
+  --header-bg: #09090b;
+  /* zinc-950 */
+  --card-bg: #18181b;
+  /* zinc-900 */
+  --border-color: #27272a;
+  /* zinc-800 */
+  --border-strong: #71717a;
+  /* zinc-500 (Significantly lighter/stronger than bg) */
+  --text-main: #f4f4f5;
+  /* zinc-100 */
+  --text-muted: #a1a1aa;
+  /* zinc-400 */
+
+  --plan-bg: rgba(59, 130, 246, 0.15);
+  /* Blue-500 optimized for dark */
+  --plan-border: #1e3a8a;
+  /* Blue-900 */
+  --plan-text: #60a5fa;
+  /* Blue-400 */
+
+  --do-bg: rgba(34, 197, 94, 0.15);
+  /* Green-500 optimized for dark */
+  --do-border: #14532d;
+  /* Green-900 */
+  --do-text: #4ade80;
+  /* Green-400 */
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+/* === React Big Calendar Overrides === */
+
+.rbc-calendar {
+  height: 100%;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+/* Base Borders */
+.rbc-time-view,
+.rbc-time-header,
+.rbc-time-content,
+.rbc-header,
+.rbc-timeslot-group,
+.rbc-time-gutter .rbc-timeslot-group {
+  border-color: var(--border-color) !important;
+}
+
+/* Time Gutter (Left Axis) */
+.rbc-time-header-gutter,
+.rbc-time-gutter {
+  background-color: var(--bg-color) !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+/* --- COLUMN BORDERS (CORRECTED) --- */
+/* 
+   Logic:
+   There are 14 columns (Day 1 Plan, Day 1 Do, Day 2 Plan, Day 2 Do...)
+   Indices are 1-based in CSS nth-child usually, but let's be careful.
+   
+   ODD Columns (1st, 3rd...): PLAN columns. 
+   - Right border touches DO column -> Should be WEAK (dashed or thin).
+   
+   EVEN Columns (2nd, 4th...): DO columns.
+   - Right border touches NEXT DAY'S PLAN -> Should be STRONG (Day Separator).
+*/
+
+.rbc-day-slot {
+  border-left: none !important;
+  box-sizing: border-box;
+}
+
+/* 奇数番目 (PLAN) の右側 = PLANとDOの境界 = 薄く/点線に */
+.rbc-day-slot:nth-child(odd) {
+  border-right: 1px dashed var(--border-color) !important;
+  background-color: rgba(59, 130, 246, 0.02);
+  /* Subtle Plan Tint */
+}
+
+/* 偶数番目 (DO) の右側 = 日付の境界 = 太く/明るく */
+.rbc-day-slot:nth-child(even) {
+  border-right: 2px solid var(--border-strong) !important;
+  background-color: transparent;
+}
+
+/* 最後(14番目)の右側は外枠なので、必要なら通常に戻す */
+.rbc-day-slot:last-child {
+  border-right: none !important;
+}
+
+
+/* Make Headers match the columns */
+.rbc-header {
+  border-bottom: 1px solid var(--border-color) !important;
+  border-left: none !important;
+}
+
+.rbc-header:nth-child(odd) {
+  border-right: 1px dashed var(--border-color) !important;
+}
+
+.rbc-header:nth-child(even) {
+  border-right: 2px solid var(--border-strong) !important;
+}
+
+
+/* Events - Shadcn Card Style */
+.rbc-event {
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  line-height: 1.2;
+}
+
+.rbc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+}
+
+/* Label Colors in Header */
+.label-plan {
+  color: var(--plan-text);
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+}
+
+.label-do {
+  color: var(--do-text);
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+}
+
+/* Hide Today Highlight Background */
+.rbc-today {
+  background-color: transparent !important;
+}
+
+/* Scrollbar Hiding */
+.rbc-time-content::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Current Time Indicator */
+.rbc-current-time-indicator {
+  background-color: #f43f5e !important;
+  height: 2px !important;
+}
