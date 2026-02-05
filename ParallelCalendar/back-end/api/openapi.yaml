@@ -1,0 +1,267 @@
+openapi: 3.0.3
+info:
+  title: ParallelCalendar API
+  version: 1.0.0
+  description: ParallelCalendarのバックエンドAPI仕様
+
+servers:
+  - url: http://localhost:8080
+    description: ローカル開発サーバー
+
+components:
+  schemas:
+    # -----------------------
+    # モデル定義
+    # -----------------------
+    TimeSlot:
+      type: object
+      required:
+        - timeSlotId
+        - userId
+        - allocation
+        - startAt
+        - endAt
+      properties:
+        timeSlotId:
+          type: string
+          format: uuid
+          description: タイムスロットID
+        userId:
+          type: string
+          description: ユーザーID (Email)
+        taskId:
+          type: string
+          format: uuid
+          description: 紐づくタスクID (任意)
+        allocation:
+          $ref: "#/components/schemas/TimeSlotAllocation"
+        title:
+          type: string
+        description:
+          type: string
+        extData:
+          type: object
+          description: 拡張データ
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+
+    TimeSlotAllocation:
+      type: string
+      description: スロットのタイプ (PLAN=予定, ACTUAL=実績)
+      enum:
+        - PLAN
+        - ACTUAL
+
+    Task:
+      type: object
+      required:
+        - taskId
+        - userId
+        - title
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+
+    # -----------------------
+    # レスポンス系の定義
+    # -----------------------
+    TimeSlotList:
+      type: object
+      properties:
+        timeSlots:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimeSlot"
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+paths:
+  # =======================
+  # TimeSlots
+  # =======================
+  /timeSlots:
+    get:
+      summary: タイムスロット一覧取得
+      operationId: GetTimeSlots
+      parameters:
+        - name: startAt
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endAt
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSlotList"
+    post:
+      summary: タイムスロット作成
+      operationId: CreateTimeSlot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimeSlot"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSlot"
+
+  /timeSlots/{timeSlotId}:
+    parameters:
+      - name: timeSlotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: タイムスロット詳細取得
+      operationId: GetTimeSlot
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSlot"
+    put:
+      summary: タイムスロット更新
+      operationId: UpdateTimeSlot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TimeSlot"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimeSlot"
+    delete:
+      summary: タイムスロット削除
+      operationId: DeleteTimeSlot
+      responses:
+        "204":
+          description: No Content
+
+  # =======================
+  # Tasks
+  # =======================
+  /tasks:
+    get:
+      summary: タスク一覧取得
+      operationId: GetTasks
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      summary: タスク作成
+      operationId: CreateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Task"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: タスク詳細取得
+      operationId: GetTask
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    put:
+      summary: タスク更新
+      operationId: UpdateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Task"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      summary: タスク削除
+      operationId: DeleteTask
+      responses:
+        "204":
+          description: No Content
