@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -12,5 +13,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"timeSlots": [{"id":"test1", "title": "Go Lang Test"}]}`))
 	})
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("サーバーの起動に失敗しました。：", err)
+	}
 }
