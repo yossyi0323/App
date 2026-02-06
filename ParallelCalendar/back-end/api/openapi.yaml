@@ -21,6 +21,10 @@ components:
         - allocation
         - startAt
         - endAt
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
       properties:
         timeSlotId:
           type: string
@@ -28,6 +32,7 @@ components:
           description: タイムスロットID
         userId:
           type: string
+          format: uuid
           description: ユーザーID (Email)
         taskId:
           type: string
@@ -35,10 +40,6 @@ components:
           description: 紐づくタスクID (任意)
         allocation:
           $ref: "#/components/schemas/TimeSlotAllocation"
-        title:
-          type: string
-        description:
-          type: string
         extData:
           type: object
           description: 拡張データ
@@ -48,10 +49,18 @@ components:
         endAt:
           type: string
           format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
         createdBy:
           type: string
+          format: uuid
         updatedBy:
           type: string
+          format: uuid
 
     TimeSlotAllocation:
       type: string
@@ -66,15 +75,20 @@ components:
         - taskId
         - userId
         - title
+        - createdAt
+        - updatedAt
+        - createdBy
+        - updatedBy
       properties:
         taskId:
           type: string
           format: uuid
         userId:
           type: string
+          format: uuid
         title:
           type: string
-        description:
+        taskDescription:
           type: string
         createdAt:
           type: string
@@ -84,8 +98,10 @@ components:
           format: date-time
         createdBy:
           type: string
+          format: uuid
         updatedBy:
           type: string
+          format: uuid
 
     # -----------------------
     # レスポンス系の定義

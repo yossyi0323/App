@@ -54,7 +54,8 @@ func main() {
 	})
 
 	// OpenAPIで生成されたハンドラをルーターに登録
-	api.HandlerFromMux(server, r)
+	strictHandler := api.NewStrictHandler(server, nil)
+	api.HandlerFromMux(strictHandler, r)
 
 	serverErr := http.ListenAndServe(":8080", r)
 	if serverErr != nil {

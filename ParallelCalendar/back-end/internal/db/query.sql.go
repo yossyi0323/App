@@ -31,7 +31,7 @@ type CreateTaskParams struct {
 	TaskID          pgtype.UUID
 	UserID          pgtype.UUID
 	Title           string
-	TaskDescription string
+	TaskDescription pgtype.Text
 	CreatedAt       pgtype.Timestamp
 	UpdatedAt       pgtype.Timestamp
 	CreatedBy       pgtype.UUID
@@ -373,7 +373,7 @@ RETURNING task_id, user_id, title, task_description, created_at, updated_at, cre
 type UpdateTaskParams struct {
 	TaskID          pgtype.UUID
 	Title           string
-	TaskDescription string
+	TaskDescription pgtype.Text
 	UpdatedAt       pgtype.Timestamp
 	UpdatedBy       pgtype.UUID
 }

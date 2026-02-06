@@ -22,7 +22,7 @@ type TTask struct {
 	TaskID          pgtype.UUID
 	UserID          pgtype.UUID
 	Title           string
-	TaskDescription string
+	TaskDescription pgtype.Text
 	CreatedAt       pgtype.Timestamp
 	UpdatedAt       pgtype.Timestamp
 	CreatedBy       pgtype.UUID

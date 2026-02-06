@@ -4,19 +4,15 @@
 package api
 
 import (
-	"bytes"
-	"compress/gzip"
-	"encoding/base64"
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
-	"strings"
 	"time"
 
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
+	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -28,23 +24,23 @@ const (
 
 // Task defines model for Task.
 type Task struct {
-	CreatedAt   *time.Time         `json:"createdAt,omitempty"`
-	CreatedBy   *string            `json:"createdBy,omitempty"`
-	Description *string            `json:"description,omitempty"`
-	TaskId      openapi_types.UUID `json:"taskId"`
-	Title       string             `json:"title"`
-	UpdatedAt   *time.Time         `json:"updatedAt,omitempty"`
-	UpdatedBy   *string            `json:"updatedBy,omitempty"`
-	UserId      string             `json:"userId"`
+	CreatedAt       time.Time          `json:"createdAt"`
+	CreatedBy       openapi_types.UUID `json:"createdBy"`
+	TaskDescription *string            `json:"taskDescription,omitempty"`
+	TaskId          openapi_types.UUID `json:"taskId"`
+	Title           string             `json:"title"`
+	UpdatedAt       time.Time          `json:"updatedAt"`
+	UpdatedBy       openapi_types.UUID `json:"updatedBy"`
+	UserId          openapi_types.UUID `json:"userId"`
 }
 
 // TimeSlot defines model for TimeSlot.
 type TimeSlot struct {
 	// Allocation スロットのタイプ (PLAN=予定, ACTUAL=実績)
-	Allocation  TimeSlotAllocation `json:"allocation"`
-	CreatedBy   *string            `json:"createdBy,omitempty"`
-	Description *string            `json:"description,omitempty"`
-	EndAt       time.Time          `json:"endAt"`
+	Allocation TimeSlotAllocation `json:"allocation"`
+	CreatedAt  time.Time          `json:"createdAt"`
+	CreatedBy  openapi_types.UUID `json:"createdBy"`
+	EndAt      time.Time          `json:"endAt"`
 
 	// ExtData 拡張データ
 	ExtData *map[string]interface{} `json:"extData,omitempty"`
@@ -55,11 +51,11 @@ type TimeSlot struct {
 
 	// TimeSlotId タイムスロットID
 	TimeSlotId openapi_types.UUID `json:"timeSlotId"`
-	Title      *string            `json:"title,omitempty"`
-	UpdatedBy  *string            `json:"updatedBy,omitempty"`
+	UpdatedAt  time.Time          `json:"updatedAt"`
+	UpdatedBy  openapi_types.UUID `json:"updatedBy"`
 
 	// UserId ユーザーID (Email)
-	UserId string `json:"userId"`
+	UserId openapi_types.UUID `json:"userId"`
 }
 
 // TimeSlotAllocation スロットのタイプ (PLAN=予定, ACTUAL=実績)
@@ -583,96 +579,516 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	return r
 }
 
-// Base64 encoded, gzipped, json marshaled Swagger object
-var swaggerSpec = []string{
-
-	"H4sIAAAAAAAC/8xXTW8TRxj+K9bbHoi0zZrSA1qJg0mqympEIzWcUA5T7xuysF/MzKJalqXGW6mhHJJL",
-	"Q2krtZUotEIEJEJFSQo/ZmIH/kU1s9nvdbImcpqTvTv7fj3PM+8704OO5/ieiy5nYPSAdVbRIervEmE3",
-	"5a9PPR8pt1C97VAkHM0Wlw8rHnUIBwNMwvEjbjkIGvCuj2AA49Ryr0Nfi00ud6VJadVE1qGWzy3PrVzn",
-	"hN1sm7loQWCZVYG4xW2sdBL45qRZH5qMyTpgSKOsCkt9DSjeCiyKJhjX4uwTgzjJ5SSi99UN7HDpc8ly",
-	"8Evb42XQiW17HRJD9CHFFTDgAz2lTj/kTY99tFKLEzOA7kTA4dd8nnAiDXKeYXT39+HeCxF+J8I9MXgD",
-	"FRAwTiifJFiqjnysg51NsfaHWNsQgzdi8I8YPG3PN87t7+6Ovt2YAa2OliIgq5wrnw9E+Jv0HD4RYSjC",
-	"9fZ8PbfHSPRYvRVSCR8qNP8W4Z6s8FOHWPZMOXJRlml1GWlmZJZSEfN/lGJbOX0WwUoxEmvbMXb3GucW",
-	"F1pXLu2/Wh9u/6Q1WnNLV1sLl4bbvx68fD2jogaOTFV+BRpE65ksUmziLBYsVrF34lLVg8XRYXX3kOIr",
-	"CkYoJV2FYgED+cpyV7xy3YuEEttGe47Y6JqEytrDTYnD4KkY/CnC5yK801ps7+/+MHr0Y9IYyoaN1mIb",
-	"NLiNlEWez882Z5syOc9Hl/gWGHBhtjl7ATTwCV9V9elyY6h/11GBIiFRDEkVwWfIl9QHUhbM91wWgfVx",
-	"s6mavOdydJUd8X3birjVb7CI4Aio+njKQVLGsth54IvPFcIscBxCu/E+k3t3/+U3bx8+Gm5sDV/fk558",
-	"j1UUNae6nIoWqR0Zv+yZ3YkqOr6Q/F7iNMB+CcXzU4iZBysq1hyL2L+/jNY31WokBb0Xtcp+pFQbOZYR",
-	"nFfvEwRzJX1SlvgVrzF3WOOYNIZ3vn93/4Gk7CgZnlSF74PfeLG9/ev5wc6zjNgIJQ5ypAyMaz2wpLXc",
-	"Z6CBSxyp6GTI52WhZVI8ZjD0lzXwgwqErqqpcCY0/X9yMvp5Z7T17FDO2YY+VlbJR9UE3gqQdlMG02FX",
-	"g8IjDiR9rdp/NEJP7H15mqRkp2htcoqnoIk6dTxnp6TsZIyfcsfOxa3dtUtIZjt4rGa9l57c6nTyLMIn",
-	"6+bF9Gp09rHBm6eCdT3Bvke3z56dp9bxz9LeOEt8JZNAfor0dkxU8Vr0RF2LHovw8butuwf3X4nBC/lG",
-	"nsD35J2H2mDAKue+oevy8mKveowbF5sXm9Bf7v8XAAD//7dSR3EXEQAA",
+type GetTasksRequestObject struct {
 }
 
-// GetSwagger returns the content of the embedded swagger specification file
-// or error if failed to decode
-func decodeSpec() ([]byte, error) {
-	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+type GetTasksResponseObject interface {
+	VisitGetTasksResponse(w http.ResponseWriter) error
+}
+
+type GetTasks200JSONResponse []Task
+
+func (response GetTasks200JSONResponse) VisitGetTasksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTaskRequestObject struct {
+	Body *CreateTaskJSONRequestBody
+}
+
+type CreateTaskResponseObject interface {
+	VisitCreateTaskResponse(w http.ResponseWriter) error
+}
+
+type CreateTask201JSONResponse Task
+
+func (response CreateTask201JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTaskRequestObject struct {
+	TaskId openapi_types.UUID `json:"taskId"`
+}
+
+type DeleteTaskResponseObject interface {
+	VisitDeleteTaskResponse(w http.ResponseWriter) error
+}
+
+type DeleteTask204Response struct {
+}
+
+func (response DeleteTask204Response) VisitDeleteTaskResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type GetTaskRequestObject struct {
+	TaskId openapi_types.UUID `json:"taskId"`
+}
+
+type GetTaskResponseObject interface {
+	VisitGetTaskResponse(w http.ResponseWriter) error
+}
+
+type GetTask200JSONResponse Task
+
+func (response GetTask200JSONResponse) VisitGetTaskResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTaskRequestObject struct {
+	TaskId openapi_types.UUID `json:"taskId"`
+	Body   *UpdateTaskJSONRequestBody
+}
+
+type UpdateTaskResponseObject interface {
+	VisitUpdateTaskResponse(w http.ResponseWriter) error
+}
+
+type UpdateTask200JSONResponse Task
+
+func (response UpdateTask200JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTimeSlotsRequestObject struct {
+	Params GetTimeSlotsParams
+}
+
+type GetTimeSlotsResponseObject interface {
+	VisitGetTimeSlotsResponse(w http.ResponseWriter) error
+}
+
+type GetTimeSlots200JSONResponse TimeSlotList
+
+func (response GetTimeSlots200JSONResponse) VisitGetTimeSlotsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateTimeSlotRequestObject struct {
+	Body *CreateTimeSlotJSONRequestBody
+}
+
+type CreateTimeSlotResponseObject interface {
+	VisitCreateTimeSlotResponse(w http.ResponseWriter) error
+}
+
+type CreateTimeSlot201JSONResponse TimeSlot
+
+func (response CreateTimeSlot201JSONResponse) VisitCreateTimeSlotResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTimeSlotRequestObject struct {
+	TimeSlotId openapi_types.UUID `json:"timeSlotId"`
+}
+
+type DeleteTimeSlotResponseObject interface {
+	VisitDeleteTimeSlotResponse(w http.ResponseWriter) error
+}
+
+type DeleteTimeSlot204Response struct {
+}
+
+func (response DeleteTimeSlot204Response) VisitDeleteTimeSlotResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type GetTimeSlotRequestObject struct {
+	TimeSlotId openapi_types.UUID `json:"timeSlotId"`
+}
+
+type GetTimeSlotResponseObject interface {
+	VisitGetTimeSlotResponse(w http.ResponseWriter) error
+}
+
+type GetTimeSlot200JSONResponse TimeSlot
+
+func (response GetTimeSlot200JSONResponse) VisitGetTimeSlotResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateTimeSlotRequestObject struct {
+	TimeSlotId openapi_types.UUID `json:"timeSlotId"`
+	Body       *UpdateTimeSlotJSONRequestBody
+}
+
+type UpdateTimeSlotResponseObject interface {
+	VisitUpdateTimeSlotResponse(w http.ResponseWriter) error
+}
+
+type UpdateTimeSlot200JSONResponse TimeSlot
+
+func (response UpdateTimeSlot200JSONResponse) VisitUpdateTimeSlotResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// タスク一覧取得
+	// (GET /tasks)
+	GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error)
+	// タスク作成
+	// (POST /tasks)
+	CreateTask(ctx context.Context, request CreateTaskRequestObject) (CreateTaskResponseObject, error)
+	// タスク削除
+	// (DELETE /tasks/{taskId})
+	DeleteTask(ctx context.Context, request DeleteTaskRequestObject) (DeleteTaskResponseObject, error)
+	// タスク詳細取得
+	// (GET /tasks/{taskId})
+	GetTask(ctx context.Context, request GetTaskRequestObject) (GetTaskResponseObject, error)
+	// タスク更新
+	// (PUT /tasks/{taskId})
+	UpdateTask(ctx context.Context, request UpdateTaskRequestObject) (UpdateTaskResponseObject, error)
+	// タイムスロット一覧取得
+	// (GET /timeSlots)
+	GetTimeSlots(ctx context.Context, request GetTimeSlotsRequestObject) (GetTimeSlotsResponseObject, error)
+	// タイムスロット作成
+	// (POST /timeSlots)
+	CreateTimeSlot(ctx context.Context, request CreateTimeSlotRequestObject) (CreateTimeSlotResponseObject, error)
+	// タイムスロット削除
+	// (DELETE /timeSlots/{timeSlotId})
+	DeleteTimeSlot(ctx context.Context, request DeleteTimeSlotRequestObject) (DeleteTimeSlotResponseObject, error)
+	// タイムスロット詳細取得
+	// (GET /timeSlots/{timeSlotId})
+	GetTimeSlot(ctx context.Context, request GetTimeSlotRequestObject) (GetTimeSlotResponseObject, error)
+	// タイムスロット更新
+	// (PUT /timeSlots/{timeSlotId})
+	UpdateTimeSlot(ctx context.Context, request UpdateTimeSlotRequestObject) (UpdateTimeSlotResponseObject, error)
+}
+
+type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
+type StrictMiddlewareFunc = strictnethttp.StrictHTTPMiddlewareFunc
+
+type StrictHTTPServerOptions struct {
+	RequestErrorHandlerFunc  func(w http.ResponseWriter, r *http.Request, err error)
+	ResponseErrorHandlerFunc func(w http.ResponseWriter, r *http.Request, err error)
+}
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: StrictHTTPServerOptions{
+		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		},
+		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		},
+	}}
+}
+
+func NewStrictHandlerWithOptions(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc, options StrictHTTPServerOptions) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares, options: options}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+	options     StrictHTTPServerOptions
+}
+
+// GetTasks operation middleware
+func (sh *strictHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+	var request GetTasksRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTasks(ctx, request.(GetTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
 	if err != nil {
-		return nil, fmt.Errorf("error base64 decoding spec: %w", err)
-	}
-	zr, err := gzip.NewReader(bytes.NewReader(zipped))
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(zr)
-	if err != nil {
-		return nil, fmt.Errorf("error decompressing spec: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
-
-var rawSpec = decodeSpecCached()
-
-// a naive cached of a decoded swagger spec
-func decodeSpecCached() func() ([]byte, error) {
-	data, err := decodeSpec()
-	return func() ([]byte, error) {
-		return data, err
-	}
-}
-
-// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
-func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
-	res := make(map[string]func() ([]byte, error))
-	if len(pathToFile) > 0 {
-		res[pathToFile] = rawSpec
-	}
-
-	return res
-}
-
-// GetSwagger returns the Swagger specification corresponding to the generated code
-// in this file. The external references of Swagger specification are resolved.
-// The logic of resolving external references is tightly connected to "import-mapping" feature.
-// Externally referenced files must be embedded in the corresponding golang packages.
-// Urls can be supported but this task was out of the scope.
-func GetSwagger() (swagger *openapi3.T, err error) {
-	resolvePath := PathToRawSpec("")
-
-	loader := openapi3.NewLoader()
-	loader.IsExternalRefsAllowed = true
-	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
-		pathToFile := url.String()
-		pathToFile = path.Clean(pathToFile)
-		getSpec, ok := resolvePath[pathToFile]
-		if !ok {
-			err1 := fmt.Errorf("path not found: %s", pathToFile)
-			return nil, err1
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTasksResponseObject); ok {
+		if err := validResponse.VisitGetTasksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
-		return getSpec()
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
 	}
-	var specData []byte
-	specData, err = rawSpec()
-	if err != nil {
+}
+
+// CreateTask operation middleware
+func (sh *strictHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	var request CreateTaskRequestObject
+
+	var body CreateTaskJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
 		return
 	}
-	swagger, err = loader.LoadFromData(specData)
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTask(ctx, request.(CreateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
 	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTaskResponseObject); ok {
+		if err := validResponse.VisitCreateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteTask operation middleware
+func (sh *strictHandler) DeleteTask(w http.ResponseWriter, r *http.Request, taskId openapi_types.UUID) {
+	var request DeleteTaskRequestObject
+
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTask(ctx, request.(DeleteTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteTaskResponseObject); ok {
+		if err := validResponse.VisitDeleteTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTask operation middleware
+func (sh *strictHandler) GetTask(w http.ResponseWriter, r *http.Request, taskId openapi_types.UUID) {
+	var request GetTaskRequestObject
+
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTask(ctx, request.(GetTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTaskResponseObject); ok {
+		if err := validResponse.VisitGetTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTask operation middleware
+func (sh *strictHandler) UpdateTask(w http.ResponseWriter, r *http.Request, taskId openapi_types.UUID) {
+	var request UpdateTaskRequestObject
+
+	request.TaskId = taskId
+
+	var body UpdateTaskJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
 		return
 	}
-	return
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTask(ctx, request.(UpdateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTaskResponseObject); ok {
+		if err := validResponse.VisitUpdateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTimeSlots operation middleware
+func (sh *strictHandler) GetTimeSlots(w http.ResponseWriter, r *http.Request, params GetTimeSlotsParams) {
+	var request GetTimeSlotsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTimeSlots(ctx, request.(GetTimeSlotsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTimeSlots")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTimeSlotsResponseObject); ok {
+		if err := validResponse.VisitGetTimeSlotsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTimeSlot operation middleware
+func (sh *strictHandler) CreateTimeSlot(w http.ResponseWriter, r *http.Request) {
+	var request CreateTimeSlotRequestObject
+
+	var body CreateTimeSlotJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTimeSlot(ctx, request.(CreateTimeSlotRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTimeSlot")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTimeSlotResponseObject); ok {
+		if err := validResponse.VisitCreateTimeSlotResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteTimeSlot operation middleware
+func (sh *strictHandler) DeleteTimeSlot(w http.ResponseWriter, r *http.Request, timeSlotId openapi_types.UUID) {
+	var request DeleteTimeSlotRequestObject
+
+	request.TimeSlotId = timeSlotId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTimeSlot(ctx, request.(DeleteTimeSlotRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTimeSlot")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteTimeSlotResponseObject); ok {
+		if err := validResponse.VisitDeleteTimeSlotResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTimeSlot operation middleware
+func (sh *strictHandler) GetTimeSlot(w http.ResponseWriter, r *http.Request, timeSlotId openapi_types.UUID) {
+	var request GetTimeSlotRequestObject
+
+	request.TimeSlotId = timeSlotId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTimeSlot(ctx, request.(GetTimeSlotRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTimeSlot")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTimeSlotResponseObject); ok {
+		if err := validResponse.VisitGetTimeSlotResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTimeSlot operation middleware
+func (sh *strictHandler) UpdateTimeSlot(w http.ResponseWriter, r *http.Request, timeSlotId openapi_types.UUID) {
+	var request UpdateTimeSlotRequestObject
+
+	request.TimeSlotId = timeSlotId
+
+	var body UpdateTimeSlotJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTimeSlot(ctx, request.(UpdateTimeSlotRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTimeSlot")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTimeSlotResponseObject); ok {
+		if err := validResponse.VisitUpdateTimeSlotResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
