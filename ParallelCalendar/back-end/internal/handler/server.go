@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -32,9 +31,9 @@ func (s *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 func (s *Server) GetTask(w http.ResponseWriter, r *http.Request, taskId openapi_types.UUID) {
 
 	// TODO: UUIDをpgtype.UUIDに変換してDBからデータ取得して戻り値にセットする
-	ctx := r.Context()
-	task, err := s.Queries.GetTask(ctx, pgtype.UUID{})
-	var res api.Task
+	// ctx := r.Context()
+	// task, err := s.Queries.GetTask(ctx, pgtype.UUID{})
+	// var res api.Task
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(api.Task{})

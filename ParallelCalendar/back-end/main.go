@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatal("環境変数の読み込みに失敗しました。", err)
 	}
+	log.Println("環境変数の読み込みに成功しました。")
 
 	ctx := context.Background()
 
@@ -34,6 +35,7 @@ func main() {
 		log.Fatal("データベースへの接続に失敗しました。", err)
 	}
 	defer pool.Close()
+	log.Println("データベースへの接続に成功しました。")
 
 	server := handler.NewServer(queries)
 
@@ -58,6 +60,7 @@ func main() {
 	if serverErr != nil {
 		log.Fatal("サーバーの起動に失敗しました。：", serverErr)
 	}
+	log.Println("サーバーの起動に成功しました。")
 }
 
 func connectDB(ctx context.Context) (*pgxpool.Pool, *db.Queries, error) {
