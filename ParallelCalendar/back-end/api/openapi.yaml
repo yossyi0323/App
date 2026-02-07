@@ -259,6 +259,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Task"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     put:
       summary: タスク更新
       operationId: UpdateTask

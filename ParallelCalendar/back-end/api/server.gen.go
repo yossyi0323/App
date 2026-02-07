@@ -22,6 +22,12 @@ const (
 	PLAN   TimeSlotAllocation = "PLAN"
 )
 
+// Error defines model for Error.
+type Error struct {
+	Code    *int    `json:"code,omitempty"`
+	Message *string `json:"message,omitempty"`
+}
+
 // Task defines model for Task.
 type Task struct {
 	CreatedAt       time.Time          `json:"createdAt"`
@@ -641,6 +647,15 @@ type GetTask200JSONResponse Task
 func (response GetTask200JSONResponse) VisitGetTaskResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTask404JSONResponse Error
+
+func (response GetTask404JSONResponse) VisitGetTaskResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
