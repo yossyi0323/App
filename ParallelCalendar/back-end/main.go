@@ -14,7 +14,7 @@ import (
 
 	"back-end/api"
 	"back-end/internal/db"
-	"back-end/internal/handler"
+	"back-end/internal/interfaces"
 	"back-end/repository"
 )
 
@@ -43,7 +43,7 @@ func main() {
 	repos := repository.NewRepositories(queries)
 
 	// サーバーの初期化
-	server := handler.NewServer(repos)
+	server := interfaces.NewServer(repos)
 
 	// Chiのルーター
 	r := chi.NewRouter()

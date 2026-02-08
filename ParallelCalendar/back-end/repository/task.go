@@ -4,8 +4,10 @@ import (
 	"back-end/domain"
 	"back-end/internal/db"
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type TaskRepository struct {
@@ -42,7 +44,13 @@ func (r *TaskRepository) GetTasks(ctx context.Context, userId uuid.UUID) ([]doma
 
 func (r *TaskRepository) GetTask(ctx context.Context, taskId uuid.UUID) (domain.Task, error) {
 	taskDomain, err := r.Queries.GetTask(ctx, ConvertUUIDToPgtype(taskId))
-	return TaskEntityToDomain(taskDomain), err
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Task{}, domain.ErrNotFound
+		}
+		return domain.Task{}, err
+	}
+	return TaskEntityToDomain(taskDomain), nil
 }
 
 func (r *TaskRepository) DeleteTask(ctx context.Context, taskId uuid.UUID) error {

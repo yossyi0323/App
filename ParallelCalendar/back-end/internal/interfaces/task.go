@@ -1,25 +1,13 @@
-package handler
+package interfaces
 
 import (
 	"back-end/api"
 	"back-end/domain"
-	"back-end/repository"
 	"context"
 	"errors"
 
-	"github.com/jackc/pgx/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
-
-type Server struct {
-	Repos *repository.Repositories
-}
-
-func NewServer(repos *repository.Repositories) *Server {
-	return &Server{
-		Repos: repos,
-	}
-}
 
 // タスク作成
 // (POST /tasks)
@@ -59,7 +47,7 @@ func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) 
 
 	taskDomain, err := s.Repos.Task.GetTask(ctx, request.TaskId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, domain.ErrNotFound) {
 			return api.GetTask404JSONResponse{}, nil
 		}
 		return nil, err
@@ -112,34 +100,4 @@ func TaskDomainToModel(task domain.Task) api.Task {
 		CreatedBy:       openapi_types.UUID(task.CreatedBy),
 		UpdatedBy:       openapi_types.UUID(task.UpdatedBy),
 	}
-}
-
-// タイムスロット一覧取得
-// (GET /timeSlots)
-func (s *Server) GetTimeSlots(ctx context.Context, request api.GetTimeSlotsRequestObject) (api.GetTimeSlotsResponseObject, error) {
-	return api.GetTimeSlots200JSONResponse{}, nil
-}
-
-// タイムスロット詳細取得
-// (GET /timeSlots/{timeSlotId})
-func (s *Server) GetTimeSlot(ctx context.Context, request api.GetTimeSlotRequestObject) (api.GetTimeSlotResponseObject, error) {
-	return api.GetTimeSlot200JSONResponse{}, nil
-}
-
-// タイムスロット作成
-// (POST /timeSlots)
-func (s *Server) CreateTimeSlot(ctx context.Context, request api.CreateTimeSlotRequestObject) (api.CreateTimeSlotResponseObject, error) {
-	return api.CreateTimeSlot201JSONResponse{}, nil
-}
-
-// タイムスロット更新
-// (PUT /timeSlots/{timeSlotId})
-func (s *Server) UpdateTimeSlot(ctx context.Context, request api.UpdateTimeSlotRequestObject) (api.UpdateTimeSlotResponseObject, error) {
-	return api.UpdateTimeSlot200JSONResponse{}, nil
-}
-
-// タイムスロット削除
-// (DELETE /timeSlots/{timeSlotId})
-func (s *Server) DeleteTimeSlot(ctx context.Context, request api.DeleteTimeSlotRequestObject) (api.DeleteTimeSlotResponseObject, error) {
-	return api.DeleteTimeSlot204Response{}, nil
 }
