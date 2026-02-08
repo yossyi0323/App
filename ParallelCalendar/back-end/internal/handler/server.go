@@ -35,6 +35,10 @@ func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestOb
 		CreatedBy:       request.Body.CreatedBy,
 		UpdatedBy:       request.Body.UpdatedBy,
 	}
+	if err := taskDomain.Validate(); err != nil {
+		// TODO CreateTask400JSONResponseとか、バリデーションチェックに引っかかった場合のエラーを定義する
+		return nil, err
+	}
 	task, err := s.Repos.Task.CreateTask(ctx, taskDomain)
 	if err != nil {
 		return nil, err
@@ -75,6 +79,10 @@ func (s *Server) UpdateTask(ctx context.Context, request api.UpdateTaskRequestOb
 		UpdatedAt:       request.Body.UpdatedAt,
 		CreatedBy:       request.Body.CreatedBy,
 		UpdatedBy:       request.Body.UpdatedBy,
+	}
+	if err := taskDomain.Validate(); err != nil {
+		// TODO CreateTask400JSONResponseとか、バリデーションチェックに引っかかった場合のエラーを定義する
+		return nil, err
 	}
 	task, err := s.Repos.Task.UpdateTask(ctx, taskDomain)
 	if err != nil {
