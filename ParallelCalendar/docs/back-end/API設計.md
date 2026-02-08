@@ -121,8 +121,25 @@ time_slotsテーブルのエンティティを削除する
 
 ## タスク
 
-### 取得
+### 一括取得
 GET /tasks
+#### Request
+tasksテーブルのエンティティリストを返す
+```json
+    tasks {
+        "taskId": "",
+        "userId": "me@yossyi.com",
+        "title": "",
+        "description": "",
+        "createdAt": "",
+        "updatedAt": "",
+        "createdBy": "",
+        "updatedBy": ""
+    }
+```
+
+### 取得
+GET /tasks/{id}
 #### Request
 tasksテーブルのエンティティリストを返す
 ```json

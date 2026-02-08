@@ -72,6 +72,11 @@ type TimeSlotList struct {
 	TimeSlots *[]TimeSlot `json:"timeSlots,omitempty"`
 }
 
+// GetTasksParams defines parameters for GetTasks.
+type GetTasksParams struct {
+	UserId openapi_types.UUID `form:"userId" json:"userId"`
+}
+
 // GetTimeSlotsParams defines parameters for GetTimeSlots.
 type GetTimeSlotsParams struct {
 	StartAt time.Time `form:"startAt" json:"startAt"`
@@ -94,7 +99,7 @@ type UpdateTimeSlotJSONRequestBody = TimeSlot
 type ServerInterface interface {
 	// タスク一覧取得
 	// (GET /tasks)
-	GetTasks(w http.ResponseWriter, r *http.Request)
+	GetTasks(w http.ResponseWriter, r *http.Request, params GetTasksParams)
 	// タスク作成
 	// (POST /tasks)
 	CreateTask(w http.ResponseWriter, r *http.Request)
@@ -130,7 +135,7 @@ type Unimplemented struct{}
 
 // タスク一覧取得
 // (GET /tasks)
-func (_ Unimplemented) GetTasks(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) GetTasks(w http.ResponseWriter, r *http.Request, params GetTasksParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -200,8 +205,28 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // GetTasks operation middleware
 func (siw *ServerInterfaceWrapper) GetTasks(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTasksParams
+
+	// ------------- Required query parameter "userId" -------------
+
+	if paramValue := r.URL.Query().Get("userId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "userId", r.URL.Query(), &params.UserId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTasks(w, r)
+		siw.Handler.GetTasks(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -586,6 +611,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 }
 
 type GetTasksRequestObject struct {
+	Params GetTasksParams
 }
 
 type GetTasksResponseObject interface {
@@ -827,8 +853,10 @@ type strictHandler struct {
 }
 
 // GetTasks operation middleware
-func (sh *strictHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+func (sh *strictHandler) GetTasks(w http.ResponseWriter, r *http.Request, params GetTasksParams) {
 	var request GetTasksRequestObject
+
+	request.Params = params
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
 		return sh.ssi.GetTasks(ctx, request.(GetTasksRequestObject))

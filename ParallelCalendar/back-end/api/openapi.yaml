@@ -215,6 +215,13 @@ paths:
     get:
       summary: タスク一覧取得
       operationId: GetTasks
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: OK

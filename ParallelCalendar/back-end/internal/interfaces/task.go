@@ -37,8 +37,15 @@ func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestOb
 // タスク一覧取得
 // (GET /tasks)
 func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject) (api.GetTasksResponseObject, error) {
-
-	return api.GetTasks200JSONResponse{}, nil
+	tasks, err := s.Repos.Task.GetTasks(ctx, request.Params.UserId)
+	if err != nil {
+		return nil, err
+	}
+	taskList := []api.Task{}
+	for _, task := range tasks {
+		taskList = append(taskList, TaskDomainToModel(task))
+	}
+	return api.GetTasks200JSONResponse(taskList), nil
 }
 
 // タスク詳細取得
