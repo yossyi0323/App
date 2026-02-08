@@ -22,26 +22,6 @@ func NewServer(queries *db.Queries) *Server {
 	}
 }
 
-// タスク一覧取得
-// (GET /tasks)
-func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject) (api.GetTasksResponseObject, error) {
-	return api.GetTasks200JSONResponse{}, nil
-}
-
-// タスク詳細取得
-// (GET /tasks/{taskId})
-func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) (api.GetTaskResponseObject, error) {
-
-	taskDomain, err := repository.GetTask(ctx, s.Queries, request.TaskId)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return api.GetTask404JSONResponse{}, nil
-		}
-		return nil, err
-	}
-	return api.GetTask200JSONResponse(TaskDomainToModel(taskDomain)), nil
-}
-
 // タスク作成
 // (POST /tasks)
 func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestObject) (api.CreateTaskResponseObject, error) {
@@ -61,6 +41,27 @@ func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestOb
 		return nil, err
 	}
 	return api.CreateTask201JSONResponse(TaskDomainToModel(task)), nil
+}
+
+// タスク一覧取得
+// (GET /tasks)
+func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject) (api.GetTasksResponseObject, error) {
+
+	return api.GetTasks200JSONResponse{}, nil
+}
+
+// タスク詳細取得
+// (GET /tasks/{taskId})
+func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) (api.GetTaskResponseObject, error) {
+
+	taskDomain, err := repository.GetTask(ctx, s.Queries, request.TaskId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return api.GetTask404JSONResponse{}, nil
+		}
+		return nil, err
+	}
+	return api.GetTask200JSONResponse(TaskDomainToModel(taskDomain)), nil
 }
 
 // タスク更新
