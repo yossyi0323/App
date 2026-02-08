@@ -42,8 +42,8 @@ func main() {
 	// リポジトリの初期化
 	repos := repository.NewRepositories(queries)
 
-	// サーバーの初期化
-	server := interfaces.NewServer(repos)
+	// インターフェースの初期化
+	interfaces := interfaces.NewServer(repos)
 
 	// Chiのルーター
 	r := chi.NewRouter()
@@ -60,8 +60,8 @@ func main() {
 	})
 
 	// OpenAPIで生成されたハンドラをルーターに登録
-	strictHandler := api.NewStrictHandler(server, nil)
-	api.HandlerFromMux(strictHandler, r)
+	handler := api.NewStrictHandler(interfaces, nil)
+	api.HandlerFromMux(handler, r)
 
 	serverErr := http.ListenAndServe(":8080", r)
 	if serverErr != nil {
