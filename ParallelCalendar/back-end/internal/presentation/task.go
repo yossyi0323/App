@@ -1,11 +1,13 @@
-package interfaces
+package presentation
 
 import (
 	"back-end/api"
 	"back-end/domain"
 	"context"
 	"errors"
+	"time"
 
+	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -13,15 +15,21 @@ import (
 // (POST /tasks)
 func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestObject) (api.CreateTaskResponseObject, error) {
 
+	now := time.Now()
+	id, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
 	taskDomain := domain.Task{
-		TaskId:          request.Body.TaskId,
-		UserId:          request.Body.UserId,
+		TaskId:          id,
+		UserId:          uuid.UUID(request.Body.UserId),
 		Title:           request.Body.Title,
 		TaskDescription: request.Body.TaskDescription,
-		CreatedAt:       request.Body.CreatedAt,
-		UpdatedAt:       request.Body.UpdatedAt,
-		CreatedBy:       request.Body.CreatedBy,
-		UpdatedBy:       request.Body.UpdatedBy,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+		CreatedBy:       uuid.UUID(request.Body.CreatedBy),
+		UpdatedBy:       uuid.UUID(request.Body.UpdatedBy),
 	}
 	if err := taskDomain.Validate(); err != nil {
 		// TODO CreateTask400JSONResponseとか、バリデーションチェックに引っかかった場合のエラーを定義する
@@ -37,7 +45,9 @@ func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestOb
 // タスク一覧取得
 // (GET /tasks)
 func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject) (api.GetTasksResponseObject, error) {
-	tasks, err := s.Repos.Task.GetTasks(ctx, request.Params.UserId)
+	// TODO: 認証機能実装後に、コンテキストからユーザーIDを取得する形に移行する
+	// 現状はクエリパラメータ必須としている
+	tasks, err := s.Repos.Task.GetTasks(ctx, uuid.UUID(request.Params.UserId))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +62,7 @@ func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject
 // (GET /tasks/{taskId})
 func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) (api.GetTaskResponseObject, error) {
 
-	taskDomain, err := s.Repos.Task.GetTask(ctx, request.TaskId)
+	taskDomain, err := s.Repos.Task.GetTask(ctx, uuid.UUID(request.TaskId))
 	if err != nil {
 		if errors.Is(err, domain.ErrNotFound) {
 			return api.GetTask404JSONResponse{}, nil
@@ -66,14 +76,14 @@ func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) 
 // (PUT /tasks/{taskId})
 func (s *Server) UpdateTask(ctx context.Context, request api.UpdateTaskRequestObject) (api.UpdateTaskResponseObject, error) {
 	taskDomain := domain.Task{
-		TaskId:          request.Body.TaskId,
-		UserId:          request.Body.UserId,
+		TaskId:          uuid.UUID(request.Body.TaskId),
+		UserId:          uuid.UUID(request.Body.UserId),
 		Title:           request.Body.Title,
 		TaskDescription: request.Body.TaskDescription,
 		CreatedAt:       request.Body.CreatedAt,
 		UpdatedAt:       request.Body.UpdatedAt,
-		CreatedBy:       request.Body.CreatedBy,
-		UpdatedBy:       request.Body.UpdatedBy,
+		CreatedBy:       uuid.UUID(request.Body.CreatedBy),
+		UpdatedBy:       uuid.UUID(request.Body.UpdatedBy),
 	}
 	if err := taskDomain.Validate(); err != nil {
 		// TODO CreateTask400JSONResponseとか、バリデーションチェックに引っかかった場合のエラーを定義する
@@ -89,7 +99,7 @@ func (s *Server) UpdateTask(ctx context.Context, request api.UpdateTaskRequestOb
 // タスク削除
 // (DELETE /tasks/{taskId})
 func (s *Server) DeleteTask(ctx context.Context, request api.DeleteTaskRequestObject) (api.DeleteTaskResponseObject, error) {
-	err := s.Repos.Task.DeleteTask(ctx, request.TaskId)
+	err := s.Repos.Task.DeleteTask(ctx, uuid.UUID(request.TaskId))
 	if err != nil {
 		return nil, err
 	}

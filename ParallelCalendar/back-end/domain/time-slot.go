@@ -9,7 +9,7 @@ import (
 // domainエラーを定義
 var ()
 
-type Timeslot struct {
+type TimeSlot struct {
 	TimeSlotId uuid.UUID
 	UserId     uuid.UUID
 	TaskId     uuid.UUID
@@ -23,6 +23,6 @@ type Timeslot struct {
 	UpdatedBy  uuid.UUID
 }
 
-func (t *Timeslot) Validate() error {
+func (t *TimeSlot) Validate() error {
 	return nil
 }

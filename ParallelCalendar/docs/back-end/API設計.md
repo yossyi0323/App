@@ -5,7 +5,7 @@ Google認証でいきたい。暫定的にまずはBasic認証でも良いけど
 
 
 ## タイムスロット
-### 取得
+### 一括取得
 GET /timeSlots
 
 カレンダー表示に必要な全データを取得する。
@@ -13,6 +13,7 @@ GET /timeSlots
 
 #### Request
 *   Query Parameters:
+    *   `userId`: `me@yossyi.com` (必須)
     *   `startAt`: `2026-01-01T00:00:00+09:00` (必須)
     *   `endAt`: `2026-01-31T23:59:59+09:00` (必須)
 
@@ -23,12 +24,10 @@ time_slotsテーブルのエンティティリストを返す
 {
     "timeSlots": [
         {
-            "id": "slot-001",
+            "timeSlotId": "slot-001",
             "userId": "me@yossyi.com",
             "taskId": "task-abc",
-            "type": "PLAN", // "PLAN" | "ACTUAL" | "CUST＄OM"
-            "title": "英語学習",
-            "description": "単語帳P.1-10",
+            "allocation": "PLAN", // "PLAN" | "ACTUAL" | "CUSTOM"
             "extData": {},
             "startAt": "2026-01-01T10:00:00+09:00",
             "endAt": "2026-01-01T11:00:00+09:00",
@@ -39,6 +38,7 @@ time_slotsテーブルのエンティティリストを返す
 }
 ```
 
+### 取得
 GET /timeSlots/{id}
 
 #### Request
@@ -49,9 +49,7 @@ time_slotsテーブルのエンティティを返す
     "id": "slot-001",
     "userId": "me@yossyi.com",
     "taskId": "task-abc",
-    "type": "PLAN", // "PLAN" | "ACTUAL" | "CUST＄OM"
-    "title": "英語学習",
-    "description": "単語帳P.1-10",
+    "allocation": "PLAN", // "PLAN" | "ACTUAL" | "CUSTOM"
     "extData": {},
     "startAt": "2026-01-01T10:00:00+09:00",
     "endAt": "2026-01-01T11:00:00+09:00",
@@ -69,9 +67,7 @@ time_slotsテーブルのエンティティを作成する
 {
     "taskId": "task-abc",
     "userId": "me@yossyi.com",
-    "type": "PLAN", // "PLAN" | "ACTUAL" | "CUST＄OM"
-    "title": "英語学習",
-    "description": "単語帳P.1-10",
+    "allocation": "PLAN", // "PLAN" | "ACTUAL" | "CUSTOM"
     "extData": {},
     "startAt": "2026-01-01T10:00:00+09:00",
     "endAt": "2026-01-01T11:00:00+09:00",
@@ -87,11 +83,10 @@ PUT /timeSlots/{id}
 time_slotsテーブルのエンティティを更新する
 ```json
 {
+    "timeSlotId": "slot-001",
     "taskId": "task-abc",
     "userId": "me@yossyi.com",
-    "type": "PLAN", // "PLAN" | "ACTUAL" | "CUST＄OM"
-    "title": "英語学習",
-    "description": "単語帳P.1-10",
+    "allocation": "PLAN", // 当面は"PLAN" | "ACTUAL"だけど、今後マスタ設定で自由に増やせるように機能拡張する予定
     "extData": {},
     "startAt": "2026-01-01T10:00:00+09:00",
     "endAt": "2026-01-01T11:00:00+09:00",
@@ -99,18 +94,6 @@ time_slotsテーブルのエンティティを更新する
     "updatedBy": "me@yossyi.com"
 }
 ```
-#### Response
-
-PATCH /timeSlots/{id}
-#### Request
-time_slotsテーブルのエンティティを更新する
-```json
-{
-    "taskId": "task-abc",
-    "endAt": "2026-01-01T18:00:00+09:00"
-}
-```
-
 #### Response
 
 ### 削除
@@ -124,6 +107,9 @@ time_slotsテーブルのエンティティを削除する
 ### 一括取得
 GET /tasks
 #### Request
+*   Query Parameters:
+    *   `userId`: `me@yossyi.com` (必須)
+
 tasksテーブルのエンティティリストを返す
 ```json
     tasks {
@@ -141,7 +127,8 @@ tasksテーブルのエンティティリストを返す
 ### 取得
 GET /tasks/{id}
 #### Request
-tasksテーブルのエンティティリストを返す
+#### Request
+tasksテーブルのエンティティを返す
 ```json
     tasks {
         "taskId": "",
@@ -187,19 +174,7 @@ tasksテーブルのエンティティを更新する
 ```
 #### Response
 
-PATCH /tasks/{id}
-#### Request
-tasksテーブルのエンティティを更新する
-```json
-{
-    "userId": "me@yossyi.com",
-    "title": "英語学習",
-    "description": "単語帳P.1-10",
-    "createdBy": "me@yossyi.com",
-    "updatedBy": "me@yossyi.com"
-}
-```
-#### Response
+
 
 ### 削除
 DELETE /tasks/{id}
