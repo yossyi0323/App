@@ -14,7 +14,7 @@ import (
 
 	"back-end/api"
 	"back-end/internal/db"
-	"back-end/internal/interfaces"
+	"back-end/internal/presentation"
 	"back-end/repository"
 )
 
@@ -39,11 +39,11 @@ func main() {
 	defer pool.Close()
 	log.Println("データベースへの接続に成功しました。")
 
-	// リポジトリの初期化
+	// リポジトリ層の初期化
 	repos := repository.NewRepositories(queries)
 
 	// インターフェースの初期化
-	interfaces := interfaces.NewServer(repos)
+	presentation := presentation.NewServer(repos)
 
 	// Chiのルーター
 	r := chi.NewRouter()
@@ -60,7 +60,7 @@ func main() {
 	})
 
 	// OpenAPIで生成されたハンドラをルーターに登録
-	handler := api.NewStrictHandler(interfaces, nil)
+	handler := api.NewStrictHandler(presentation, nil)
 	api.HandlerFromMux(handler, r)
 
 	serverErr := http.ListenAndServe(":8080", r)

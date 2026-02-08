@@ -1,4 +1,4 @@
-package interfaces
+package presentation
 
 import (
 	"back-end/repository"

@@ -16,12 +16,6 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for TimeSlotAllocation.
-const (
-	ACTUAL TimeSlotAllocation = "ACTUAL"
-	PLAN   TimeSlotAllocation = "PLAN"
-)
-
 // Error defines model for Error.
 type Error struct {
 	Code    *int    `json:"code,omitempty"`
@@ -42,8 +36,8 @@ type Task struct {
 
 // TimeSlot defines model for TimeSlot.
 type TimeSlot struct {
-	// Allocation スロットのタイプ (PLAN=予定, ACTUAL=実績)
-	Allocation TimeSlotAllocation `json:"allocation"`
+	// Allocation アロケーション
+	Allocation string             `json:"allocation"`
 	CreatedAt  time.Time          `json:"createdAt"`
 	CreatedBy  openapi_types.UUID `json:"createdBy"`
 	EndAt      time.Time          `json:"endAt"`
@@ -52,8 +46,8 @@ type TimeSlot struct {
 	ExtData *map[string]interface{} `json:"extData,omitempty"`
 	StartAt time.Time               `json:"startAt"`
 
-	// TaskId 紐づくタスクID (任意)
-	TaskId *openapi_types.UUID `json:"taskId,omitempty"`
+	// TaskId 紐づくタスクID
+	TaskId openapi_types.UUID `json:"taskId"`
 
 	// TimeSlotId タイムスロットID
 	TimeSlotId openapi_types.UUID `json:"timeSlotId"`
@@ -63,9 +57,6 @@ type TimeSlot struct {
 	// UserId ユーザーID (Email)
 	UserId openapi_types.UUID `json:"userId"`
 }
-
-// TimeSlotAllocation スロットのタイプ (PLAN=予定, ACTUAL=実績)
-type TimeSlotAllocation string
 
 // TimeSlotList defines model for TimeSlotList.
 type TimeSlotList struct {
@@ -79,8 +70,9 @@ type GetTasksParams struct {
 
 // GetTimeSlotsParams defines parameters for GetTimeSlots.
 type GetTimeSlotsParams struct {
-	StartAt time.Time `form:"startAt" json:"startAt"`
-	EndAt   time.Time `form:"endAt" json:"endAt"`
+	UserId  openapi_types.UUID `form:"userId" json:"userId"`
+	StartAt time.Time          `form:"startAt" json:"startAt"`
+	EndAt   time.Time          `form:"endAt" json:"endAt"`
 }
 
 // CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
@@ -332,6 +324,21 @@ func (siw *ServerInterfaceWrapper) GetTimeSlots(w http.ResponseWriter, r *http.R
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetTimeSlotsParams
+
+	// ------------- Required query parameter "userId" -------------
+
+	if paramValue := r.URL.Query().Get("userId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "userId", r.URL.Query(), &params.UserId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
 
 	// ------------- Required query parameter "startAt" -------------
 
