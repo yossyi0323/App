@@ -18,6 +18,7 @@ components:
       required:
         - timeSlotId
         - userId
+        - taskId
         - allocation
         - startAt
         - endAt
@@ -37,9 +38,10 @@ components:
         taskId:
           type: string
           format: uuid
-          description: 紐づくタスクID (任意)
+          description: 紐づくタスクID
         allocation:
-          $ref: "#/components/schemas/TimeSlotAllocation"
+          type: string
+          description: アロケーション
         extData:
           type: object
           description: 拡張データ
@@ -61,13 +63,6 @@ components:
         updatedBy:
           type: string
           format: uuid
-
-    TimeSlotAllocation:
-      type: string
-      description: スロットのタイプ (PLAN=予定, ACTUAL=実績)
-      enum:
-        - PLAN
-        - ACTUAL
 
     Task:
       type: object
@@ -131,6 +126,12 @@ paths:
       summary: タイムスロット一覧取得
       operationId: GetTimeSlots
       parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
         - name: startAt
           in: query
           required: true
