@@ -15,6 +15,7 @@ import (
 	"back-end/api"
 	"back-end/internal/db"
 	"back-end/internal/handler"
+	"back-end/repository"
 )
 
 func main() {
@@ -30,6 +31,7 @@ func main() {
 
 	ctx := context.Background()
 
+	// データベースの接続
 	pool, queries, err := connectDB(ctx)
 	if err != nil {
 		log.Fatal("データベースへの接続に失敗しました。", err)
@@ -37,7 +39,11 @@ func main() {
 	defer pool.Close()
 	log.Println("データベースへの接続に成功しました。")
 
-	server := handler.NewServer(queries)
+	// リポジトリの初期化
+	repos := repository.NewRepositories(queries)
+
+	// サーバーの初期化
+	server := handler.NewServer(repos)
 
 	// Chiのルーター
 	r := chi.NewRouter()

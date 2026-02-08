@@ -3,7 +3,6 @@ package handler
 import (
 	"back-end/api"
 	"back-end/domain"
-	"back-end/internal/db"
 	"back-end/repository"
 	"context"
 	"errors"
@@ -13,12 +12,12 @@ import (
 )
 
 type Server struct {
-	Queries *db.Queries
+	Repos *repository.Repositories
 }
 
-func NewServer(queries *db.Queries) *Server {
+func NewServer(repos *repository.Repositories) *Server {
 	return &Server{
-		Queries: queries,
+		Repos: repos,
 	}
 }
 
@@ -36,7 +35,7 @@ func (s *Server) CreateTask(ctx context.Context, request api.CreateTaskRequestOb
 		CreatedBy:       request.Body.CreatedBy,
 		UpdatedBy:       request.Body.UpdatedBy,
 	}
-	task, err := repository.CreateTask(ctx, s.Queries, taskDomain)
+	task, err := s.Repos.Task.CreateTask(ctx, taskDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +53,7 @@ func (s *Server) GetTasks(ctx context.Context, request api.GetTasksRequestObject
 // (GET /tasks/{taskId})
 func (s *Server) GetTask(ctx context.Context, request api.GetTaskRequestObject) (api.GetTaskResponseObject, error) {
 
-	taskDomain, err := repository.GetTask(ctx, s.Queries, request.TaskId)
+	taskDomain, err := s.Repos.Task.GetTask(ctx, request.TaskId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return api.GetTask404JSONResponse{}, nil
@@ -77,7 +76,7 @@ func (s *Server) UpdateTask(ctx context.Context, request api.UpdateTaskRequestOb
 		CreatedBy:       request.Body.CreatedBy,
 		UpdatedBy:       request.Body.UpdatedBy,
 	}
-	task, err := repository.UpdateTask(ctx, s.Queries, taskDomain)
+	task, err := s.Repos.Task.UpdateTask(ctx, taskDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func (s *Server) UpdateTask(ctx context.Context, request api.UpdateTaskRequestOb
 // タスク削除
 // (DELETE /tasks/{taskId})
 func (s *Server) DeleteTask(ctx context.Context, request api.DeleteTaskRequestObject) (api.DeleteTaskResponseObject, error) {
-	err := repository.DeleteTask(ctx, s.Queries, request.TaskId)
+	err := s.Repos.Task.DeleteTask(ctx, request.TaskId)
 	if err != nil {
 		return nil, err
 	}
