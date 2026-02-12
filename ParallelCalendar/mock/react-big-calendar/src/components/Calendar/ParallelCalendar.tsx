@@ -37,7 +37,14 @@ export const ParallelCalendar = () => {
         return res;
     }, [days]);
 
-    const viewModels = useMemo(() => events.map(ev => Adapter.toViewModel(ev, startDate)), [events, startDate]);
+    const viewModels = useMemo(() => events.map(ev => Adapter.toViewModel(
+        ev,
+        startDate,
+        (e) => e.start,
+        (e) => e.end,
+        (e) => e.realDate,
+        (e) => e.type
+    )), [events, startDate]);
 
     const handleNavigate = useCallback((newDate: Date) => setStartDate(newDate), []);
 
@@ -81,7 +88,7 @@ export const ParallelCalendar = () => {
     }, []);
 
     // Open Panel on Click
-    const handleSelectEvent = useCallback((event: CalendarViewModel) => {
+    const handleSelectEvent = useCallback((event: CalendarViewModel<DomainEvent>) => {
         // ViewModelからDomainEventを探す
         const domainEvent = events.find(e => e.id === event.id);
         if (domainEvent) {
