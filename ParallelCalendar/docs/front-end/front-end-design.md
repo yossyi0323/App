@@ -10,7 +10,7 @@
 - TailwindCSS
 - shadcn/ui
 - Vitest
-- ベーシック認証（とりあえず最低限）、将来的にGoogle認証（または同等のIdP）を検討
+- Google認証
 - ESLint
 - Prettier
 - Zod
@@ -21,7 +21,7 @@
 - date-fns
 - Redux Toolkit
 - React Hook Form
-- loglevel（構造化ログ・ログレベル制御用の軽量ロガー）
+- loglevel
 
 ディレクトリ構成：レイヤーベース成にする
 実際のディレクトリ構成は実装しながら、Redux Toolkit・TanStack Query・Router をどの層に置くかを都度検討して決める。
