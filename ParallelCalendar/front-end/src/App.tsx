@@ -1,34 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {GoogleOAuthProvider} from "@react-oauth/google"
+import Login from './routes/login'
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { CalendarWithTime } from "@/components/calendar-with-time"
+import { ThemeProvider } from "./components/theme-provider"
+import { ModeToggle } from "./components/mode-toggle"
+import { SidebarRight } from "./components/sidebar-right"
 
 function App() {
-  const [count, setCount] = useState(0)
+  // import.meta.env.VITE_GOOGLE_CLIENT_ID
+  // TODO: Google APIキーを取得して設定する
+  const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID_PLACEHOLDER"
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 data-[orientation=vertical]:h-4"
+                  />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>October 2024</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+                <div className="ml-auto">
+                  <ModeToggle />
+                </div>
+              </header>
+              <div className="flex flex-1 flex-col gap-4 p-4">
+                <div className="grid auto-rows-min gap-4 md:grid-cols-5">
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <div key={i} className="bg-muted/50 aspect-square rounded-xl" />
+                  ))}
+                </div>
+              </div>
+            </SidebarInset>
+            
+            <SidebarRight/>
+          </SidebarProvider>
+          <Login/>
+        </ThemeProvider>
+    </GoogleOAuthProvider>
   )
 }
 
