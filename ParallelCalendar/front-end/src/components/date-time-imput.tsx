@@ -9,20 +9,14 @@ import { InputGroupButton } from "@/components/ui/input-group";
 import { Popover } from "@/components/ui/popover";
 import { PopoverTrigger } from "@/components/ui/popover";
 import { PopoverContent } from "@/components/ui/popover";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Clock2Icon } from "lucide-react";
 import React from "react";
 
 function formatDate(date: Date | undefined) {
-  if (!date) {
-    return "";
-  }
-
-  return date.toLocaleDateString("en-US", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  if (!date) return "";
+  return format(date, "yyyy/MM/dd");
 }
 
 function isValidDate(date: Date | undefined) {

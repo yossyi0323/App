@@ -18,7 +18,7 @@
 .rbc-wrapper .rbc-toolbar {
   gap: calc(2 * var(--spacing));
   flex-wrap: wrap;
-  margin-bottom: calc(4 * var(--spacing));
+  margin-bottom: 0;
 }
 
 .rbc-wrapper .rbc-toolbar .rbc-toolbar-label {
@@ -52,6 +52,12 @@
   background: var(--primary) !important;
   color: var(--primary-foreground) !important;
   border-color: var(--primary) !important;
+}
+
+.rbc-wrapper .rbc-btn-group {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2);
 }
 
 .rbc-wrapper .rbc-btn-group button + button {

@@ -1,5 +1,5 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import Login from "./routes/login";
+// import Login from "./routes/login";
 import ParallelCalendar from "./components/parallel-calendar";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
@@ -63,7 +63,7 @@ function App() {
             </div> */}
           </SidebarInset>
 
-          <SidebarRight width="24rem" />
+          <SidebarRight width="20rem" />
         </SidebarProvider>
         <Toaster />
         {/* <Login /> */}
