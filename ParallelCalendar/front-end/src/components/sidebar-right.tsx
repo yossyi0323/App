@@ -1,9 +1,7 @@
-import * as React from "react"
-import { Plus } from "lucide-react"
+import * as React from "react";
+import { Plus } from "lucide-react";
 
-import { Calendars } from "@/components/calendars"
-import { DatePicker } from "@/components/date-picker"
-import { NavUser } from "@/components/nav-user"
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -12,12 +10,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
-  SidebarSeparator,
-} from "@/components/ui/sidebar"
-import { CalendarWithTime } from "@/components/calendar-with-time"
-import { Field, FieldDescription, FieldGroup, FieldLabel} from "./ui/field"
-import { Textarea } from "./ui/textarea"
+} from "@/components/ui/sidebar";
+import { MultiTimeSlot } from "@/components/multi-time-slot";
+import { Field, FieldGroup } from "@/components/ui/field";
 // This is sample data.
 const data = {
   user: {
@@ -39,25 +34,31 @@ const data = {
       items: ["Travel", "Reminders", "Deadlines"],
     },
   ],
-}
+};
 
 export function SidebarRight({
+  width,
   ...props
-}: React.ComponentProps<typeof Sidebar>) {
+}: React.ComponentProps<typeof Sidebar> & { width?: string }) {
   return (
     <Sidebar
       collapsible="none"
       className="sticky top-0 hidden h-svh border-l lg:flex"
+      style={
+        width
+          ? ({ "--sidebar-width": width } as React.CSSProperties)
+          : undefined
+      }
       {...props}
     >
       <SidebarHeader className="border-sidebar-border h-16 border-b">
         <NavUser user={data.user} />
       </SidebarHeader>
       <SidebarContent>
-        <CalendarWithTime />
+        {/* <CalendarWithTime /> */}
         <FieldGroup>
           <Field>
-            <Textarea />
+            <MultiTimeSlot />
           </Field>
         </FieldGroup>
       </SidebarContent>
@@ -72,5 +73,5 @@ export function SidebarRight({
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -1,21 +1,20 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
+import * as React from "react";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group"
-import { Clock2Icon } from "lucide-react"
-import { Textarea } from "./ui/textarea"
+} from "@/components/ui/input-group";
+import { Clock2Icon } from "lucide-react";
 
 export function CalendarWithTime() {
   const [date, setDate] = React.useState<Date | undefined>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 12)
-  )
+    new Date(new Date().getFullYear(), new Date().getMonth(), 12),
+  );
 
   return (
     <Card className="mx-auto w-fit">
@@ -28,7 +27,7 @@ export function CalendarWithTime() {
         />
       </CardContent>
       <CardFooter className="bg-card border-t">
-      <FieldGroup>
+        <FieldGroup>
           <Field>
             <FieldLabel htmlFor="time-from">Start Time</FieldLabel>
             <InputGroup>
@@ -94,5 +93,5 @@ export function CalendarWithTime() {
         </FieldGroup>
       </CardFooter>
     </Card>
-  )
+  );
 }

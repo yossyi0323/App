@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar } from "@/components/ui/calendar";
 
 export function DateTimePicker() {
   return (
@@ -9,5 +9,5 @@ export function DateTimePicker() {
       captionLayout="dropdown"
       className="rounded-lg border"
     />
-  )
+  );
 }

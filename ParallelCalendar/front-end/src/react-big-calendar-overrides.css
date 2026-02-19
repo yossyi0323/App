@@ -1,0 +1,205 @@
+/**
+ * react-big-calendar のデフォルトスタイル上書き
+ * ライブラリの react-big-calendar.css の「後」に読み込むこと。
+ * テーマ変数（--background, --foreground, --border 等）で shadcn/ui と統一。
+ * ライト/ダークは親の .dark で変数が切り替わるため、同一ルールで両対応。
+ */
+
+/* ========== ルート: カレンダー全体の土台 ========== */
+.rbc-wrapper {
+  color: var(--foreground);
+  font-family: inherit;
+  /* グリッド用: 枠線を細く・薄く（shadcn 風） */
+  --rbc-grid-border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+}
+
+/* ========== ツールバー（Today / Back / Next / Month Week Day Agenda）========== */
+/* padding は Tailwind の --spacing（0.25rem）で py-2 px-4 / py-2 px-3 相当 */
+.rbc-wrapper .rbc-toolbar {
+  gap: calc(2 * var(--spacing));
+  flex-wrap: wrap;
+  margin-bottom: calc(4 * var(--spacing));
+}
+
+.rbc-wrapper .rbc-toolbar .rbc-toolbar-label {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.rbc-wrapper .rbc-toolbar button {
+  color: var(--foreground) !important;
+  background: var(--secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: calc(2 * var(--spacing)) calc(4 * var(--spacing)) !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.rbc-wrapper .rbc-toolbar button:hover {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+.rbc-wrapper .rbc-toolbar button:focus,
+.rbc-wrapper .rbc-toolbar button:active {
+  outline: none;
+  background: var(--muted) !important;
+}
+
+.rbc-wrapper .rbc-toolbar button.rbc-active {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary) !important;
+}
+
+.rbc-wrapper .rbc-btn-group button + button {
+  margin-left: -1px;
+}
+
+.rbc-wrapper .rbc-btn-group > button:first-child:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rbc-wrapper .rbc-btn-group > button:last-child:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rbc-wrapper .rbc-btn-group > button:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+/* ========== ヘッダー（日付・リソース名）========== */
+.rbc-wrapper .rbc-header {
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  padding: calc(2 * var(--spacing)) calc(3 * var(--spacing));
+  font-weight: 500;
+  font-size: 0.875rem;
+  min-height: calc(9 * var(--spacing));
+  box-sizing: border-box;
+}
+
+.rbc-wrapper .rbc-header:first-child {
+  border-left: none;
+}
+
+.rbc-wrapper .rbc-header + .rbc-header {
+  border-left: 1px solid var(--border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-header > .rbc-row:first-child,
+.rbc-wrapper .rbc-addons-dnd .rbc-time-header > .rbc-row.rbc-row-resource {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.rbc-wrapper .rbc-time-header > .rbc-row:first-child > .rbc-header:first-child {
+  border-top-left-radius: var(--radius-md);
+}
+.rbc-wrapper .rbc-time-header > .rbc-row:first-child > .rbc-header:last-child {
+  border-top-right-radius: var(--radius-md);
+}
+
+.rbc-wrapper .rbc-header > a,
+.rbc-wrapper .rbc-header > a:active,
+.rbc-wrapper .rbc-header > a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ========== 背景・文字色（グリッド全体）========= */
+.rbc-wrapper .rbc-day-slot {
+  background: var(--background);
+}
+
+.rbc-wrapper .rbc-label {
+  color: var(--foreground);
+  font-size: 0.75rem;
+}
+
+.rbc-wrapper .rbc-time-gutter,
+.rbc-wrapper .rbc-time-column,
+.rbc-wrapper .rbc-allday-cell,
+.rbc-wrapper .rbc-time-header-gutter {
+  background: var(--background) !important;
+  color: var(--foreground);
+}
+
+.rbc-wrapper .rbc-time-header-content {
+  background: var(--background) !important;
+  color: var(--foreground);
+}
+
+.rbc-wrapper .rbc-today {
+  background: var(--muted);
+  /* border-left: 1px solid var(--primary); */
+}
+
+/* ========== 枠線: 1px 統一・色を薄く（主張を弱める）========= */
+.rbc-wrapper .rbc-addons-dnd .rbc-timeslot-group {
+  border-bottom: var(--rbc-grid-border) !important;
+  border-top: none !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-day-slot .rbc-time-slot {
+  border-top: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-view-resources .rbc-time-gutter,
+.rbc-wrapper .rbc-addons-dnd .rbc-time-view-resources .rbc-time-header-gutter {
+  border-right: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-header-content {
+  border-left: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-header-content + .rbc-time-header-content {
+  border-left: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-content {
+  border-top: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-content > * + * > * {
+  border-left: var(--rbc-grid-border) !important;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-time-view .rbc-allday-cell + .rbc-allday-cell {
+  border-left: var(--rbc-grid-border) !important;
+}
+
+/* ========== イベントブロック（shadcn の secondary/card 風）========= */
+.rbc-wrapper .rbc-addons-dnd .rbc-day-slot .rbc-event,
+.rbc-wrapper .rbc-addons-dnd .rbc-day-slot .rbc-background-event {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 1px solid color-mix(in oklch, var(--primary-foreground) 25%, transparent) !important;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+.rbc-wrapper .rbc-addons-dnd .rbc-event.rbc-selected,
+.rbc-wrapper .rbc-addons-dnd .rbc-day-slot .rbc-selected.rbc-background-event {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 1px solid color-mix(in oklch, var(--primary-foreground) 40%, transparent) !important;
+}
+
+/* ========== レイアウト調整 ========== */
+.rbc-wrapper .rbc-addons-dnd .rbc-day-slot .rbc-events-container {
+  /* margin-right: 0 !important; */
+  margin: 5px;
+}
+
+
+.rbc-time-view {
+  border :none;
+}
