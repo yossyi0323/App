@@ -10,7 +10,7 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "../react-big-calendar-overrides.css";
 import { useState } from "react";
 
-import { useGetTimeSlots } from "../lib/api/generated";
+import { useGetTasks, useGetTimeSlots } from "../lib/api/generated";
 
 const localizer = momentLocalizer(moment);
 const DragAndDropCalendar = withDragAndDrop<CalendarEvent, Resource>(Calendar);
@@ -30,6 +30,21 @@ type Resource = {
 };
 
 export default function ParallelCalendar() {
+  const { data: tasks } = useGetTasks({
+    userId: "0194e4fb-4b5a-73d9-a864-21975e526c8f",
+  });
+  console.log("--tasks--");
+  console.log(tasks);
+  console.log("---");
+  const { data: timeSlots } = useGetTimeSlots({
+    userId: "0194e4fb-4b5a-73d9-a864-21975e526c8f",
+    startAt: "2026-02-19T18:00:00.000Z",
+    endAt: "2026-02-19T20:00:00.000Z",
+  });
+  console.log("--timeSlots--");
+  console.log(timeSlots);
+  console.log("---");
+
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: 1,
@@ -39,16 +54,18 @@ export default function ParallelCalendar() {
       resourceId: 1,
     },
   ]);
-
-  const { data: timeSlots } = useGetTimeSlots({
-    userId: "0194e4fb-4b5a-73d9-a864-21975e526c8f",
-    startAt: "2026-02-19T18:00:00.000Z",
-    endAt: "2026-02-19T20:00:00.000Z",
-  });
+  // const events = timeSlots?.map((timeSlot) => {
+  //   const task = tasks?.find((task) => task.taskId === timeSlot.taskId);
+  //   const event = {
+  //     id: timeSlot.timeSlotId,
+  //     title: task?.title ?? "",
+  //     start: timeSlot.startAt,
+  //     end: timeSlot.endAt,
+  //     resourceId: timeSlot.allocation,
+  //   };
+  //   return event;
+  // });
   // TODO 後で消す
-  console.log("---");
-  console.log(timeSlots);
-  console.log("---");
   const resourceMap: Resource[] = [
     {
       id: 1,
