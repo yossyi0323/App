@@ -10,6 +10,8 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "../react-big-calendar-overrides.css";
 import { useState } from "react";
 
+import { useGetTimeSlots } from "../lib/api/generated";
+
 const localizer = momentLocalizer(moment);
 const DragAndDropCalendar = withDragAndDrop<CalendarEvent, Resource>(Calendar);
 
@@ -37,6 +39,16 @@ export default function ParallelCalendar() {
       resourceId: 1,
     },
   ]);
+
+  const { data: timeSlots } = useGetTimeSlots({
+    userId: "0194e4fb-4b5a-73d9-a864-21975e526c8f",
+    startAt: "2026-02-19T18:00:00.000Z",
+    endAt: "2026-02-19T20:00:00.000Z",
+  });
+  // TODO 後で消す
+  console.log("---");
+  console.log(timeSlots);
+  console.log("---");
   const resourceMap: Resource[] = [
     {
       id: 1,

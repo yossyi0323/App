@@ -20,38 +20,43 @@ import { ModeToggle } from "./components/mode-toggle";
 import { SidebarRight } from "./components/sidebar-right";
 import log from "./lib/loglevel";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 function App() {
   // import.meta.env.VITE_GOOGLE_CLIENT_ID
   // TODO: Google APIキーを取得して設定する
   const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID_PLACEHOLDER";
+
+  const queryClient = new QueryClient();
 
   log.info("App started");
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4"
-              />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbPage>October 2024</BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-              <div className="ml-auto">
-                <ModeToggle />
-              </div>
-            </header>
-            <ParallelCalendar />
-            {/* <div className="flex flex-1 flex-col gap-4 p-4">
+        <QueryClientProvider client={queryClient}>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 data-[orientation=vertical]:h-4"
+                />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>October 2024</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </BreadcrumbList>
+                </Breadcrumb>
+                <div className="ml-auto">
+                  <ModeToggle />
+                </div>
+              </header>
+              <ParallelCalendar />
+              {/* <div className="flex flex-1 flex-col gap-4 p-4">
               <div className="grid auto-rows-min gap-4 md:grid-cols-5">
                 {Array.from({ length: 20 }).map((_, i) => (
                   <div
@@ -61,12 +66,13 @@ function App() {
                 ))}
               </div>
             </div> */}
-          </SidebarInset>
+            </SidebarInset>
 
-          <SidebarRight width="20rem" />
-        </SidebarProvider>
-        <Toaster />
-        {/* <Login /> */}
+            <SidebarRight width="20rem" />
+          </SidebarProvider>
+          <Toaster />
+          {/* <Login /> */}
+        </QueryClientProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
   );

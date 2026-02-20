@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 
 	"back-end/api"
 	"back-end/internal/db"
@@ -63,7 +64,17 @@ func main() {
 	handler := api.NewStrictHandler(presentation, nil)
 	api.HandlerFromMux(handler, r)
 
-	serverErr := http.ListenAndServe(":8080", r)
+	c := cors.New(
+		cors.Options{
+			AllowedOrigins: []string{"http://localhost:5173"},
+			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"*"},
+			AllowCredentials: true,
+		},
+	)
+	handlerWithCors := c.Handler(r)
+
+	serverErr := http.ListenAndServe(":8080", handlerWithCors)
 	if serverErr != nil {
 		log.Fatal("サーバーの起動に失敗しました。：", serverErr)
 	}
